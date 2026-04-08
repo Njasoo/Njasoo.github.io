@@ -31,6 +31,113 @@ v-model是双向绑定,v-bind是单向绑定属性值
       </tags>
   </entry>
   <entry>
+    <title>express框架使用</title>
+    <url>/2025/10/20/express%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8/</url>
+    <content><![CDATA[初始化项目
+npm init -y
+init是自动生成package.json之类的文件, 进行初始化
+-y是–yes的缩写, 表示跳过配置环节的询问项,
+全部使用默认值进行初始化
+npm install express
+创建入口文件
+创建一个app.js, 如下编写
+const express = require(&#x27;express&#x27;);const app = express();const port = 3000;app.listen(port, () =&gt; &#123;  console.log(`Server is running on http://localhost:$&#123;port&#125;`);&#125;);app.get(&#x27;/&#x27;, (req, res) =&gt; &#123;  res.send(&#x27;Hello, World!&#x27;);&#125;);
+使用node app.js命令可以启动后端服务
+每次重新编写都需要重新启动服务器, 很麻烦
+这里可以安装一个帮助自动重启的库
+npm install -g nodemon
+-g是全局安装的意思
+nodemon app.js
+启动服务, 每次修改app.js保存的时候, 就会自动重启服务器
+express项目结构
+my-express-app/├── node_modules/               # 依赖包目录├── public/                     # 静态资源目录│   ├── css/                    # CSS 文件│   ├── js/                     # JavaScript 文件│   └── images/                 # 图片文件├── src/                        # 源代码目录│   ├── app.js                  # 应用主入口│   ├── config/                 # 配置文件│   │   ├── database.js         # 数据库配置│   │   └── env.js              # 环境变量配置│   ├── controllers/            # 控制器层（处理业务逻辑）│   │   ├── user.controller.js│   │   └── post.controller.js│   ├── models/                 # 模型层（数据模型和数据库交互）│   │   ├── user.model.js│   │   └── post.model.js│   ├── routes/                 # 路由层（定义 API 路径）│   │   ├── user.routes.js│   │   ├── post.routes.js│   │   └── index.js            # 路由入口│   ├── middleware/             # 中间件│   │   ├── auth.middleware.js  # 身份验证│   │   └── error.middleware.js # 错误处理│   ├── services/               # 服务层（复杂业务逻辑）│   │   ├── email.service.js│   │   └── upload.service.js│   └── utils/                  # 工具函数│       ├── logger.js           # 日志工具│       └── validator.js        # 验证工具├── tests/                      # 测试目录│   ├── unit/                   # 单元测试│   └── integration/            # 集成测试├── .env                        # 环境变量配置├── .gitignore                  # Git 忽略文件├── package.json                # 项目配置和依赖├── package-lock.json           # 依赖锁定文件└── README.md                   # 项目说明文档
+路由操作(接口)
+在routes文件夹下创建对应表的route(这里是接口的意思),
+命名格式统一为_route.js吧
+为了避免回调地狱, 我们要用同步的方法来编写接口
+restful api 规范
+类似这样
+
+
+
+目的
+方法
+URI
+
+
+
+
+取得所有使用者資料
+GET
+/users
+
+
+新增使用者
+POST
+/users
+
+
+取得某位使用者資料
+GET
+/users/{id}
+
+
+更改某位使用者資料
+PUT/PATCH
+/users/{id}
+
+
+删除某位使用者
+DELETE
+/users/{id}
+
+
+
+数据库
+安装依赖
+npm install sequelize mysql2
+sequelize库是ORM方式操作数据库的, 就是利用对象来操作,
+而不是主要直接运行sql语句
+mysql2是sequelize操作MySQL的底层驱动
+相关配置
+数据库的相关配置我们会定义在/config文件夹里面
+const &#123; Sequelize &#125; = require(&#x27;sequelize&#x27;);const sequelize = new Sequelize(&#x27;full_stack_demo&#x27;, &#x27;Njaso&#x27;, &#x27;114514&#x27;, &#123;    host: &#x27;localhost&#x27;,    dialect: &#x27;mysql&#x27;,    pool: &#123;        max: 5, // 连接池最大连接数        min: 0,        acquire: 30000, // 获取连接的最大等待时间（毫秒）        idle: 10000 // 空闲连接的最大空闲时间（毫秒）    &#125;&#125;);module.exports = sequelize;
+表定义
+定义在/models里面, 命名格式为_model.js
+const sequelize = new Sequelize(&#x27;database&#x27;, &#x27;username&#x27;, &#x27;password&#x27;, &#123;  dialect: &#x27;mysql&#x27;&#125;);User.init(attributes, &#123;  sequelize, // 绑定到这个 Sequelize 实例  // ...&#125;);
+User.init(attributes, &#123;  sequelize,  modelName: &#x27;User&#x27;,  tableName: &#x27;my_custom_users&#x27; // 表名强制为 my_custom_users&#125;);
+modelName是表在数据库当中实际的名字, 而tableName是代码引用的名字
+不给TableName的话, 那么代码引用的就是modelName
+中间件
+对请求的参数或者其他东西做统一处理的东西
+app.use(express.json());
+把接口参数转换为json对象
+app.use(&#x27;/table1&#x27;, table1Route);
+给table1的接口加上一个/table1的前缀
+]]></content>
+      <tags>
+        <tag>express</tag>
+        <tag>node</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>express框架快速搭建</title>
+    <url>/2025/10/20/express%E6%A1%86%E6%9E%B6%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA/</url>
+    <content><![CDATA[全局安装vue
+npm install -g @vue/cli
+express-generator后端项目基础骨架
+npm install -g express-generator
+安装后端框架
+express --view=ejs server
+express –view=ejs server 命令的作用是使用 Express 应用生成器
+创建一个基于 EJS 模板引擎 的 Express.js 项目，项目目录名为 server
+]]></content>
+      <tags>
+        <tag>express</tag>
+        <tag>node</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>css样式</title>
     <url>/2025/10/20/css%E6%A0%B7%E5%BC%8F/</url>
     <content><![CDATA[/deep/.el-sub-menu__title:hover &#123;        color:white!important;        background: #1890FF!important;    &#125;
@@ -200,23 +307,6 @@ rgba(0, 0, 0, 0.5)
       </tags>
   </entry>
   <entry>
-    <title>express框架快速搭建</title>
-    <url>/2025/10/20/express%E6%A1%86%E6%9E%B6%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA/</url>
-    <content><![CDATA[全局安装vue
-npm install -g @vue/cli
-express-generator后端项目基础骨架
-npm install -g express-generator
-安装后端框架
-express --view=ejs server
-express –view=ejs server 命令的作用是使用 Express 应用生成器
-创建一个基于 EJS 模板引擎 的 Express.js 项目，项目目录名为 server
-]]></content>
-      <tags>
-        <tag>express</tag>
-        <tag>node</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hello World</title>
     <url>/2025/10/20/hello-world/</url>
     <content><![CDATA[Welcome to Hexo! This is your very
@@ -238,96 +328,6 @@ Deploy to remote sites
 $ hexo deploy
 More info: Deployment
 ]]></content>
-  </entry>
-  <entry>
-    <title>express框架使用</title>
-    <url>/2025/10/20/express%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8/</url>
-    <content><![CDATA[初始化项目
-npm init -y
-init是自动生成package.json之类的文件, 进行初始化
--y是–yes的缩写, 表示跳过配置环节的询问项,
-全部使用默认值进行初始化
-npm install express
-创建入口文件
-创建一个app.js, 如下编写
-const express = require(&#x27;express&#x27;);const app = express();const port = 3000;app.listen(port, () =&gt; &#123;  console.log(`Server is running on http://localhost:$&#123;port&#125;`);&#125;);app.get(&#x27;/&#x27;, (req, res) =&gt; &#123;  res.send(&#x27;Hello, World!&#x27;);&#125;);
-使用node app.js命令可以启动后端服务
-每次重新编写都需要重新启动服务器, 很麻烦
-这里可以安装一个帮助自动重启的库
-npm install -g nodemon
--g是全局安装的意思
-nodemon app.js
-启动服务, 每次修改app.js保存的时候, 就会自动重启服务器
-express项目结构
-my-express-app/├── node_modules/               # 依赖包目录├── public/                     # 静态资源目录│   ├── css/                    # CSS 文件│   ├── js/                     # JavaScript 文件│   └── images/                 # 图片文件├── src/                        # 源代码目录│   ├── app.js                  # 应用主入口│   ├── config/                 # 配置文件│   │   ├── database.js         # 数据库配置│   │   └── env.js              # 环境变量配置│   ├── controllers/            # 控制器层（处理业务逻辑）│   │   ├── user.controller.js│   │   └── post.controller.js│   ├── models/                 # 模型层（数据模型和数据库交互）│   │   ├── user.model.js│   │   └── post.model.js│   ├── routes/                 # 路由层（定义 API 路径）│   │   ├── user.routes.js│   │   ├── post.routes.js│   │   └── index.js            # 路由入口│   ├── middleware/             # 中间件│   │   ├── auth.middleware.js  # 身份验证│   │   └── error.middleware.js # 错误处理│   ├── services/               # 服务层（复杂业务逻辑）│   │   ├── email.service.js│   │   └── upload.service.js│   └── utils/                  # 工具函数│       ├── logger.js           # 日志工具│       └── validator.js        # 验证工具├── tests/                      # 测试目录│   ├── unit/                   # 单元测试│   └── integration/            # 集成测试├── .env                        # 环境变量配置├── .gitignore                  # Git 忽略文件├── package.json                # 项目配置和依赖├── package-lock.json           # 依赖锁定文件└── README.md                   # 项目说明文档
-路由操作(接口)
-在routes文件夹下创建对应表的route(这里是接口的意思),
-命名格式统一为_route.js吧
-为了避免回调地狱, 我们要用同步的方法来编写接口
-restful api 规范
-类似这样
-
-
-
-目的
-方法
-URI
-
-
-
-
-取得所有使用者資料
-GET
-/users
-
-
-新增使用者
-POST
-/users
-
-
-取得某位使用者資料
-GET
-/users/{id}
-
-
-更改某位使用者資料
-PUT/PATCH
-/users/{id}
-
-
-删除某位使用者
-DELETE
-/users/{id}
-
-
-
-数据库
-安装依赖
-npm install sequelize mysql2
-sequelize库是ORM方式操作数据库的, 就是利用对象来操作,
-而不是主要直接运行sql语句
-mysql2是sequelize操作MySQL的底层驱动
-相关配置
-数据库的相关配置我们会定义在/config文件夹里面
-const &#123; Sequelize &#125; = require(&#x27;sequelize&#x27;);const sequelize = new Sequelize(&#x27;full_stack_demo&#x27;, &#x27;Njaso&#x27;, &#x27;114514&#x27;, &#123;    host: &#x27;localhost&#x27;,    dialect: &#x27;mysql&#x27;,    pool: &#123;        max: 5, // 连接池最大连接数        min: 0,        acquire: 30000, // 获取连接的最大等待时间（毫秒）        idle: 10000 // 空闲连接的最大空闲时间（毫秒）    &#125;&#125;);module.exports = sequelize;
-表定义
-定义在/models里面, 命名格式为_model.js
-const sequelize = new Sequelize(&#x27;database&#x27;, &#x27;username&#x27;, &#x27;password&#x27;, &#123;  dialect: &#x27;mysql&#x27;&#125;);User.init(attributes, &#123;  sequelize, // 绑定到这个 Sequelize 实例  // ...&#125;);
-User.init(attributes, &#123;  sequelize,  modelName: &#x27;User&#x27;,  tableName: &#x27;my_custom_users&#x27; // 表名强制为 my_custom_users&#125;);
-modelName是表在数据库当中实际的名字, 而tableName是代码引用的名字
-不给TableName的话, 那么代码引用的就是modelName
-中间件
-对请求的参数或者其他东西做统一处理的东西
-app.use(express.json());
-把接口参数转换为json对象
-app.use(&#x27;/table1&#x27;, table1Route);
-给table1的接口加上一个/table1的前缀
-]]></content>
-      <tags>
-        <tag>express</tag>
-        <tag>node</tag>
-      </tags>
   </entry>
   <entry>
     <title>hexo部署问题的解决</title>
@@ -407,16 +407,6 @@ $json_data = file_get_contents(&quot;php://input&quot;); // 获取到的是json�
       </tags>
   </entry>
   <entry>
-    <title>js贪吃蛇</title>
-    <url>/2025/11/01/js%E8%B4%AA%E5%90%83%E8%9B%87/</url>
-    <content><![CDATA[贪吃蛇的关键逻辑在于，移动蛇的时候，其实是生成一个新的头，然后把尾巴去掉，而不是遍历蛇的身体每个坐标，然后移动
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;贪吃蛇游戏&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;h2&gt;贪吃蛇 🐍&lt;/h2&gt;    &lt;div id=&quot;game&quot;&gt;&lt;/div&gt;&lt;/body&gt;&lt;script&gt;const size = 20;const game = document.getElementById(&quot;game&quot;);const cells = [];for (let i = 0; i &lt; size * size; i++) &#123;    const cell = document.createElement(&quot;div&quot;);    cell.classList.add(&quot;cell&quot;);    game.appendChild(cell);    cells.push(cell);&#125;function index(x, y) &#123;    return y * size + x; // 列优先吗&#125;let snake = [&#123;x: 5, y: 5&#125;, &#123;x: 4, y: 5&#125;, &#123;x: 3, y: 5&#125;];let direction = &quot;right&quot;;let food = &#123;x: 10, y: 10&#125;;function render() &#123;    cells.forEach(c =&gt; c.className = &quot;cell&quot;);    for (let s of snake) &#123;        cells[index(s.x, s.y)].classList.add(&quot;snake&quot;)    &#125;    cells[index(food.x, food.y)].classList.add(&quot;food&quot;);&#125;function move() &#123;    const head = &#123;...snake[0]&#125;; // 展开，作用是深拷贝，直接复制会传引用    if (direction == &quot;right&quot;) head.x++;    if (direction == &quot;left&quot;) head.x--;    if (direction == &quot;up&quot;) head.y--;    if (direction == &quot;down&quot;) head.y++;    if (head.x &lt; 0 || head.x &gt;= size || head.y &lt; 0 || head.y &gt;= size) &#123;        alert(&quot;游戏结束&quot;);        clearInterval(timer);        return;    &#125;    for (let s of snake) &#123;        if (s.x === head.x &amp;&amp; s.y === head.y) &#123;            alert(&quot;游戏结束&quot;);            clearInterval(timer);            return;        &#125;    &#125;    snake.unshift(head); // 头部插入元素    if (head.x === food.x &amp;&amp; head.y === food.y) &#123;        food = &#123;x: Math.floor(Math.random() * size), y: Math.floor(Math.random() * size)&#125;;    &#125; else &#123;        snake.pop();    &#125;    render();&#125;document.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.key === &quot;ArrowUp&quot; &amp;&amp; direction !== &quot;down&quot;) direction = &quot;up&quot;;    if (e.key === &quot;ArrowDown&quot; &amp;&amp; direction !== &quot;up&quot;) direction = &quot;down&quot;;    if (e.key === &quot;ArrowLeft&quot; &amp;&amp; direction !== &quot;right&quot;) direction = &quot;left&quot;;    if (e.key === &quot;ArrowRight&quot; &amp;&amp; direction !== &quot;left&quot;) direction = &quot;right&quot;;&#125;)render();const timer = setInterval(move, 200);&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    flex-direction: column;    align-items: center;    background: #fafafa;&#125;#game &#123;    display: grid;    grid-template-columns: repeat(20, 20px);    grid-template-rows: repeat(20, 20px);    gap: 1px;    background: #ccc;    margin-top: 20px;&#125;.cell &#123;    width: 20px;    height: 20px;    background: white;&#125;.snake &#123;    background: green;&#125;.food &#123;    background: red;&#125;&lt;/style&gt;&lt;/html&gt;
-]]></content>
-      <tags>
-        <tag>js</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>js进修</title>
     <url>/2025/10/30/js%E8%BF%9B%E4%BF%AE/</url>
     <content><![CDATA[数组是引用传递
@@ -437,6 +427,16 @@ arguments
 函数的参数列表，本质上是一个特殊的对象，要用的时候建议是转换成数组先
 let args = [...arguments]
 还有一个问题，就是，和this一样，箭头函数是没有arguments的
+]]></content>
+      <tags>
+        <tag>js</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>js贪吃蛇</title>
+    <url>/2025/11/01/js%E8%B4%AA%E5%90%83%E8%9B%87/</url>
+    <content><![CDATA[贪吃蛇的关键逻辑在于，移动蛇的时候，其实是生成一个新的头，然后把尾巴去掉，而不是遍历蛇的身体每个坐标，然后移动
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;贪吃蛇游戏&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;h2&gt;贪吃蛇 🐍&lt;/h2&gt;    &lt;div id=&quot;game&quot;&gt;&lt;/div&gt;&lt;/body&gt;&lt;script&gt;const size = 20;const game = document.getElementById(&quot;game&quot;);const cells = [];for (let i = 0; i &lt; size * size; i++) &#123;    const cell = document.createElement(&quot;div&quot;);    cell.classList.add(&quot;cell&quot;);    game.appendChild(cell);    cells.push(cell);&#125;function index(x, y) &#123;    return y * size + x; // 列优先吗&#125;let snake = [&#123;x: 5, y: 5&#125;, &#123;x: 4, y: 5&#125;, &#123;x: 3, y: 5&#125;];let direction = &quot;right&quot;;let food = &#123;x: 10, y: 10&#125;;function render() &#123;    cells.forEach(c =&gt; c.className = &quot;cell&quot;);    for (let s of snake) &#123;        cells[index(s.x, s.y)].classList.add(&quot;snake&quot;)    &#125;    cells[index(food.x, food.y)].classList.add(&quot;food&quot;);&#125;function move() &#123;    const head = &#123;...snake[0]&#125;; // 展开，作用是深拷贝，直接复制会传引用    if (direction == &quot;right&quot;) head.x++;    if (direction == &quot;left&quot;) head.x--;    if (direction == &quot;up&quot;) head.y--;    if (direction == &quot;down&quot;) head.y++;    if (head.x &lt; 0 || head.x &gt;= size || head.y &lt; 0 || head.y &gt;= size) &#123;        alert(&quot;游戏结束&quot;);        clearInterval(timer);        return;    &#125;    for (let s of snake) &#123;        if (s.x === head.x &amp;&amp; s.y === head.y) &#123;            alert(&quot;游戏结束&quot;);            clearInterval(timer);            return;        &#125;    &#125;    snake.unshift(head); // 头部插入元素    if (head.x === food.x &amp;&amp; head.y === food.y) &#123;        food = &#123;x: Math.floor(Math.random() * size), y: Math.floor(Math.random() * size)&#125;;    &#125; else &#123;        snake.pop();    &#125;    render();&#125;document.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.key === &quot;ArrowUp&quot; &amp;&amp; direction !== &quot;down&quot;) direction = &quot;up&quot;;    if (e.key === &quot;ArrowDown&quot; &amp;&amp; direction !== &quot;up&quot;) direction = &quot;down&quot;;    if (e.key === &quot;ArrowLeft&quot; &amp;&amp; direction !== &quot;right&quot;) direction = &quot;left&quot;;    if (e.key === &quot;ArrowRight&quot; &amp;&amp; direction !== &quot;left&quot;) direction = &quot;right&quot;;&#125;)render();const timer = setInterval(move, 200);&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    flex-direction: column;    align-items: center;    background: #fafafa;&#125;#game &#123;    display: grid;    grid-template-columns: repeat(20, 20px);    grid-template-rows: repeat(20, 20px);    gap: 1px;    background: #ccc;    margin-top: 20px;&#125;.cell &#123;    width: 20px;    height: 20px;    background: white;&#125;.snake &#123;    background: green;&#125;.food &#123;    background: red;&#125;&lt;/style&gt;&lt;/html&gt;
 ]]></content>
       <tags>
         <tag>js</tag>
@@ -497,30 +497,6 @@ key 函数
 sort 将以 key 的返回值从小到大排序
 arr = [2, 3, 1, 4, 5]arr.sort(key=lambda x: -x)print(arr)
 所以这样是从大到小排序
-]]></content>
-      <tags>
-        <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python使用笔记</title>
-    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[dict
-cnt=&#123;&#125;
-这样就可以定义一个字典
-n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
-dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
-keys()和values()都是可迭代的对象, 类似list
-PriorityQueue
-from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
-我建议封装一个top()函数来实现真正的top()
-def top(pq):    tp=pq.get()    pq.put(tp)    return tp
-array
-a.insert(0,0)
-第一个参数是下标
-a.sort() 原地排序
-sorted(a) 返回排序后的副本
-tp=stk.pop() 弹出最后的元素
 ]]></content>
       <tags>
         <tag>python</tag>
@@ -675,63 +651,6 @@ npm install zustand
       </tags>
   </entry>
   <entry>
-    <title>react-day2</title>
-    <url>/2025/11/06/react-day2/</url>
-    <content><![CDATA[Zustand
-继续来学习这个状态管理工具，首先讲解一下这个定义 store 的部分
-import &#123; create &#125; from &quot;zustand&quot;;export const useTodoStore = create((set) =&gt; (&#123;  todos: [],  setTodos: (todos) =&gt; set(&#123; todos &#125;),  addTodo: (text) =&gt;    set((state) =&gt; (&#123;      todos: [...state.todos, &#123; id: Date.now(), text, done: false &#125;],    &#125;)),  toggleTodo: (id) =&gt;    set((state) =&gt; (&#123;      todos: state.todos.map((t) =&gt;        t.id === id ? &#123; ...t, done: !t.done &#125; : t      ),    &#125;)),  removeTodo: (id) =&gt;    set((state) =&gt; (&#123;      todos: state.todos.filter((t) =&gt; t.id !== id),    &#125;)),&#125;));
-解释一下这段代码，首先 todos 就是 state
-的属性之一，然后下面那些函数都是一些 action，用来修改数据的，因为
-zustand 不允许直接修改 state 的数据，一定要通过 set
-这个函数来进行修改，而 set 这个函数是 zustand 提供的，set
-一定要返回一个对象，所以你都会看到函数体都是用括号包住的，state
-是指当前的 store 属性全体，要访问 todos 这个属性的话，就写
-state.todos
-讲一下其中一个比较难懂的地方
-t.id === id ? &#123; ...t, done: !t.done &#125; : t;
-这里的…t 的意思就是先把复制过来，然后单独再修改 done
-这个字段，可以理解为覆盖吧，第一次看有点难以理解这个语法
-数据持久化
-zustand 也可以做到和 vue 的 pinia 一样的数据持久化，就是刷新网页之后
-state 的数据不会刷新，这里的原理就是把数据存到 localstorage
-当中，下面给个代码
-import &#123; create &#125; from &quot;zustand&quot;;import &#123; persist &#125; from &quot;zustand/middleware&quot;;export const useTodoStore = create(  persist(    (set) =&gt; (&#123;      todos: [],      setTodos: (todos) =&gt; set(&#123; todos &#125;),      addTodo: (text) =&gt;        set((state) =&gt; (&#123;          todos: [...state.todos, &#123; id: Date.now(), text, done: false &#125;],        &#125;)),      toggleTodo: (id) =&gt;        set((state) =&gt; (&#123;          todos: state.todos.map((t) =&gt;            t.id === id ? &#123; ...t, done: !t.done &#125; : t          ),        &#125;)),      removeTodo: (id) =&gt;        set((state) =&gt; (&#123;          todos: state.todos.filter((t) =&gt; t.id !== id),        &#125;)),    &#125;),    &#123;      name: &quot;todo-storage&quot;,    &#125;  ));
-这个 name 就是 localstorage 的 key
-组件库-Antd
-Antd 是国内比较常用的组件库，如果说是世界范围的话，MUI
-是更加常用的，就是 google
-的那一套组件库，其实我看了一下也感觉蛮好看的，但是为了准备字节的面试，所以我还是选择用
-Antd 了，首先先来做个安装
-npm install antd
-问了一下 ai，他说 antd 从 v5 开始默认就是按需引入的了，不需要像
-element-ui 那样安装一个什么 auto-import 的插件了
-antd 组件-Space
-这个组件的作用就是给组件里面的元素自动添加间距，这玩意好像本身就是一个
-flex 容器，所以可以用一些相关的属性
-button 的 danger 属性
-这个属性就是提醒用户，这个按键按下时候可能会造成一些不可逆的操作，要谨慎之类的
-非常神奇的一个报错
-&lt;Button danger type=&quot;link&quot; onClick=&#123;() =&gt; deleteTodo(todo.id)&#125;&gt;  删除&lt;/Button&gt;
-这样是对的
-&lt;Button danger type=&quot;link&quot; onClick=&#123;deleteTodo(todo.id)&#125;&gt;  删除&lt;/Button&gt;
-这样是错的
-问了 ai，它的解释非常奇怪，但是某种程度上也算是可以理解，它说
-deleteTodo(todo.id)这种写法就是已经把函数给执行了，所以当 Todo
-被创建的时候，同时又被删除了，等于没有创建，而把() =&gt;
-deleteTodo(todo.id)传进去相当于传一个函数的引用，但是还没有执行，哎，总之以后就写一个匿名函数传进去就是了
-antd 组件-List
-一个列表渲染的组件，我先放一段代码，然后基于代码解释
-&lt;List  dataSource=&#123;todos&#125;  renderItem=&#123;(todo) =&gt; (    &lt;List.Item&gt;      &lt;TodoItem todo=&#123;todo&#125; /&gt;    &lt;/List.Item&gt;  )&#125;/&gt;
-首先这个 dataSource，很显然就是数据源，然后
-renderItem，很简单，就是可以自定义每个列表项的渲染方式，然后再用 jsx
-语法去写就是了，不过感觉还是有点怪的，这个渲染方式居然是写在属性那边的
-]]></content>
-      <tags>
-        <tag>react</tag>
-        <tag>react-router-dom</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>react-day3</title>
     <url>/2025/11/07/react-day3/</url>
     <content><![CDATA[后端配置 cors
@@ -783,6 +702,30 @@ npm create vite@latest client
 ]]></content>
       <tags>
         <tag>react</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python使用笔记</title>
+    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[dict
+cnt=&#123;&#125;
+这样就可以定义一个字典
+n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
+dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
+keys()和values()都是可迭代的对象, 类似list
+PriorityQueue
+from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
+我建议封装一个top()函数来实现真正的top()
+def top(pq):    tp=pq.get()    pq.put(tp)    return tp
+array
+a.insert(0,0)
+第一个参数是下标
+a.sort() 原地排序
+sorted(a) 返回排序后的副本
+tp=stk.pop() 弹出最后的元素
+]]></content>
+      <tags>
+        <tag>python</tag>
       </tags>
   </entry>
   <entry>
@@ -864,18 +807,60 @@ next/image
       </tags>
   </entry>
   <entry>
-    <title>typescript问题总结</title>
-    <url>/2025/10/28/typescript%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[变量引入
-之前都是用js来写router的，现在尝试了一下用ts写，ts的问题就在于要宣告变量的类型
-const routes: RouteRecordRaw[] = [    &#123; path: &quot;/&quot;, name: &quot;home&quot;, component: () =&gt; import(&quot;./../views/Home.vue&quot;) &#125;];
-routes的变量类型是一个包含RouteRecordRaw元素的数组，这个type需要import
-import &#123; createRouter, createWebHistory, RouteRecordRaw &#125; from &quot;vue-router&quot;; 但是直接像这样引入是不行的，因为python
-import语句引入的都是类、函数、变量这种东西，而在这里RouteRecordRaw是一个type，要用以下语句进行引入
-import type &#123; RouteRecordRaw &#125; from &quot;vue-router&quot;;
+    <title>react-day2</title>
+    <url>/2025/11/06/react-day2/</url>
+    <content><![CDATA[Zustand
+继续来学习这个状态管理工具，首先讲解一下这个定义 store 的部分
+import &#123; create &#125; from &quot;zustand&quot;;export const useTodoStore = create((set) =&gt; (&#123;  todos: [],  setTodos: (todos) =&gt; set(&#123; todos &#125;),  addTodo: (text) =&gt;    set((state) =&gt; (&#123;      todos: [...state.todos, &#123; id: Date.now(), text, done: false &#125;],    &#125;)),  toggleTodo: (id) =&gt;    set((state) =&gt; (&#123;      todos: state.todos.map((t) =&gt;        t.id === id ? &#123; ...t, done: !t.done &#125; : t      ),    &#125;)),  removeTodo: (id) =&gt;    set((state) =&gt; (&#123;      todos: state.todos.filter((t) =&gt; t.id !== id),    &#125;)),&#125;));
+解释一下这段代码，首先 todos 就是 state
+的属性之一，然后下面那些函数都是一些 action，用来修改数据的，因为
+zustand 不允许直接修改 state 的数据，一定要通过 set
+这个函数来进行修改，而 set 这个函数是 zustand 提供的，set
+一定要返回一个对象，所以你都会看到函数体都是用括号包住的，state
+是指当前的 store 属性全体，要访问 todos 这个属性的话，就写
+state.todos
+讲一下其中一个比较难懂的地方
+t.id === id ? &#123; ...t, done: !t.done &#125; : t;
+这里的…t 的意思就是先把复制过来，然后单独再修改 done
+这个字段，可以理解为覆盖吧，第一次看有点难以理解这个语法
+数据持久化
+zustand 也可以做到和 vue 的 pinia 一样的数据持久化，就是刷新网页之后
+state 的数据不会刷新，这里的原理就是把数据存到 localstorage
+当中，下面给个代码
+import &#123; create &#125; from &quot;zustand&quot;;import &#123; persist &#125; from &quot;zustand/middleware&quot;;export const useTodoStore = create(  persist(    (set) =&gt; (&#123;      todos: [],      setTodos: (todos) =&gt; set(&#123; todos &#125;),      addTodo: (text) =&gt;        set((state) =&gt; (&#123;          todos: [...state.todos, &#123; id: Date.now(), text, done: false &#125;],        &#125;)),      toggleTodo: (id) =&gt;        set((state) =&gt; (&#123;          todos: state.todos.map((t) =&gt;            t.id === id ? &#123; ...t, done: !t.done &#125; : t          ),        &#125;)),      removeTodo: (id) =&gt;        set((state) =&gt; (&#123;          todos: state.todos.filter((t) =&gt; t.id !== id),        &#125;)),    &#125;),    &#123;      name: &quot;todo-storage&quot;,    &#125;  ));
+这个 name 就是 localstorage 的 key
+组件库-Antd
+Antd 是国内比较常用的组件库，如果说是世界范围的话，MUI
+是更加常用的，就是 google
+的那一套组件库，其实我看了一下也感觉蛮好看的，但是为了准备字节的面试，所以我还是选择用
+Antd 了，首先先来做个安装
+npm install antd
+问了一下 ai，他说 antd 从 v5 开始默认就是按需引入的了，不需要像
+element-ui 那样安装一个什么 auto-import 的插件了
+antd 组件-Space
+这个组件的作用就是给组件里面的元素自动添加间距，这玩意好像本身就是一个
+flex 容器，所以可以用一些相关的属性
+button 的 danger 属性
+这个属性就是提醒用户，这个按键按下时候可能会造成一些不可逆的操作，要谨慎之类的
+非常神奇的一个报错
+&lt;Button danger type=&quot;link&quot; onClick=&#123;() =&gt; deleteTodo(todo.id)&#125;&gt;  删除&lt;/Button&gt;
+这样是对的
+&lt;Button danger type=&quot;link&quot; onClick=&#123;deleteTodo(todo.id)&#125;&gt;  删除&lt;/Button&gt;
+这样是错的
+问了 ai，它的解释非常奇怪，但是某种程度上也算是可以理解，它说
+deleteTodo(todo.id)这种写法就是已经把函数给执行了，所以当 Todo
+被创建的时候，同时又被删除了，等于没有创建，而把() =&gt;
+deleteTodo(todo.id)传进去相当于传一个函数的引用，但是还没有执行，哎，总之以后就写一个匿名函数传进去就是了
+antd 组件-List
+一个列表渲染的组件，我先放一段代码，然后基于代码解释
+&lt;List  dataSource=&#123;todos&#125;  renderItem=&#123;(todo) =&gt; (    &lt;List.Item&gt;      &lt;TodoItem todo=&#123;todo&#125; /&gt;    &lt;/List.Item&gt;  )&#125;/&gt;
+首先这个 dataSource，很显然就是数据源，然后
+renderItem，很简单，就是可以自定义每个列表项的渲染方式，然后再用 jsx
+语法去写就是了，不过感觉还是有点怪的，这个渲染方式居然是写在属性那边的
 ]]></content>
       <tags>
-        <tag>typescript</tag>
+        <tag>react</tag>
+        <tag>react-router-dom</tag>
       </tags>
   </entry>
   <entry>
@@ -932,6 +917,21 @@ select customer_idfrom Customer cross join (    select count(*) as total    from
 ]]></content>
       <tags>
         <tag>sql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>typescript问题总结</title>
+    <url>/2025/10/28/typescript%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[变量引入
+之前都是用js来写router的，现在尝试了一下用ts写，ts的问题就在于要宣告变量的类型
+const routes: RouteRecordRaw[] = [    &#123; path: &quot;/&quot;, name: &quot;home&quot;, component: () =&gt; import(&quot;./../views/Home.vue&quot;) &#125;];
+routes的变量类型是一个包含RouteRecordRaw元素的数组，这个type需要import
+import &#123; createRouter, createWebHistory, RouteRecordRaw &#125; from &quot;vue-router&quot;; 但是直接像这样引入是不行的，因为python
+import语句引入的都是类、函数、变量这种东西，而在这里RouteRecordRaw是一个type，要用以下语句进行引入
+import type &#123; RouteRecordRaw &#125; from &quot;vue-router&quot;;
+]]></content>
+      <tags>
+        <tag>typescript</tag>
       </tags>
   </entry>
   <entry>
@@ -1119,6 +1119,23 @@ DATABASES = &#123;        &quot;default&quot;: dj_database_url.config(          
       </tags>
   </entry>
   <entry>
+    <title>前端学习day3</title>
+    <url>/2025/11/13/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0day3/</url>
+    <content><![CDATA[python-dotenv 是一个 python 库，作用是用来加载.env 里面的配置
+django-admin startproject backend .
+全栈项目才更经常用这个命令？听说是这样的
+tailwind css 的设计思想就是用类名来写
+css，每个类名提供一个原子化的操作，这样我们开发者就不用去烦恼类名应该要写什么，类名即功能，另外就是开发速度也比较快，因为
+tailwind 的类名通常都很简短，然后听过 tailwind UI 就是自己开发的一个基于
+tailwind css 的组件库
+]]></content>
+      <tags>
+        <tag>前端</tag>
+        <tag>django</tag>
+        <tag>chatgpt</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>以管理员身份运行程序没反应</title>
     <url>/2025/10/27/%E4%BB%A5%E7%AE%A1%E7%90%86%E5%91%98%E8%BA%AB%E4%BB%BD%E8%BF%90%E8%A1%8C%E7%A8%8B%E5%BA%8F%E6%B2%A1%E5%8F%8D%E5%BA%94/</url>
     <content><![CDATA[不知道从什么时候开始，用管理员身份运行powershell之类的程序都是没有反应的，最近上网搜到说可能跟解压程序有关，于是我把express解压这个软件给删掉了，然后重启电脑，发现真的有用
@@ -1155,23 +1172,6 @@ Array(n).fill(Array(m).fill(0))这个玩意会导致每一行都用同一个引�
       </tags>
   </entry>
   <entry>
-    <title>前端学习day3</title>
-    <url>/2025/11/13/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0day3/</url>
-    <content><![CDATA[python-dotenv 是一个 python 库，作用是用来加载.env 里面的配置
-django-admin startproject backend .
-全栈项目才更经常用这个命令？听说是这样的
-tailwind css 的设计思想就是用类名来写
-css，每个类名提供一个原子化的操作，这样我们开发者就不用去烦恼类名应该要写什么，类名即功能，另外就是开发速度也比较快，因为
-tailwind 的类名通常都很简短，然后听过 tailwind UI 就是自己开发的一个基于
-tailwind css 的组件库
-]]></content>
-      <tags>
-        <tag>前端</tag>
-        <tag>django</tag>
-        <tag>chatgpt</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>参考文献笔记</title>
     <url>/2025/11/22/%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[RAG
@@ -1190,23 +1190,6 @@ RAG 的流程，对于每个小问题都得到答案，最后再将多个答案�
       <tags>
         <tag>论文</tag>
         <tag>毕业设计</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>基于django-channels的多人聊天室demo</title>
-    <url>/2025/10/20/%E5%9F%BA%E4%BA%8Edjango-channels%E7%9A%84%E5%A4%9A%E4%BA%BA%E8%81%8A%E5%A4%A9%E5%AE%A4demo/</url>
-    <content><![CDATA[django项目创建
-创建虚拟环境变量
-$ python -m venv env
-这个命令在根目录底下创建一个叫env的文件夹作为一个项目的虚拟环境，与conda创建的虚拟环境不同的是，venv的虚拟环境是以项目为单位的，而conda是以任务的类别为单位的，所以如果是web开发的话，上面这种创建方式可能会比较好一点
-创建项目文件夹
-django-admin startproject $project_name
-如果要防止文件夹目录嵌套的话，使用下面的命令，这样就不会在外面多套一层文件夹
-django-admin startproject $project_name .
-但是如果我是做前后端分离的项目的话，我还是会选择第一个命令
-]]></content>
-      <tags>
-        <tag>django python redis channels</tag>
       </tags>
   </entry>
   <entry>
@@ -1462,6 +1445,23 @@ top10 的数据，然后这些数据再取一次 top10
       </tags>
   </entry>
   <entry>
+    <title>基于django-channels的多人聊天室demo</title>
+    <url>/2025/10/20/%E5%9F%BA%E4%BA%8Edjango-channels%E7%9A%84%E5%A4%9A%E4%BA%BA%E8%81%8A%E5%A4%A9%E5%AE%A4demo/</url>
+    <content><![CDATA[django项目创建
+创建虚拟环境变量
+$ python -m venv env
+这个命令在根目录底下创建一个叫env的文件夹作为一个项目的虚拟环境，与conda创建的虚拟环境不同的是，venv的虚拟环境是以项目为单位的，而conda是以任务的类别为单位的，所以如果是web开发的话，上面这种创建方式可能会比较好一点
+创建项目文件夹
+django-admin startproject $project_name
+如果要防止文件夹目录嵌套的话，使用下面的命令，这样就不会在外面多套一层文件夹
+django-admin startproject $project_name .
+但是如果我是做前后端分离的项目的话，我还是会选择第一个命令
+]]></content>
+      <tags>
+        <tag>django python redis channels</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>字节面试准备</title>
     <url>/2025/10/29/%E5%AD%97%E8%8A%82%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87/</url>
     <content><![CDATA[TCP/IP
@@ -1503,6 +1503,29 @@ https就是http+s，s就是加密传输，登录、支付这些都一定要用ht
       </tags>
   </entry>
   <entry>
+    <title>学习day10</title>
+    <url>/2025/11/20/%E5%AD%A6%E4%B9%A0day10/</url>
+    <content><![CDATA[清华源下载
+pip install transformers -i https://pypi.tuna.tsinghua.edu.cn/simplepip install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
+django ORM 批量更新对象
+def run():    queryset = HotItem.objects.all()    hoitems_to_update = []    for hotitem in queryset:        result = classifier(hotitem.title)[0]        result = en2zh[result[&quot;label&quot;]]        hotitem.category = result        hoitems_to_update.append(hotitem)    HotItem.objects.bulk_update(        hoitems_to_update, [&quot;category&quot;]    )  # 第二个参数也是指定要更新的列，这样就不会更新整个对象
+逐个 save 是很耗时间的
+watch immediate 参数
+watch(  () =&gt; router.currentRoute.value.path,  (new_path) =&gt; &#123;    const matched = page2category.find((item) =&gt; item.path == new_path);    if (matched) &#123;      current_category = matched.category;    &#125;  &#125;,  &#123; immediate: true &#125;);
+watch 只在监听的变量变化的时候触发，immediate
+可以让里面的逻辑在变量初始化的时候也触发一次
+路由变换的时候强制刷新
+有时候，不同 url
+指向了同一个组件，导致切换路由的时候没有更新页面，解决方法如下
+&lt;router-view :key=&quot;$route.fullPath&quot;&gt;&lt;/router-view&gt;
+$router.fullPath 是 vue-router
+提供的属性，这段代码的含义是当路由变化的时候会强制刷新组件
+]]></content>
+      <tags>
+        <tag>文本分类</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day12</title>
     <url>/2025/11/25/%E5%AD%A6%E4%B9%A0day12/</url>
     <content><![CDATA[vueuse/core，一个 vue
@@ -1525,26 +1548,22 @@ text-base-content 是根据主题自动适配颜色
       </tags>
   </entry>
   <entry>
-    <title>学习day10</title>
-    <url>/2025/11/20/%E5%AD%A6%E4%B9%A0day10/</url>
-    <content><![CDATA[清华源下载
-pip install transformers -i https://pypi.tuna.tsinghua.edu.cn/simplepip install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
-django ORM 批量更新对象
-def run():    queryset = HotItem.objects.all()    hoitems_to_update = []    for hotitem in queryset:        result = classifier(hotitem.title)[0]        result = en2zh[result[&quot;label&quot;]]        hotitem.category = result        hoitems_to_update.append(hotitem)    HotItem.objects.bulk_update(        hoitems_to_update, [&quot;category&quot;]    )  # 第二个参数也是指定要更新的列，这样就不会更新整个对象
-逐个 save 是很耗时间的
-watch immediate 参数
-watch(  () =&gt; router.currentRoute.value.path,  (new_path) =&gt; &#123;    const matched = page2category.find((item) =&gt; item.path == new_path);    if (matched) &#123;      current_category = matched.category;    &#125;  &#125;,  &#123; immediate: true &#125;);
-watch 只在监听的变量变化的时候触发，immediate
-可以让里面的逻辑在变量初始化的时候也触发一次
-路由变换的时候强制刷新
-有时候，不同 url
-指向了同一个组件，导致切换路由的时候没有更新页面，解决方法如下
-&lt;router-view :key=&quot;$route.fullPath&quot;&gt;&lt;/router-view&gt;
-$router.fullPath 是 vue-router
-提供的属性，这段代码的含义是当路由变化的时候会强制刷新组件
+    <title>学习day11</title>
+    <url>/2025/11/24/%E5%AD%A6%E4%B9%A0day11/</url>
+    <content><![CDATA[后端缓存优化
+from django.utils.decorators import method_decoratorfrom django.views.decorators.cache import cache_pageclass HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    @method_decorator(cache_page(60 * 60))  # 缓存 1 小时    def dispatch(self, *args, **kwargs):        return super().dispatch(*args, **kwargs)    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;)        category = self.request.query_params.get(&quot;category&quot;)        if source:            queryset = queryset.filter(source=source)        if category:            queryset = queryset.filter(category=category)        return queryset.order_by(&quot;rank&quot;)
+dispatch 是入口函数，通过 request.method 判断应该走 get 还是 post
+之类的方法，所以装饰器都应该装到这个函数上面，cache_page
+能根据的时间，缓存页面，当参数方法相同的时候，就会返回缓存的页面
+render 上面的 key-value 服务对应就是后端的缓存，用的就是 redis
+cache 配置
+CACHES = &#123;    &quot;default&quot;: &#123;        &quot;BACKEND&quot;: &quot;django_redis.cache.RedisCache&quot;,        &quot;LOCATION&quot;: os.getenv(&quot;REDIS_URL&quot;),        &quot;OPTIONS&quot;: &#123;            &quot;CLIENT_CLASS&quot;: &quot;django_redis.client.DefaultClient&quot;,        &#125;    &#125;&#125;
+# 开发环境缓存：本地内存    CACHES = &#123;        &quot;default&quot;: &#123;            &quot;BACKEND&quot;: &quot;django.core.cache.backends.locmem.LocMemCache&quot;,        &#125;    &#125;
+默认用的本地缓存
+post 和 put 这些方法不能用缓存
 ]]></content>
       <tags>
-        <tag>文本分类</tag>
+        <tag>性能优化</tag>
       </tags>
   </entry>
   <entry>
@@ -1600,42 +1619,13 @@ BasketballGame (项目根目录)│├─ index.html // 游戏入口，包含 Ca
       </tags>
   </entry>
   <entry>
-    <title>学习day16</title>
-    <url>/2025/11/29/%E5%AD%A6%E4%B9%A0day16/</url>
-    <content><![CDATA[可选链不能用在 v-model 上
-&lt;input type=&quot;checkbox&quot; class=&quot;checkbox checkbox-sm&quot; v-model=&quot;item?.checked&quot; /&gt;
-django 或查询
-def get_queryset(self):    queryset = HotItem.objects.all()    source = self.request.GET.get(&quot;source&quot;, None)    categories = self.request.query_params.getlist(        &quot;categories&quot;, None    )  # 列表要用getlist    if source:        queryset = queryset.filter(source=source)  # 不赋值是不会修改queryset的    queryset = queryset.filter(        category__in=categories    )  # 相当于category在categories当中出现的行就会返回    queryset = queryset.order_by(&quot;rank&quot;)    return queryset
-ref 对象数组，watch
-属性没有用
-watch(  categories,  (newVal) =&gt; &#123;    console.log(&quot;变化了&quot;, newVal);  &#125;,  &#123; deep: true &#125;);
-这样才有用
-接口参数传数组的问题
-直接传数组,会变成 categories=a,b，Django
-那边就是[“a,b”]，但是我实际想要[“a”,“b”]，下面是解决方法
-后端 django getlist 方法就是把对应的 key 的 value 集合在一起
-import request from &quot;./request&quot;;export const getHotItems = (source: string, categories?: string[]) =&gt; &#123;  const params = new URLSearchParams();  params.append(&quot;source&quot;, source);  categories?.forEach((c) =&gt; &#123;    params.append(&quot;categories&quot;, c);  &#125;);  // 生成的 URL 例子: hot/?source=哔哩哔哩&amp;categories=文化&amp;categories=财经  return request.get(`hot/?$&#123;params.toString()&#125;`);&#125;;
-禁止 flex 子元素收缩
-&lt;div  class=&quot;flex mx-auto space-x-5 bg-base-100 p-4 mt-3 shadow-sm w-[95%] overflow-x-auto flex-nowrap items-center&quot;&gt;  &lt;div    v-for=&quot;item in newsStore.current_categories&quot;    :key=&quot;item.text&quot;    class=&quot;flex flex-row items-center shrink-0 space-x-1&quot;  &gt;    &lt;span class=&quot;text-sm mx-1&quot;&gt;&#123;&#123; item?.text &#125;&#125;&lt;/span&gt;    &lt;input      type=&quot;checkbox&quot;      class=&quot;checkbox checkbox-sm&quot;      v-model=&quot;item.checked&quot;    /&gt;  &lt;/div&gt;&lt;/div&gt;
-shrink-0 配合 overflow-x-auto
-使用，就可以实现屏幕不够大时可以滑动
+    <title>学习day18</title>
+    <url>/2025/12/01/%E5%AD%A6%E4%B9%A0day18/</url>
+    <content><![CDATA[简单 reactive 的实现
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;    &lt;title&gt;Document&lt;/title&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;div&gt;      &lt;input type=&quot;text&quot; id=&quot;input_box&quot; /&gt;    &lt;/div&gt;    &lt;div&gt;      &lt;label for=&quot;input_box&quot; id=&quot;input_box_label&quot;&gt;hello&lt;/label&gt;    &lt;/div&gt;  &lt;/body&gt;  &lt;script&gt;    const input_box = document.getElementById(&quot;input_box&quot;);    const input_box_label = document.getElementById(&quot;input_box_label&quot;);    const reactive = (obj, callback) =&gt; &#123;      return new Proxy(obj, &#123;        set(target, prop, value) &#123;          target[prop] = value;          callback(prop, value);          return true;        &#125;,      &#125;);    &#125;;    const state = reactive(&#123; inputValue: &quot;&quot; &#125;, (key, value) =&gt; &#123;      if (key == &quot;inputValue&quot;) &#123;        input_box_label.textContent = value;      &#125;    &#125;);    input_box.addEventListener(&quot;input&quot;, (e) =&gt; &#123;      state.inputValue = e.target.value;    &#125;);  &lt;/script&gt;&lt;/html&gt;
 ]]></content>
       <tags>
         <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day19</title>
-    <url>/2025/12/02/%E5%AD%A6%E4%B9%A0day19/</url>
-    <content><![CDATA[docker安装问题
-之前把docker安装在C盘一直启动失败，现在想想可能是当时C盘的空间已经相当紧张了，但是也不太合理，总而言之，安装在D盘之后，它成功启动了
-C:\Users\Njaso\Downloads&gt;start /w &quot;Docker Desktop Installer(1).exe&quot; install --installation-dir=D:\Docker
-docker-vscode
-安装docker，dev container这两个插件
-在vscode当中，f1搜索add dev container configuration files
-]]></content>
-      <tags>
-        <tag>docker</tag>
       </tags>
   </entry>
   <entry>
@@ -1666,6 +1656,31 @@ onchange 是输入框失去焦点的时候触发，oninput
       </tags>
   </entry>
   <entry>
+    <title>学习day16</title>
+    <url>/2025/11/29/%E5%AD%A6%E4%B9%A0day16/</url>
+    <content><![CDATA[可选链不能用在 v-model 上
+&lt;input type=&quot;checkbox&quot; class=&quot;checkbox checkbox-sm&quot; v-model=&quot;item?.checked&quot; /&gt;
+django 或查询
+def get_queryset(self):    queryset = HotItem.objects.all()    source = self.request.GET.get(&quot;source&quot;, None)    categories = self.request.query_params.getlist(        &quot;categories&quot;, None    )  # 列表要用getlist    if source:        queryset = queryset.filter(source=source)  # 不赋值是不会修改queryset的    queryset = queryset.filter(        category__in=categories    )  # 相当于category在categories当中出现的行就会返回    queryset = queryset.order_by(&quot;rank&quot;)    return queryset
+ref 对象数组，watch
+属性没有用
+watch(  categories,  (newVal) =&gt; &#123;    console.log(&quot;变化了&quot;, newVal);  &#125;,  &#123; deep: true &#125;);
+这样才有用
+接口参数传数组的问题
+直接传数组,会变成 categories=a,b，Django
+那边就是[“a,b”]，但是我实际想要[“a”,“b”]，下面是解决方法
+后端 django getlist 方法就是把对应的 key 的 value 集合在一起
+import request from &quot;./request&quot;;export const getHotItems = (source: string, categories?: string[]) =&gt; &#123;  const params = new URLSearchParams();  params.append(&quot;source&quot;, source);  categories?.forEach((c) =&gt; &#123;    params.append(&quot;categories&quot;, c);  &#125;);  // 生成的 URL 例子: hot/?source=哔哩哔哩&amp;categories=文化&amp;categories=财经  return request.get(`hot/?$&#123;params.toString()&#125;`);&#125;;
+禁止 flex 子元素收缩
+&lt;div  class=&quot;flex mx-auto space-x-5 bg-base-100 p-4 mt-3 shadow-sm w-[95%] overflow-x-auto flex-nowrap items-center&quot;&gt;  &lt;div    v-for=&quot;item in newsStore.current_categories&quot;    :key=&quot;item.text&quot;    class=&quot;flex flex-row items-center shrink-0 space-x-1&quot;  &gt;    &lt;span class=&quot;text-sm mx-1&quot;&gt;&#123;&#123; item?.text &#125;&#125;&lt;/span&gt;    &lt;input      type=&quot;checkbox&quot;      class=&quot;checkbox checkbox-sm&quot;      v-model=&quot;item.checked&quot;    /&gt;  &lt;/div&gt;&lt;/div&gt;
+shrink-0 配合 overflow-x-auto
+使用，就可以实现屏幕不够大时可以滑动
+]]></content>
+      <tags>
+        <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day20</title>
     <url>/2025/12/03/%E5%AD%A6%E4%B9%A0day20/</url>
     <content><![CDATA[next/image
@@ -1680,6 +1695,20 @@ layout.tsx和page.tsx这两个文件会被自动识别, 渲染在对应的页面
       <tags>
         <tag>react</tag>
         <tag>next</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day19</title>
+    <url>/2025/12/02/%E5%AD%A6%E4%B9%A0day19/</url>
+    <content><![CDATA[docker安装问题
+之前把docker安装在C盘一直启动失败，现在想想可能是当时C盘的空间已经相当紧张了，但是也不太合理，总而言之，安装在D盘之后，它成功启动了
+C:\Users\Njaso\Downloads&gt;start /w &quot;Docker Desktop Installer(1).exe&quot; install --installation-dir=D:\Docker
+docker-vscode
+安装docker，dev container这两个插件
+在vscode当中，f1搜索add dev container configuration files
+]]></content>
+      <tags>
+        <tag>docker</tag>
       </tags>
   </entry>
   <entry>
@@ -1795,79 +1824,6 @@ import &#123; useDebouncedCallback &#125; from &#x27;use-debounce&#x27;;
       </tags>
   </entry>
   <entry>
-    <title>学习day18</title>
-    <url>/2025/12/01/%E5%AD%A6%E4%B9%A0day18/</url>
-    <content><![CDATA[简单 reactive 的实现
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;    &lt;title&gt;Document&lt;/title&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;div&gt;      &lt;input type=&quot;text&quot; id=&quot;input_box&quot; /&gt;    &lt;/div&gt;    &lt;div&gt;      &lt;label for=&quot;input_box&quot; id=&quot;input_box_label&quot;&gt;hello&lt;/label&gt;    &lt;/div&gt;  &lt;/body&gt;  &lt;script&gt;    const input_box = document.getElementById(&quot;input_box&quot;);    const input_box_label = document.getElementById(&quot;input_box_label&quot;);    const reactive = (obj, callback) =&gt; &#123;      return new Proxy(obj, &#123;        set(target, prop, value) &#123;          target[prop] = value;          callback(prop, value);          return true;        &#125;,      &#125;);    &#125;;    const state = reactive(&#123; inputValue: &quot;&quot; &#125;, (key, value) =&gt; &#123;      if (key == &quot;inputValue&quot;) &#123;        input_box_label.textContent = value;      &#125;    &#125;);    input_box.addEventListener(&quot;input&quot;, (e) =&gt; &#123;      state.inputValue = e.target.value;    &#125;);  &lt;/script&gt;&lt;/html&gt;
-]]></content>
-      <tags>
-        <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day11</title>
-    <url>/2025/11/24/%E5%AD%A6%E4%B9%A0day11/</url>
-    <content><![CDATA[后端缓存优化
-from django.utils.decorators import method_decoratorfrom django.views.decorators.cache import cache_pageclass HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    @method_decorator(cache_page(60 * 60))  # 缓存 1 小时    def dispatch(self, *args, **kwargs):        return super().dispatch(*args, **kwargs)    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;)        category = self.request.query_params.get(&quot;category&quot;)        if source:            queryset = queryset.filter(source=source)        if category:            queryset = queryset.filter(category=category)        return queryset.order_by(&quot;rank&quot;)
-dispatch 是入口函数，通过 request.method 判断应该走 get 还是 post
-之类的方法，所以装饰器都应该装到这个函数上面，cache_page
-能根据的时间，缓存页面，当参数方法相同的时候，就会返回缓存的页面
-render 上面的 key-value 服务对应就是后端的缓存，用的就是 redis
-cache 配置
-CACHES = &#123;    &quot;default&quot;: &#123;        &quot;BACKEND&quot;: &quot;django_redis.cache.RedisCache&quot;,        &quot;LOCATION&quot;: os.getenv(&quot;REDIS_URL&quot;),        &quot;OPTIONS&quot;: &#123;            &quot;CLIENT_CLASS&quot;: &quot;django_redis.client.DefaultClient&quot;,        &#125;    &#125;&#125;
-# 开发环境缓存：本地内存    CACHES = &#123;        &quot;default&quot;: &#123;            &quot;BACKEND&quot;: &quot;django.core.cache.backends.locmem.LocMemCache&quot;,        &#125;    &#125;
-默认用的本地缓存
-post 和 put 这些方法不能用缓存
-]]></content>
-      <tags>
-        <tag>性能优化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day22</title>
-    <url>/2025/12/05/%E5%AD%A6%E4%B9%A0day22/</url>
-    <content><![CDATA[form action
-&lt;form action=&quot;/api/login&quot; method=&quot;post&quot;&gt;&lt;/form&gt;
-按照普通的 html, form 的 action 属性就是在表单提交之后,
-放一个路由跳转到处理逻辑的接口地址
-// Server Componentexport default function Page() &#123;  // Action  async function create(formData: FormData) &#123;    &quot;use server&quot;;    // Logic to mutate data...  &#125;  // Invoke the action using the &quot;action&quot; attribute  return &lt;form action=&#123;create&#125;&gt;...&lt;/form&gt;;&#125;
-console.log
-在服务端和客户端的区别
-首先说一下如果一个文件顶部写了”use server”的话,
-那么里面所有的函数都默认带上了 use server
-在服务端的 log 会打印到控制台, 客户端的会打印到浏览器
-zod 数据类型校验
-import &#123; z &#125; from &quot;zod&quot;;const FormSchema = z.object(&#123;  id: z.string(),  customerId: z.string(),  amount: z.coerce.number(),  status: z.enum([&quot;pending&quot;, &quot;paid&quot;]),  date: z.string(),&#125;);const CreateInvoice = FormSchema.omit(&#123; id: true, date: true &#125;);
-z.coerce.number 这个就是将 amount 这个字段先强转为 number 类型,
-然后再判断是不是 number, 因为 input type=number 的时候, 其实实际上传给
-form 的类型还是字符串类型
-omit 是删除这两个字段的意思, true 只是删除确认, 没有特别含义
-这个 CreateInvoice 就是从 FormSchema 派生出来的新模板约束而已
-export async function createInvoice(formData: FormData) &#123;  const &#123; customerId, amount, status &#125; = CreateInvoice.parse(&#123;    customerId: formData.get(&quot;customerId&quot;),    amount: formData.get(&quot;amount&quot;),    status: formData.get(&quot;status&quot;),  &#125;);&#125;
-定义之后就像这样去解析
-revalidatePath
-import &#123; revalidatePath &#125; from &quot;next/cache&quot;;
-revalidatePath(&quot;/dashboard/invoices&quot;);
-作用就是消除对应路由页面的缓存, 不然就会一直显示旧的数据
-redirect
-import &#123; redirect &#125; from &quot;next/navigation&quot;;
-redirect(&quot;/dashboard/invoices&quot;);
-带参数的路由
-比如/user/:id 这种路由,id 这个段文件夹的名字就应该叫[id]
-创建 next 项目的命令
-pnpm dlx create-next-app@latest my-app
-app router
-就是 layout page loading 这一套东西
-react compiler
-创建项目的时候,每次都弹出来问我要不要选 react
-compiler,听说是不需要我手动去做优化,建议还是开吧
-]]></content>
-      <tags>
-        <tag>react</tag>
-        <tag>next</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day23</title>
     <url>/2025/12/06/%E5%AD%A6%E4%B9%A0day23/</url>
     <content><![CDATA[安装 shadcn/ui
@@ -1931,44 +1887,47 @@ state 推算出来的变量都不要再定义成 state
       </tags>
   </entry>
   <entry>
-    <title>学习day25</title>
-    <url>/2025/12/10/%E5%AD%A6%E4%B9%A0day25/</url>
-    <content><![CDATA[text 对齐要点
-text-center,text-right 这些 tw class 只在 block 的元素下生效
-prisma
-安装
-pnpm install prisma @types/node @types/better-sqlite3 --save-devpnpm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
-安装完之后会在项目生成一个 prisma 文件夹,里面有一个
-schema.prisma,里面可以定义模型,要安装 Prisma 插件才能高亮代码
-定义模型
-model User &#123;  id Int @id @default(autoincrement())  username String @unique  password String&#125;
-@id 是主键
-同步数据库
-pnpm dlx prisma migrate dev --name init
-生成 Prisma Client 和建表
-这个命令会读 DATABASE_URL,但是只从.env 读
-DATABASE_URL=&quot;file:./prisma/dev.dev.db&quot; pnpm dlx prisma migrate dev --name init
-也可以手动指定环境变量
-更改为 sqlite
-postgresq 好像要本地启动服务,开发环境还是只用 sqlite 就好了
-.env
-DATABASE_URL=&quot;file:./prisma/dev.db&quot;
-这个 dev.db 文件不需要自己创建,跑完命令之后会自动创建
-npx prisma migrate dev
-后台管理
-pnpm dlx prisma studio
-会显示数据库的后台系统,可以做 CRUD
-官方文档
-https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite
-这是 prsima 关于 sqlite 的安装教程
-next api
-路径
-和文件系统路由是一样的,一般我们在 app 底下会创建一个 api
-文件夹,不是必要,但是为了避免和页面冲突,我们选择这样创建
+    <title>学习day22</title>
+    <url>/2025/12/05/%E5%AD%A6%E4%B9%A0day22/</url>
+    <content><![CDATA[form action
+&lt;form action=&quot;/api/login&quot; method=&quot;post&quot;&gt;&lt;/form&gt;
+按照普通的 html, form 的 action 属性就是在表单提交之后,
+放一个路由跳转到处理逻辑的接口地址
+// Server Componentexport default function Page() &#123;  // Action  async function create(formData: FormData) &#123;    &quot;use server&quot;;    // Logic to mutate data...  &#125;  // Invoke the action using the &quot;action&quot; attribute  return &lt;form action=&#123;create&#125;&gt;...&lt;/form&gt;;&#125;
+console.log
+在服务端和客户端的区别
+首先说一下如果一个文件顶部写了”use server”的话,
+那么里面所有的函数都默认带上了 use server
+在服务端的 log 会打印到控制台, 客户端的会打印到浏览器
+zod 数据类型校验
+import &#123; z &#125; from &quot;zod&quot;;const FormSchema = z.object(&#123;  id: z.string(),  customerId: z.string(),  amount: z.coerce.number(),  status: z.enum([&quot;pending&quot;, &quot;paid&quot;]),  date: z.string(),&#125;);const CreateInvoice = FormSchema.omit(&#123; id: true, date: true &#125;);
+z.coerce.number 这个就是将 amount 这个字段先强转为 number 类型,
+然后再判断是不是 number, 因为 input type=number 的时候, 其实实际上传给
+form 的类型还是字符串类型
+omit 是删除这两个字段的意思, true 只是删除确认, 没有特别含义
+这个 CreateInvoice 就是从 FormSchema 派生出来的新模板约束而已
+export async function createInvoice(formData: FormData) &#123;  const &#123; customerId, amount, status &#125; = CreateInvoice.parse(&#123;    customerId: formData.get(&quot;customerId&quot;),    amount: formData.get(&quot;amount&quot;),    status: formData.get(&quot;status&quot;),  &#125;);&#125;
+定义之后就像这样去解析
+revalidatePath
+import &#123; revalidatePath &#125; from &quot;next/cache&quot;;
+revalidatePath(&quot;/dashboard/invoices&quot;);
+作用就是消除对应路由页面的缓存, 不然就会一直显示旧的数据
+redirect
+import &#123; redirect &#125; from &quot;next/navigation&quot;;
+redirect(&quot;/dashboard/invoices&quot;);
+带参数的路由
+比如/user/:id 这种路由,id 这个段文件夹的名字就应该叫[id]
+创建 next 项目的命令
+pnpm dlx create-next-app@latest my-app
+app router
+就是 layout page loading 这一套东西
+react compiler
+创建项目的时候,每次都弹出来问我要不要选 react
+compiler,听说是不需要我手动去做优化,建议还是开吧
 ]]></content>
       <tags>
+        <tag>react</tag>
         <tag>next</tag>
-        <tag>prisma</tag>
       </tags>
   </entry>
   <entry>
@@ -2036,93 +1995,58 @@ class DepartmentOut(Schema):    id: int    title: str    class Config:        or
       </tags>
   </entry>
   <entry>
-    <title>学习day29</title>
-    <url>/2025/12/15/%E5%AD%A6%E4%B9%A0day29/</url>
-    <content><![CDATA[常用状态码
-
-200 ok
-201 创建成功
-400 bad request 通常是请求参数有问题
-401 unauthorized 权限不够, 比如没有带上 token
-403 forbidden 和 401 有点像, 但是这里已经带上了 token, 只是 token
-不对
-404 not found 通常是请求路径不存在
-5 开头的都是后端本身的问题了
-
-pytests
-pip install pytest requests
-一个测试函数
-import requestsdef test_login_success():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data = &#123;        &quot;username&quot;: &quot;njaso&quot;,        &quot;password&quot;: &quot;114514&quot;,    &#125;    response = requests.post(url, data=data)    assert response.status_code == 200    json_response = response.json()    assert &quot;access&quot; in json_response
-写完之后, 在同级目录运行
-pytest
-pytest 会自动寻找 test_*.py/*_test.py 里面的 test_xxx
-函数进行运行
-一个登录后拿 token
-访问带权限接口的例子
-def get_token():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data = &#123;        &quot;username&quot;: &quot;admin&quot;,        &quot;password&quot;: &quot;114514&quot;,    &#125;    response = requests.post(url, data=data)    assert response.status_code == 200    json_response = response.json()    assert &quot;access&quot; in json_response    return json_response[&quot;access&quot;]def test_get_subjects():    token = get_token()    url = &quot;http://127.0.0.1:8000/api/subjects/&quot;    headers = &#123;        &quot;Authorization&quot;: f&quot;Bearer &#123;token&#125;&quot;,    &#125;    response = requests.get(url, headers=headers)    assert response.status_code == 200    json_response = response.json()    assert isinstance(json_response, list)
+    <title>学习day25</title>
+    <url>/2025/12/10/%E5%AD%A6%E4%B9%A0day25/</url>
+    <content><![CDATA[text 对齐要点
+text-center,text-right 这些 tw class 只在 block 的元素下生效
+prisma
+安装
+pnpm install prisma @types/node @types/better-sqlite3 --save-devpnpm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
+安装完之后会在项目生成一个 prisma 文件夹,里面有一个
+schema.prisma,里面可以定义模型,要安装 Prisma 插件才能高亮代码
+定义模型
+model User &#123;  id Int @id @default(autoincrement())  username String @unique  password String&#125;
+@id 是主键
+同步数据库
+pnpm dlx prisma migrate dev --name init
+生成 Prisma Client 和建表
+这个命令会读 DATABASE_URL,但是只从.env 读
+DATABASE_URL=&quot;file:./prisma/dev.dev.db&quot; pnpm dlx prisma migrate dev --name init
+也可以手动指定环境变量
+更改为 sqlite
+postgresq 好像要本地启动服务,开发环境还是只用 sqlite 就好了
+.env
+DATABASE_URL=&quot;file:./prisma/dev.db&quot;
+这个 dev.db 文件不需要自己创建,跑完命令之后会自动创建
+npx prisma migrate dev
+后台管理
+pnpm dlx prisma studio
+会显示数据库的后台系统,可以做 CRUD
+官方文档
+https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite
+这是 prsima 关于 sqlite 的安装教程
+next api
+路径
+和文件系统路由是一样的,一般我们在 app 底下会创建一个 api
+文件夹,不是必要,但是为了避免和页面冲突,我们选择这样创建
 ]]></content>
       <tags>
-        <tag>状态码</tag>
+        <tag>next</tag>
+        <tag>prisma</tag>
       </tags>
   </entry>
   <entry>
-    <title>学习day30</title>
-    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
-    <content><![CDATA[树节点
-select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
-2016 年的投资
-# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
-count 是行数, sum 是总和
-游戏玩法分析 IV
-select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
-这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
-我也不太懂, 但是这能过
-select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
-这个可能是比较好懂的, 但是性能差了一点, 注意 join
-之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
-包起来
+    <title>学习day26</title>
+    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
+    <content><![CDATA[在 next 项目中使用 sqlite
+安装依赖
+pnpm install better-sqlite3
+密码加密库
+npm install bcryptjs
 ]]></content>
       <tags>
-        <tag>sql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day28</title>
-    <url>/2025/12/14/%E5%AD%A6%E4%B9%A0day28/</url>
-    <content><![CDATA[axios 基本配置
-import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: process.env.NEXT_PUBLIC_API_URL, // 后端API的基础URL  timeout: 5000, // 请求超时时间  headers: &#123;    &quot;Content-Type&quot;: &quot;application/json&quot;, // 默认请求 JSON  &#125;,&#125;);request.interceptors.request.use(  (config) =&gt; &#123;    const publicPaths = [&quot;/token/&quot;, &quot;/register/&quot;];    if (!publicPaths.includes(config.url || &quot;&quot;)) &#123;      const token = localStorage.getItem(&quot;access_token&quot;);      if (token) &#123;        config.headers = &#123;          ...config.headers,          Authorization: `Bearer $&#123;token&#125;`,        &#125;;      &#125;    &#125;    return config;  &#125;,  (error) =&gt; &#123;    return Promise.reject(error);  &#125;);export default request;
-默认传输的数据格式都是 json, 然后请求拦截器, 直接抄吧
-button 要显式地加上 type
-不然会触发 submit
-就写 type=“button”
-url 前缀
-urlpatterns = [    path(&quot;admin/&quot;, admin.site.urls),    path(&quot;api/token/&quot;, TokenObtainPairView.as_view(), name=&quot;token_obtain_pair&quot;),    path(&quot;api/token/refresh/&quot;, TokenRefreshView.as_view(), name=&quot;token_refresh&quot;),    path(&quot;api/user/&quot;, include(&quot;user.urls&quot;)),    path(&quot;api/problem/&quot;, include(&quot;problem.urls&quot;)),]
-不能写根路径
-from django.urls import pathfrom .views import RegisterViewurlpatterns = [    path(&quot;&quot;, RegisterView.as_view(), name=&quot;register&quot;),]
-要写成空的字符串, "/"是错误的
-使用 setstate
-函数的时候, 要放在 useEffect 里面
-useEffect(() =&gt; &#123;  request    .get(`/subjects/?author__name=$&#123;current_username&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, []);
-不然会死循环, setState 函数, 改变了 state 的值, 导致组件的重新渲染,
-然后导致重新请求
-一个放在 useEffect
-里面的 setState 的例子
-const handleSubmit = (e) =&gt; &#123;  e.preventDefault();  console.log(&quot;username:&quot;, username, &quot;password:&quot;, password);  request    .post(&quot;/token/&quot;, &#123;      username: username,      password: password,    &#125;)    .then((response) =&gt; &#123;      // 处理成功响应，例如存储令牌并重定向到主页      localStorage.setItem(&quot;access_token&quot;, response.data.access);      localStorage.setItem(&quot;refresh_token&quot;, response.data.refresh);      setCurrentUsername(username);      router.push(&quot;/home&quot;);    &#125;)    .catch((error) =&gt; &#123;      // 处理错误响应，例如显示错误消息      console.error(&quot;登录失败:&quot;, error);      alert(&quot;登录失败，请检查您的用户名和密码。&quot;);    &#125;);&#125;;
-这段代码肯定是不能放在 useEffect 里面的,
-不然这个请求就只能发生一次了, 而这里的 setCurrentUsername
-确实导致了组件的重新渲染, 只不过是我没有发现而已, 首先是它跳转了,
-其次是它就算没有跳转, 也不会陷入死循环, 要我手动触发 button 的 submit
-事件才会触发
-zustand
-的属性需要时间来初始化
-useEffect(() =&gt; &#123;  if (!currentUsername) return;  console.log(&quot;当前用户名:&quot;, currentUsername);  request    .get(`/subjects/?author__username=$&#123;currentUsername&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, [currentUsername]);
-我必须要让它不停地重复执行, 直到 currentUsername 加载了出来,
-这个点太坑了
-其实正确做法应该是后端根据 token 存用户信息, 然后前端在加载的时候通过
-token 请求 username, 不应该存在 zustand 的, 但是这里先这么干
-]]></content>
-      <tags>
-        <tag>axios</tag>
+        <tag>next</tag>
+        <tag>sqlite</tag>
       </tags>
   </entry>
   <entry>
@@ -2186,17 +2110,72 @@ onSubmit, onClick 这些都只能在客户端组件使用
       </tags>
   </entry>
   <entry>
-    <title>学习day26</title>
-    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
-    <content><![CDATA[在 next 项目中使用 sqlite
-安装依赖
-pnpm install better-sqlite3
-密码加密库
-npm install bcryptjs
+    <title>学习day28</title>
+    <url>/2025/12/14/%E5%AD%A6%E4%B9%A0day28/</url>
+    <content><![CDATA[axios 基本配置
+import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: process.env.NEXT_PUBLIC_API_URL, // 后端API的基础URL  timeout: 5000, // 请求超时时间  headers: &#123;    &quot;Content-Type&quot;: &quot;application/json&quot;, // 默认请求 JSON  &#125;,&#125;);request.interceptors.request.use(  (config) =&gt; &#123;    const publicPaths = [&quot;/token/&quot;, &quot;/register/&quot;];    if (!publicPaths.includes(config.url || &quot;&quot;)) &#123;      const token = localStorage.getItem(&quot;access_token&quot;);      if (token) &#123;        config.headers = &#123;          ...config.headers,          Authorization: `Bearer $&#123;token&#125;`,        &#125;;      &#125;    &#125;    return config;  &#125;,  (error) =&gt; &#123;    return Promise.reject(error);  &#125;);export default request;
+默认传输的数据格式都是 json, 然后请求拦截器, 直接抄吧
+button 要显式地加上 type
+不然会触发 submit
+就写 type=“button”
+url 前缀
+urlpatterns = [    path(&quot;admin/&quot;, admin.site.urls),    path(&quot;api/token/&quot;, TokenObtainPairView.as_view(), name=&quot;token_obtain_pair&quot;),    path(&quot;api/token/refresh/&quot;, TokenRefreshView.as_view(), name=&quot;token_refresh&quot;),    path(&quot;api/user/&quot;, include(&quot;user.urls&quot;)),    path(&quot;api/problem/&quot;, include(&quot;problem.urls&quot;)),]
+不能写根路径
+from django.urls import pathfrom .views import RegisterViewurlpatterns = [    path(&quot;&quot;, RegisterView.as_view(), name=&quot;register&quot;),]
+要写成空的字符串, "/"是错误的
+使用 setstate
+函数的时候, 要放在 useEffect 里面
+useEffect(() =&gt; &#123;  request    .get(`/subjects/?author__name=$&#123;current_username&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, []);
+不然会死循环, setState 函数, 改变了 state 的值, 导致组件的重新渲染,
+然后导致重新请求
+一个放在 useEffect
+里面的 setState 的例子
+const handleSubmit = (e) =&gt; &#123;  e.preventDefault();  console.log(&quot;username:&quot;, username, &quot;password:&quot;, password);  request    .post(&quot;/token/&quot;, &#123;      username: username,      password: password,    &#125;)    .then((response) =&gt; &#123;      // 处理成功响应，例如存储令牌并重定向到主页      localStorage.setItem(&quot;access_token&quot;, response.data.access);      localStorage.setItem(&quot;refresh_token&quot;, response.data.refresh);      setCurrentUsername(username);      router.push(&quot;/home&quot;);    &#125;)    .catch((error) =&gt; &#123;      // 处理错误响应，例如显示错误消息      console.error(&quot;登录失败:&quot;, error);      alert(&quot;登录失败，请检查您的用户名和密码。&quot;);    &#125;);&#125;;
+这段代码肯定是不能放在 useEffect 里面的,
+不然这个请求就只能发生一次了, 而这里的 setCurrentUsername
+确实导致了组件的重新渲染, 只不过是我没有发现而已, 首先是它跳转了,
+其次是它就算没有跳转, 也不会陷入死循环, 要我手动触发 button 的 submit
+事件才会触发
+zustand
+的属性需要时间来初始化
+useEffect(() =&gt; &#123;  if (!currentUsername) return;  console.log(&quot;当前用户名:&quot;, currentUsername);  request    .get(`/subjects/?author__username=$&#123;currentUsername&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, [currentUsername]);
+我必须要让它不停地重复执行, 直到 currentUsername 加载了出来,
+这个点太坑了
+其实正确做法应该是后端根据 token 存用户信息, 然后前端在加载的时候通过
+token 请求 username, 不应该存在 zustand 的, 但是这里先这么干
 ]]></content>
       <tags>
-        <tag>next</tag>
-        <tag>sqlite</tag>
+        <tag>axios</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day29</title>
+    <url>/2025/12/15/%E5%AD%A6%E4%B9%A0day29/</url>
+    <content><![CDATA[常用状态码
+
+200 ok
+201 创建成功
+400 bad request 通常是请求参数有问题
+401 unauthorized 权限不够, 比如没有带上 token
+403 forbidden 和 401 有点像, 但是这里已经带上了 token, 只是 token
+不对
+404 not found 通常是请求路径不存在
+5 开头的都是后端本身的问题了
+
+pytests
+pip install pytest requests
+一个测试函数
+import requestsdef test_login_success():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data = &#123;        &quot;username&quot;: &quot;njaso&quot;,        &quot;password&quot;: &quot;114514&quot;,    &#125;    response = requests.post(url, data=data)    assert response.status_code == 200    json_response = response.json()    assert &quot;access&quot; in json_response
+写完之后, 在同级目录运行
+pytest
+pytest 会自动寻找 test_*.py/*_test.py 里面的 test_xxx
+函数进行运行
+一个登录后拿 token
+访问带权限接口的例子
+def get_token():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data = &#123;        &quot;username&quot;: &quot;admin&quot;,        &quot;password&quot;: &quot;114514&quot;,    &#125;    response = requests.post(url, data=data)    assert response.status_code == 200    json_response = response.json()    assert &quot;access&quot; in json_response    return json_response[&quot;access&quot;]def test_get_subjects():    token = get_token()    url = &quot;http://127.0.0.1:8000/api/subjects/&quot;    headers = &#123;        &quot;Authorization&quot;: f&quot;Bearer &#123;token&#125;&quot;,    &#125;    response = requests.get(url, headers=headers)    assert response.status_code == 200    json_response = response.json()    assert isinstance(json_response, list)
+]]></content>
+      <tags>
+        <tag>状态码</tag>
       </tags>
   </entry>
   <entry>
@@ -2246,57 +2225,6 @@ Math.row(a, b)和 a ** b 都是能够计算次方的
 ]]></content>
       <tags>
         <tag>javaScript</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day33</title>
-    <url>/2026/01/28/%E5%AD%A6%E4%B9%A0day33/</url>
-    <content><![CDATA[Codeforces Round 1076 (Div.
-3)
-G
-交互题, 题目大意, 一颗树, 有两个的点, x和y, 总共可以询问n/2+1次,
-每次询问a, b之间的路径和x, y之间的路径是否有重合, 重合返回1,
-反之返回0
-一开始的想法是, 最极端的情况应该是x, y相等,
-所以相当于我们是在找一个点, 考虑询问所有叶子结点, 两两询问,
-如果它们之间包含了x, 就找它们之间的路径, 然后二分, 但是最大的问题是,
-可能所有的叶子结点之间的路径都不包含x
-后面想到了一个极端情况, 一条链, 我这样去问的话, 问叶子结点,
-会把整条链都问一次, 相当于是废话, 所以有了另外一个方法,
-就是两两询问不同的两个点, 这样就能保证, 能找到包含x的两个点,
-但是后续的二分次数可能会超
-后面看了题解, 注意到一件事情, 两两询问这个方向是对的,
-有一个地方可以优化, 就是两个点之间的路径, 上面的点,
-都是两个点之一的根节点, 如果这些点, 我们都已经询问过了,
-那么就不用再询问, 只需要询问当前的这两个点, 而前序遍历满足这个性质,
-就是根节点一定是在自己的之前, 所以我们按照dfn顺序两两询问
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define rg(x, l, r) (x).begin() + 1, (x).begin() + r + 1#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint ask(int a, int b) &#123;    cout &lt;&lt; &quot;? &quot; &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;    int res;    cin &gt;&gt; res;    return res;&#125;void solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;vt&lt;int&gt;&gt; adj(n+5);    for (int i=1; i&lt;n; i++) &#123;        int u, v;        cin &gt;&gt; u &gt;&gt; v;        adj[u].push_back(v);        adj[v].push_back(u);    &#125;    vt&lt;int&gt; ps;    auto dfs=[&amp;](auto &amp;&amp;self, int u, int p=0)-&gt;void &#123;        ps.push_back(u);        for (int v : adj[u]) &#123;            if (v==p)                continue;            self(self, v, u);        &#125;    &#125;;    dfs(dfs, 1);    for (int i=0; i&lt;n; i+=2) &#123;        int a=ps[i];        int b;        if (i==n-1)            b=a;        else            b=ps[i+1];        if (ask(a, b)) &#123;            if (a==b) &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; a &lt;&lt; endl;                return;            &#125;            if (ask(a, a)) &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; a &lt;&lt; endl;            &#125; else &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; b &lt;&lt; endl;            &#125;            return;        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day34</title>
-    <url>/2026/01/30/%E5%AD%A6%E4%B9%A0day34/</url>
-    <content><![CDATA[Codeforces Round 1077 (Div.
-2)
-A
-题目大意: 构造一个排列, 使得相邻两项的差都能被i整除
-说实话, 一开始, 我还真想不到, 我在想p[1]是不用管的,
-所以我先从p[2]开始, 然后p[i] = p[i - 1] + (i - 1) 或者 |p[i - 1] - (i -
-1)|, 但是这样是不行的, 有些p[i]可能会有两个选择,
-但是同时也会影响后面的选择, 导致找不到正确答案,
-正确的思路应该是从条件最苛刻的地方开始想, 也就是最后两项,
-因为最后两项的差最大, p[n] = 1 &amp;&amp; p[n - 1] = n 或者 p[n] = n
-&amp;&amp; p[n - 1] = 1, 然后同样的思路, 反向遍历去生成每一个p[i],
-据说每个p[i]都只有唯一的选择, 但是我没有证明
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N = 105;int p[N];bool vis[N];void solve() &#123;    int n;    cin &gt;&gt; n;    for (int i = 1; i &lt;= n; i++) &#123;        vis[i] = false;    &#125;    // p[n] - p[n - 1] % (n - 1) == 0    // p[n] = 1, p[n - 1] = n    // p[n] = n, p[n - 1] = 1    // |p[n - 2] - p[n - 1]| % (n - 2) == 0    &#123;        p[n] = 1;        p[n - 1] = n;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        bool flag = true;        for (int i = 1; i &lt;= n; i++) &#123;            if (!vis[i]) &#123;                flag = false;                break;            &#125;        &#125;        if (flag) &#123;            for (int i = 1; i &lt;= n; i++) &#123;                cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];            &#125;            return;        &#125;    &#125;    &#123;        p[n] = n;        p[n - 1] = 1;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        for (int i = 1; i &lt;= n; i++) &#123;            cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
       </tags>
   </entry>
   <entry>
@@ -2351,44 +2279,72 @@ https://nuxt.zhcndoc.com/
       </tags>
   </entry>
   <entry>
-    <title>学习day35</title>
-    <url>/2026/01/31/%E5%AD%A6%E4%B9%A0day35/</url>
+    <title>学习day30</title>
+    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
+    <content><![CDATA[树节点
+select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
+2016 年的投资
+# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
+count 是行数, sum 是总和
+游戏玩法分析 IV
+select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
+这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
+我也不太懂, 但是这能过
+select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
+这个可能是比较好懂的, 但是性能差了一点, 注意 join
+之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
+包起来
+]]></content>
+      <tags>
+        <tag>sql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day33</title>
+    <url>/2026/01/28/%E5%AD%A6%E4%B9%A0day33/</url>
+    <content><![CDATA[Codeforces Round 1076 (Div.
+3)
+G
+交互题, 题目大意, 一颗树, 有两个的点, x和y, 总共可以询问n/2+1次,
+每次询问a, b之间的路径和x, y之间的路径是否有重合, 重合返回1,
+反之返回0
+一开始的想法是, 最极端的情况应该是x, y相等,
+所以相当于我们是在找一个点, 考虑询问所有叶子结点, 两两询问,
+如果它们之间包含了x, 就找它们之间的路径, 然后二分, 但是最大的问题是,
+可能所有的叶子结点之间的路径都不包含x
+后面想到了一个极端情况, 一条链, 我这样去问的话, 问叶子结点,
+会把整条链都问一次, 相当于是废话, 所以有了另外一个方法,
+就是两两询问不同的两个点, 这样就能保证, 能找到包含x的两个点,
+但是后续的二分次数可能会超
+后面看了题解, 注意到一件事情, 两两询问这个方向是对的,
+有一个地方可以优化, 就是两个点之间的路径, 上面的点,
+都是两个点之一的根节点, 如果这些点, 我们都已经询问过了,
+那么就不用再询问, 只需要询问当前的这两个点, 而前序遍历满足这个性质,
+就是根节点一定是在自己的之前, 所以我们按照dfn顺序两两询问
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define rg(x, l, r) (x).begin() + 1, (x).begin() + r + 1#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint ask(int a, int b) &#123;    cout &lt;&lt; &quot;? &quot; &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;    int res;    cin &gt;&gt; res;    return res;&#125;void solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;vt&lt;int&gt;&gt; adj(n+5);    for (int i=1; i&lt;n; i++) &#123;        int u, v;        cin &gt;&gt; u &gt;&gt; v;        adj[u].push_back(v);        adj[v].push_back(u);    &#125;    vt&lt;int&gt; ps;    auto dfs=[&amp;](auto &amp;&amp;self, int u, int p=0)-&gt;void &#123;        ps.push_back(u);        for (int v : adj[u]) &#123;            if (v==p)                continue;            self(self, v, u);        &#125;    &#125;;    dfs(dfs, 1);    for (int i=0; i&lt;n; i+=2) &#123;        int a=ps[i];        int b;        if (i==n-1)            b=a;        else            b=ps[i+1];        if (ask(a, b)) &#123;            if (a==b) &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; a &lt;&lt; endl;                return;            &#125;            if (ask(a, a)) &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; a &lt;&lt; endl;            &#125; else &#123;                cout &lt;&lt; &quot;! &quot; &lt;&lt; b &lt;&lt; endl;            &#125;            return;        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day34</title>
+    <url>/2026/01/30/%E5%AD%A6%E4%B9%A0day34/</url>
     <content><![CDATA[Codeforces Round 1077 (Div.
 2)
-C
-题意:一个数组a,我可以进行任意次操作,每次选择两个元素,|a_i-a_j|&gt;=k的话,就可以进行交换,要使得a有序,问最大的k可以是多少
-思路:一开始应该会很自然地认为这是一个二分的题目,那么比较暴力的做法是,二分这个k,然后判断在这个k的情况下,能不能有序,判断方法应该差值大于k的元素连边,再搞一个b为a的排序版本,最后看ai和bi是否联通,可以通过并查集实现,不过时间复杂度是n^2log(n)
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot;=&quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N=2e5+5;int a[N],b[N];int n;map&lt;int,int&gt; f;int find(int x)&#123;    if(x==f[x]) return x;    return f[x]=find(f[x]);&#125;void merge(int x,int y)&#123;    x=find(x);    y=find(y);    f[y]=x;&#125;bool same(int x,int y)&#123;    return find(x)==find(y);&#125;bool check(int k)&#123;    f.clear();    for(int i=1;i&lt;=n;i++)&#123;        f[a[i]]=a[i];    &#125;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=n;j++)&#123;            if(abs(a[i]-a[j])&gt;=k)&#123;                merge(a[i],a[j]);            &#125;        &#125;    &#125;    for(int i=1;i&lt;=n;i++)&#123;        if(!same(a[i],b[i]))&#123;            return false;        &#125;    &#125;    return true;&#125;void solve()&#123;    cin&gt;&gt;n;    for(int i=1;i&lt;=n;i++)&#123;        cin&gt;&gt;a[i];        b[i]=a[i];    &#125;    sort(b+1,b+n+1);    int lo=0,hi=1e9;    int bans=-1;    while(lo&lt;=hi)&#123;        int mid=(lo+hi)/2;        if(check(mid))&#123;            lo=mid+1;            bans=mid;        &#125;else&#123;            hi=mid-1;        &#125;    &#125;    if(bans==int(1e9))&#123;        cout&lt;&lt;&quot;-1\n&quot;;    &#125;else&#123;        cout&lt;&lt;bans&lt;&lt;&quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
-后面看了题解,发现题解有一个很简洁的思想,就是如果对于没有在正确位置上的所有元素,都能交换其中的任意两个元素的话,那一定能有序,核心思想是要交换ai和aj的时候,不是直接交换这两个(虽然直接交换很显然都能想到不是好方法),要找若干个中间变量来进行交换,对于ai,和ai差值最大的就是,min(a)和max(a),但是这些中间变量交换完之后,我得保证它们位置不变,不然就搞乱了,不失一般性,考虑以下两种情况
-(1)a[i]-mn&gt;=k and a[j]-mn&gt;=k
-mn,a[i],a[j]
-我的目的是交换a[i]和a[j],然后mn位置不变
-a[i],mn,a[j]
-a[i],a[j],mn
-mn,a[j],a[i]
-
-a[i]-mn&gt;=k and mx-a[j]&gt;=k
-
-mn,mx,a[i],a[j]
-mn,a[j],a[i],mx
-其实这里的细节是要实现把a[j]搬到a[i]前面
-mx,a[j],a[i],mn
-mx,a[j],mn,a[i]
-因为mx-mn是数组a的极差,所以mx-mn&gt;=a[i]-mn&gt;=k,所以mx和mn可以进行交换
-mn,a[j],mx,a[i]
-mn,mx,a[j],a[i]
-这样我们就找到了交换所有不正确元素的条件,甚至可以利用位置正确的元素进行交换
-但是这个用二分去写的话,也是会超时
-但是我们不需要遍历a[i]和a[j]来判断
-当a[i]和a[j]进行交换的时候,我们可以独立地看a[i]
-当a[i]需要中间变量进行交换的时候,可以选择交换到mn或者mx
-这个选择是不影响a[j]的
-所以呢,我们交换的时候,肯定选择,k=max{a[i]-mn, mx-a[i]}
-所以答案就是
-k = mina[i]! = b[i]max(a[i] − mn, mx − a[i])
-代码实现:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot;=&quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N=2e5+5;ll a[N],b[N];void solve()&#123;    int n;    cin&gt;&gt;n;    for(int i=1;i&lt;=n;i++)&#123;        cin&gt;&gt;a[i];        b[i]=a[i];    &#125;    if(is_sorted(a+1,a+n+1))&#123;        cout&lt;&lt;&quot;-1\n&quot;;        return;    &#125;    sort(b+1,b+n+1);    ll ans=1e18;    for(int i=1;i&lt;=n;i++)&#123;        if(a[i]!=b[i])&#123;            ans=min(ans,max(a[i]-b[1], b[n]-a[i]));        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
-总结:这道题本质上是贪心吧,但是感觉挺数学的,比较需要观察力吧,关键在于一句话,如果能够交换一个数组当中的任意两个元素的话,那么这个数组必然能变成有序的
+A
+题目大意: 构造一个排列, 使得相邻两项的差都能被i整除
+说实话, 一开始, 我还真想不到, 我在想p[1]是不用管的,
+所以我先从p[2]开始, 然后p[i] = p[i - 1] + (i - 1) 或者 |p[i - 1] - (i -
+1)|, 但是这样是不行的, 有些p[i]可能会有两个选择,
+但是同时也会影响后面的选择, 导致找不到正确答案,
+正确的思路应该是从条件最苛刻的地方开始想, 也就是最后两项,
+因为最后两项的差最大, p[n] = 1 &amp;&amp; p[n - 1] = n 或者 p[n] = n
+&amp;&amp; p[n - 1] = 1, 然后同样的思路, 反向遍历去生成每一个p[i],
+据说每个p[i]都只有唯一的选择, 但是我没有证明
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N = 105;int p[N];bool vis[N];void solve() &#123;    int n;    cin &gt;&gt; n;    for (int i = 1; i &lt;= n; i++) &#123;        vis[i] = false;    &#125;    // p[n] - p[n - 1] % (n - 1) == 0    // p[n] = 1, p[n - 1] = n    // p[n] = n, p[n - 1] = 1    // |p[n - 2] - p[n - 1]| % (n - 2) == 0    &#123;        p[n] = 1;        p[n - 1] = n;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        bool flag = true;        for (int i = 1; i &lt;= n; i++) &#123;            if (!vis[i]) &#123;                flag = false;                break;            &#125;        &#125;        if (flag) &#123;            for (int i = 1; i &lt;= n; i++) &#123;                cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];            &#125;            return;        &#125;    &#125;    &#123;        p[n] = n;        p[n - 1] = 1;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        for (int i = 1; i &lt;= n; i++) &#123;            cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -2478,26 +2434,44 @@ ask(S)的结果是0, 那么如果ask(S U i)的结果非零, 我们则知道了a_
       </tags>
   </entry>
   <entry>
-    <title>学习day39</title>
-    <url>/2026/02/09/%E5%AD%A6%E4%B9%A0day39/</url>
-    <content><![CDATA[Codeforces Round 1078 (Div.
+    <title>学习day35</title>
+    <url>/2026/01/31/%E5%AD%A6%E4%B9%A0day35/</url>
+    <content><![CDATA[Codeforces Round 1077 (Div.
 2)
-D
-题意: 一个n*m的01矩阵a, 要分成两部分, 只能画一条线分,
-线的走向只能往右或者往下, 求分成两个矩阵后, 矩阵1包含1的个数为t1,
-矩阵2包含1的个数为t2, 求t1*t2的最大值
-思路: 很显然, t1*t2要最大, 那么t1和t2越接近越好,
-我一开始的想法是看左下角, 把这个问题看成是每一行选几列的问题,
-然后写了一个时间复杂度和空间复杂度都爆炸的dp, 后来又看了题解,
-发现自己真的是傻逼, 只需要看右上角, 尽量地去拿就行了,
-因为每次我拿的时候, 1的个数只会增加1,
-而且右上角每次拿的数只会比上一行小, 这是可以控制的,
-左下角就不具有这个性质, 我严重怀疑如果我不会dp,
-我反而能在比赛当中做出这道题
-代码(dp):
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; a(n + 5, vt&lt;ll&gt;(m + 5));    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(m + 5));    int tot = 0;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= m; j++) &#123;            cin &gt;&gt; a[i][j];            if (a[i][j] == 1) &#123;                tot++;            &#125;            pref[i][j] = pref[i][j - 1] + a[i][j];        &#125;    &#125;    int cnt = (tot + 1) / 2;    vt&lt;vt&lt;vt&lt;bool&gt;&gt;&gt; dp(n + 5, vt&lt;vt&lt;bool&gt;&gt;(m + 5, vt&lt;bool&gt;(cnt + 5)));    dp[0][0][0] = true;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 0; j &lt;= cnt; j++) &#123;            for (int j1 = 0; j1 &lt;= m; j1++) &#123;                for (int j2 = 0; j2 &lt;= j1; j2++) &#123;                    ll num1 = pref[i][j1];                    if (j - num1 &gt;= 0) &#123;                        dp[i][j1][j] = dp[i][j1][j] || dp[i - 1][j2][j - num1];                    &#125;                &#125;            &#125;        &#125;    &#125;    int pre_j, cur_cnt;    for (int i = m; i &gt;= 0; i--) &#123;        for (int j = cnt; j &gt;= 0; j--) &#123;            if (dp[n][i][j]) &#123;                pre_j = i;                cur_cnt = j;                ll ans = 1LL * j * (tot - j);                cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;                goto flag;            &#125;        &#125;    &#125;    flag:    vt&lt;int&gt; choose(n + 5);    choose[n] = pre_j;    cur_cnt -= pref[n][pre_j];    for (int i = n - 1; i &gt;= 1; i--) &#123;        for (int j = pre_j; j &gt;= 0; j--) &#123;            if (dp[i][j][cur_cnt]) &#123;                choose[i] = j;                pre_j = j;                cur_cnt -= pref[i][j];                break;            &#125;        &#125;    &#125;    // for (int i = 1; i &lt;= n; i++) &#123;    //     db(i), db(choose[i]), el;    // &#125;    string ans;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= choose[i] - choose[i - 1]; j++) &#123;            ans += &#x27;R&#x27;;        &#125;        ans += &#x27;D&#x27;;        if (i == n) &#123;            for (int j = 1; j &lt;= m - choose[i]; j++) &#123;                ans += &#x27;R&#x27;;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-代码(正解):
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;int&gt;&gt; a(n + 5, vt&lt;int&gt;(m + 5));    int tot = 0;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= m; j++) &#123;            cin &gt;&gt; a[i][j];            tot += a[i][j];        &#125;    &#125;    int cnt = tot / 2;    int cur = 0;    vt&lt;int&gt; choose(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = m; j &gt;= 1; j--) &#123;            if (cur + a[i][j] &lt;= cnt) &#123;                cur += a[i][j];            &#125; else &#123;                choose[i] = j;                break;            &#125;        &#125;        choose[i] = max(choose[i], choose[i - 1]);    &#125;    ll ans1 = 1LL * cnt * (tot - cnt);    cout &lt;&lt; ans1 &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n; i++) &#123;    //     db(i), db(choose[i]), el;    // &#125;    string ans;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= choose[i] - choose[i - 1]; j++) &#123;            ans += &#x27;R&#x27;;        &#125;        ans += &#x27;D&#x27;;        if (i == n) &#123;            for (int j = 1; j &lt;= m - choose[i]; j++) &#123;                ans += &#x27;R&#x27;;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+C
+题意:一个数组a,我可以进行任意次操作,每次选择两个元素,|a_i-a_j|&gt;=k的话,就可以进行交换,要使得a有序,问最大的k可以是多少
+思路:一开始应该会很自然地认为这是一个二分的题目,那么比较暴力的做法是,二分这个k,然后判断在这个k的情况下,能不能有序,判断方法应该差值大于k的元素连边,再搞一个b为a的排序版本,最后看ai和bi是否联通,可以通过并查集实现,不过时间复杂度是n^2log(n)
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot;=&quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N=2e5+5;int a[N],b[N];int n;map&lt;int,int&gt; f;int find(int x)&#123;    if(x==f[x]) return x;    return f[x]=find(f[x]);&#125;void merge(int x,int y)&#123;    x=find(x);    y=find(y);    f[y]=x;&#125;bool same(int x,int y)&#123;    return find(x)==find(y);&#125;bool check(int k)&#123;    f.clear();    for(int i=1;i&lt;=n;i++)&#123;        f[a[i]]=a[i];    &#125;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=n;j++)&#123;            if(abs(a[i]-a[j])&gt;=k)&#123;                merge(a[i],a[j]);            &#125;        &#125;    &#125;    for(int i=1;i&lt;=n;i++)&#123;        if(!same(a[i],b[i]))&#123;            return false;        &#125;    &#125;    return true;&#125;void solve()&#123;    cin&gt;&gt;n;    for(int i=1;i&lt;=n;i++)&#123;        cin&gt;&gt;a[i];        b[i]=a[i];    &#125;    sort(b+1,b+n+1);    int lo=0,hi=1e9;    int bans=-1;    while(lo&lt;=hi)&#123;        int mid=(lo+hi)/2;        if(check(mid))&#123;            lo=mid+1;            bans=mid;        &#125;else&#123;            hi=mid-1;        &#125;    &#125;    if(bans==int(1e9))&#123;        cout&lt;&lt;&quot;-1\n&quot;;    &#125;else&#123;        cout&lt;&lt;bans&lt;&lt;&quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
+后面看了题解,发现题解有一个很简洁的思想,就是如果对于没有在正确位置上的所有元素,都能交换其中的任意两个元素的话,那一定能有序,核心思想是要交换ai和aj的时候,不是直接交换这两个(虽然直接交换很显然都能想到不是好方法),要找若干个中间变量来进行交换,对于ai,和ai差值最大的就是,min(a)和max(a),但是这些中间变量交换完之后,我得保证它们位置不变,不然就搞乱了,不失一般性,考虑以下两种情况
+(1)a[i]-mn&gt;=k and a[j]-mn&gt;=k
+mn,a[i],a[j]
+我的目的是交换a[i]和a[j],然后mn位置不变
+a[i],mn,a[j]
+a[i],a[j],mn
+mn,a[j],a[i]
+
+a[i]-mn&gt;=k and mx-a[j]&gt;=k
+
+mn,mx,a[i],a[j]
+mn,a[j],a[i],mx
+其实这里的细节是要实现把a[j]搬到a[i]前面
+mx,a[j],a[i],mn
+mx,a[j],mn,a[i]
+因为mx-mn是数组a的极差,所以mx-mn&gt;=a[i]-mn&gt;=k,所以mx和mn可以进行交换
+mn,a[j],mx,a[i]
+mn,mx,a[j],a[i]
+这样我们就找到了交换所有不正确元素的条件,甚至可以利用位置正确的元素进行交换
+但是这个用二分去写的话,也是会超时
+但是我们不需要遍历a[i]和a[j]来判断
+当a[i]和a[j]进行交换的时候,我们可以独立地看a[i]
+当a[i]需要中间变量进行交换的时候,可以选择交换到mn或者mx
+这个选择是不影响a[j]的
+所以呢,我们交换的时候,肯定选择,k=max{a[i]-mn, mx-a[i]}
+所以答案就是
+k = mina[i]! = b[i]max(a[i] − mn, mx − a[i])
+代码实现:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot;=&quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N=2e5+5;ll a[N],b[N];void solve()&#123;    int n;    cin&gt;&gt;n;    for(int i=1;i&lt;=n;i++)&#123;        cin&gt;&gt;a[i];        b[i]=a[i];    &#125;    if(is_sorted(a+1,a+n+1))&#123;        cout&lt;&lt;&quot;-1\n&quot;;        return;    &#125;    sort(b+1,b+n+1);    ll ans=1e18;    for(int i=1;i&lt;=n;i++)&#123;        if(a[i]!=b[i])&#123;            ans=min(ans,max(a[i]-b[1], b[n]-a[i]));        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
+总结:这道题本质上是贪心吧,但是感觉挺数学的,比较需要观察力吧,关键在于一句话,如果能够交换一个数组当中的任意两个元素的话,那么这个数组必然能变成有序的
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -2526,6 +2500,32 @@ a[n], a[2]在一块
 就是一个集合如果可以划分为多个集合,
 而这多个集合可以选择与整个大集合一样的答案的话,
 但是每个集合又有自己的最优选择方法的话, 这就很显然分块是更优的做法
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day39</title>
+    <url>/2026/02/09/%E5%AD%A6%E4%B9%A0day39/</url>
+    <content><![CDATA[Codeforces Round 1078 (Div.
+2)
+D
+题意: 一个n*m的01矩阵a, 要分成两部分, 只能画一条线分,
+线的走向只能往右或者往下, 求分成两个矩阵后, 矩阵1包含1的个数为t1,
+矩阵2包含1的个数为t2, 求t1*t2的最大值
+思路: 很显然, t1*t2要最大, 那么t1和t2越接近越好,
+我一开始的想法是看左下角, 把这个问题看成是每一行选几列的问题,
+然后写了一个时间复杂度和空间复杂度都爆炸的dp, 后来又看了题解,
+发现自己真的是傻逼, 只需要看右上角, 尽量地去拿就行了,
+因为每次我拿的时候, 1的个数只会增加1,
+而且右上角每次拿的数只会比上一行小, 这是可以控制的,
+左下角就不具有这个性质, 我严重怀疑如果我不会dp,
+我反而能在比赛当中做出这道题
+代码(dp):
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; a(n + 5, vt&lt;ll&gt;(m + 5));    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(m + 5));    int tot = 0;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= m; j++) &#123;            cin &gt;&gt; a[i][j];            if (a[i][j] == 1) &#123;                tot++;            &#125;            pref[i][j] = pref[i][j - 1] + a[i][j];        &#125;    &#125;    int cnt = (tot + 1) / 2;    vt&lt;vt&lt;vt&lt;bool&gt;&gt;&gt; dp(n + 5, vt&lt;vt&lt;bool&gt;&gt;(m + 5, vt&lt;bool&gt;(cnt + 5)));    dp[0][0][0] = true;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 0; j &lt;= cnt; j++) &#123;            for (int j1 = 0; j1 &lt;= m; j1++) &#123;                for (int j2 = 0; j2 &lt;= j1; j2++) &#123;                    ll num1 = pref[i][j1];                    if (j - num1 &gt;= 0) &#123;                        dp[i][j1][j] = dp[i][j1][j] || dp[i - 1][j2][j - num1];                    &#125;                &#125;            &#125;        &#125;    &#125;    int pre_j, cur_cnt;    for (int i = m; i &gt;= 0; i--) &#123;        for (int j = cnt; j &gt;= 0; j--) &#123;            if (dp[n][i][j]) &#123;                pre_j = i;                cur_cnt = j;                ll ans = 1LL * j * (tot - j);                cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;                goto flag;            &#125;        &#125;    &#125;    flag:    vt&lt;int&gt; choose(n + 5);    choose[n] = pre_j;    cur_cnt -= pref[n][pre_j];    for (int i = n - 1; i &gt;= 1; i--) &#123;        for (int j = pre_j; j &gt;= 0; j--) &#123;            if (dp[i][j][cur_cnt]) &#123;                choose[i] = j;                pre_j = j;                cur_cnt -= pref[i][j];                break;            &#125;        &#125;    &#125;    // for (int i = 1; i &lt;= n; i++) &#123;    //     db(i), db(choose[i]), el;    // &#125;    string ans;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= choose[i] - choose[i - 1]; j++) &#123;            ans += &#x27;R&#x27;;        &#125;        ans += &#x27;D&#x27;;        if (i == n) &#123;            for (int j = 1; j &lt;= m - choose[i]; j++) &#123;                ans += &#x27;R&#x27;;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+代码(正解):
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;int&gt;&gt; a(n + 5, vt&lt;int&gt;(m + 5));    int tot = 0;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= m; j++) &#123;            cin &gt;&gt; a[i][j];            tot += a[i][j];        &#125;    &#125;    int cnt = tot / 2;    int cur = 0;    vt&lt;int&gt; choose(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = m; j &gt;= 1; j--) &#123;            if (cur + a[i][j] &lt;= cnt) &#123;                cur += a[i][j];            &#125; else &#123;                choose[i] = j;                break;            &#125;        &#125;        choose[i] = max(choose[i], choose[i - 1]);    &#125;    ll ans1 = 1LL * cnt * (tot - cnt);    cout &lt;&lt; ans1 &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n; i++) &#123;    //     db(i), db(choose[i]), el;    // &#125;    string ans;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= choose[i] - choose[i - 1]; j++) &#123;            ans += &#x27;R&#x27;;        &#125;        ans += &#x27;D&#x27;;        if (i == n) &#123;            for (int j = 1; j &lt;= m - choose[i]; j++) &#123;                ans += &#x27;R&#x27;;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -2589,78 +2589,6 @@ current_file_path = os.path.abspath(__file__)BASE_URL = os.path.dirname(os.path.
       <tags>
         <tag>python</tag>
         <tag>爬虫</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day41</title>
-    <url>/2026/02/12/%E5%AD%A6%E4%B9%A0day41/</url>
-    <content><![CDATA[Codeforces Round 1079 (Div.
-2)
-D
-题意: 对于一个数组a, 找到所有的(i, j)满足a[i] * a[j] == j - i
-思路: 其实我在赛时过了这道题, 但是我觉得显然是数据集太弱了,
-我的做法是错的. a[i] * a[j] == j - i可以看出j - i是a[i]和a[j]的倍数,
-那么可以分成两种情况
-
-a[i] _ a[j] == k _ a[i]
-
-j - i = k * a[i]
-j = k * a[i] + i
-a[i] _ a[k _ a[i] + i] == k * a[i]
-
-a[i] _ a[j] == k _ a[j]
-
-a[j - k _ a[j]] _ a[j] == k * a[j]
-其实这两种情况是同一种情况, 只是枚举的方式不同,
-可以看到对于第一种情况, k就是a[j], 只考虑a[j] &lt;= a[i]的情况,
-k最多只需要枚举到a[i], 第二种情况我们枚举j, 然后再枚举k,
-这里的k就是a[i], 现在是a[i] &lt; a[j]的情况, 所以k &lt; a[j]
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        // a[j] == k        // a[j] &lt;= a[i]        for (int k = 1; k &lt;= a[j] &amp;&amp; k * a[i] + i &lt;= n; k++) &#123;            int j = k * a[i] + i;            if (a[j] == k) &#123;                ans++;            &#125;        &#125;    &#125;    // a[i] &lt; a[j]    for (int j = 1; j &lt;= n; j++) &#123;        for (int k = 1; k &lt; a[j] &amp;&amp; j - k * a[j] &gt;= 1; k++) &#123;            int i = j - k * a[j];            if (a[i] == k) &#123;                ans++;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    // a[i] * a[j] = k * a[i]    // a[i] * a[j] = k * a[j]    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-for (int i = 1; i &lt;= n; i++) &#123;        for (int k = 1; k * a[i] + i &lt;= n; k++) &#123;            int j = k * a[i] + i;            if (a[j] == k) &#123;                ans++;            &#125;        &#125;    &#125;
-理论上我只是这样计算也是符合逻辑的, 但是时间复杂度是n ^ 2,
-我花了比较长的时间去理解为什么分成a[j] &lt;= a[i]和a[i] &lt;
-a[j]的情况就能减少这么多情况, 本质上就是, 我如果暴力去枚举j的位置,
-那么有些k &gt; a[j]的情况也被枚举了, a[i]和a[j]的大小情况,
-其中a[i]和a[j]都很大的情况是没有必要枚举的,
-分情况枚举就是排除了这种情况, 对于类似a[i] * a[j] &lt;= C的这种枚举,
-以后可以尝试固定其中一个, 比如固定a[i], 然后去枚举比a[i]小的,
-这样就可以排除a[i]和a[j]都很大的情况,
-对于时间复杂度的减小有显著的影响.
-总结: 感觉这道题不是简单的数学, 而是有一个模型在的,
-我将这个模型命名为乘积上限模型, 它的形式就是a[i] * a[j] &lt;= C,
-暴力的做法就是枚举a[i]再枚举a[j], 这样枚举, a[j]可能&lt;= a[i]也可能&gt;
-a[j], 什么情况是有点多余的, &gt; a[i]的情况是有点多余的, 有的人可能会说,
-&gt; a[i]的情况怎么会是多余的, a[i] &lt; a[j]的情况可能存在的啊,
-但是问题的, 在a[i] &gt; sqrt(C)的时候, 考虑a[j] &gt;
-a[i]的情况是没有意义的, 假设我分成a[j] &lt;= a[i]和a[i] &lt; a[j]的情况,
-那么对于某个a[i]或者a[j], 我最多只需要枚举sqrt(C)个,
-这个概念甚至可以出一道模板题了吧, 概念理解起来很简单,
-但是要自己想出来是稍微有点反直觉的
-要出道题目的话, 就是长这样, 给定一个数组a, 长度为n, 求a[i] * a[j]
-&lt;= n 的方案数(i &lt; j), 挺有atcoder begin的味道的
-要解决这个问题的话
-一开始的想法应该是这样
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5), cnt(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        cnt[a[i]]++;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cnt[a[i]]--;        for (int k = 1; k * a[i] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
-这里我利用乘积上限模型优化的代码
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5), cnt(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        cnt[a[i]]++;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        // a[j] &lt;= a[i]        cnt[a[i]]--;        for (int k = 1; k &lt;= a[i] &amp;&amp; k * a[i] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;    &#125;    cnt.clear();    cnt.resize(n + 5);    for (int j = 1; j &lt;= n; j++) &#123;        for (int k = 1; k &lt; a[j] &amp;&amp; k * a[j] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;        cnt[a[j]]++;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
-我上面的解释应该是有点问题的, 并不是说我排除了,
-a[i]和a[j]同时大的情况, 而是当a[i]小的时候, 我就遍历到自己,
-当a[i]大的时候, a[j]肯定相对较小, 我就可以遍历所有的a[j],
-那么为什么a[i]小的时候, 可以不用遍历大的a[j]呢,
-这是因为这个情况被a[j]大的时候去遍历小的a[i]这个行为包含了
-所以这个模型的本质原理就是, 每个a[i]去找比自己小的,
-那么那些很小的a[i]并不是找不到数, 而是会被大的a[j]给找到
-我想要平反一下我D题的赛时程序
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; ina(n + 5);    vt&lt;vt&lt;int&gt;&gt; pos(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        if (a[i] &lt; n) &#123;            pos[a[i]].push_back(i);            ina[a[i]] = 1;        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt; n; i++) &#123;        if (!ina[i]) &#123;            continue;        &#125;        for (int m = i; m &lt; n; m += i) &#123;            // int p = lower_bound(all(pos[i]), m + 1) - pos[i].begin();            // int cnt = sz(pos[i]) - p;            if (sz(pos[m / i]) == 0) &#123;                continue;            &#125;            // int p = lower_bound(all(pos[m / i]), m + pos[m / i][0]) - pos[m / i].begin();            // int cnt = sz(pos[m / i]) - p;            int cnt = 0;            for (int j : pos[m / i]) &#123;                if (j &gt;= m + 1) &#123;                    int ii = j - m;                    if (a[ii] == i) &#123;                        cnt++;                    &#125;                &#125;            &#125;            ans += cnt;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-经过评论区有人提醒, 当a[i]全部都是1, 我这个程序的for (int j : pos[m /
-i])只会触发一次, 这样的话, 时间复杂度不会是O(n^2),
-但是现在就变成有点难分析了这个时间复杂度, 问了Gemini,
-我这个程序的最坏时间复杂度为N*sqrt(N), 那还真是阴差阳错, 写出了一个正解,
-最坏的情况应该是1到sqrt(N)各出现了sqrt(N)次
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
       </tags>
   </entry>
   <entry>
@@ -2765,6 +2693,78 @@ aj交换到a{i+1}的交换次数是j-i-1, 少了一个a_i,
       </tags>
   </entry>
   <entry>
+    <title>学习day41</title>
+    <url>/2026/02/12/%E5%AD%A6%E4%B9%A0day41/</url>
+    <content><![CDATA[Codeforces Round 1079 (Div.
+2)
+D
+题意: 对于一个数组a, 找到所有的(i, j)满足a[i] * a[j] == j - i
+思路: 其实我在赛时过了这道题, 但是我觉得显然是数据集太弱了,
+我的做法是错的. a[i] * a[j] == j - i可以看出j - i是a[i]和a[j]的倍数,
+那么可以分成两种情况
+
+a[i] _ a[j] == k _ a[i]
+
+j - i = k * a[i]
+j = k * a[i] + i
+a[i] _ a[k _ a[i] + i] == k * a[i]
+
+a[i] _ a[j] == k _ a[j]
+
+a[j - k _ a[j]] _ a[j] == k * a[j]
+其实这两种情况是同一种情况, 只是枚举的方式不同,
+可以看到对于第一种情况, k就是a[j], 只考虑a[j] &lt;= a[i]的情况,
+k最多只需要枚举到a[i], 第二种情况我们枚举j, 然后再枚举k,
+这里的k就是a[i], 现在是a[i] &lt; a[j]的情况, 所以k &lt; a[j]
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        // a[j] == k        // a[j] &lt;= a[i]        for (int k = 1; k &lt;= a[j] &amp;&amp; k * a[i] + i &lt;= n; k++) &#123;            int j = k * a[i] + i;            if (a[j] == k) &#123;                ans++;            &#125;        &#125;    &#125;    // a[i] &lt; a[j]    for (int j = 1; j &lt;= n; j++) &#123;        for (int k = 1; k &lt; a[j] &amp;&amp; j - k * a[j] &gt;= 1; k++) &#123;            int i = j - k * a[j];            if (a[i] == k) &#123;                ans++;            &#125;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    // a[i] * a[j] = k * a[i]    // a[i] * a[j] = k * a[j]    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+for (int i = 1; i &lt;= n; i++) &#123;        for (int k = 1; k * a[i] + i &lt;= n; k++) &#123;            int j = k * a[i] + i;            if (a[j] == k) &#123;                ans++;            &#125;        &#125;    &#125;
+理论上我只是这样计算也是符合逻辑的, 但是时间复杂度是n ^ 2,
+我花了比较长的时间去理解为什么分成a[j] &lt;= a[i]和a[i] &lt;
+a[j]的情况就能减少这么多情况, 本质上就是, 我如果暴力去枚举j的位置,
+那么有些k &gt; a[j]的情况也被枚举了, a[i]和a[j]的大小情况,
+其中a[i]和a[j]都很大的情况是没有必要枚举的,
+分情况枚举就是排除了这种情况, 对于类似a[i] * a[j] &lt;= C的这种枚举,
+以后可以尝试固定其中一个, 比如固定a[i], 然后去枚举比a[i]小的,
+这样就可以排除a[i]和a[j]都很大的情况,
+对于时间复杂度的减小有显著的影响.
+总结: 感觉这道题不是简单的数学, 而是有一个模型在的,
+我将这个模型命名为乘积上限模型, 它的形式就是a[i] * a[j] &lt;= C,
+暴力的做法就是枚举a[i]再枚举a[j], 这样枚举, a[j]可能&lt;= a[i]也可能&gt;
+a[j], 什么情况是有点多余的, &gt; a[i]的情况是有点多余的, 有的人可能会说,
+&gt; a[i]的情况怎么会是多余的, a[i] &lt; a[j]的情况可能存在的啊,
+但是问题的, 在a[i] &gt; sqrt(C)的时候, 考虑a[j] &gt;
+a[i]的情况是没有意义的, 假设我分成a[j] &lt;= a[i]和a[i] &lt; a[j]的情况,
+那么对于某个a[i]或者a[j], 我最多只需要枚举sqrt(C)个,
+这个概念甚至可以出一道模板题了吧, 概念理解起来很简单,
+但是要自己想出来是稍微有点反直觉的
+要出道题目的话, 就是长这样, 给定一个数组a, 长度为n, 求a[i] * a[j]
+&lt;= n 的方案数(i &lt; j), 挺有atcoder begin的味道的
+要解决这个问题的话
+一开始的想法应该是这样
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5), cnt(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        cnt[a[i]]++;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cnt[a[i]]--;        for (int k = 1; k * a[i] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
+这里我利用乘积上限模型优化的代码
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5), cnt(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        cnt[a[i]]++;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        // a[j] &lt;= a[i]        cnt[a[i]]--;        for (int k = 1; k &lt;= a[i] &amp;&amp; k * a[i] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;    &#125;    cnt.clear();    cnt.resize(n + 5);    for (int j = 1; j &lt;= n; j++) &#123;        for (int k = 1; k &lt; a[j] &amp;&amp; k * a[j] &lt;= n; k++) &#123;            ans += cnt[k];        &#125;        cnt[a[j]]++;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
+我上面的解释应该是有点问题的, 并不是说我排除了,
+a[i]和a[j]同时大的情况, 而是当a[i]小的时候, 我就遍历到自己,
+当a[i]大的时候, a[j]肯定相对较小, 我就可以遍历所有的a[j],
+那么为什么a[i]小的时候, 可以不用遍历大的a[j]呢,
+这是因为这个情况被a[j]大的时候去遍历小的a[i]这个行为包含了
+所以这个模型的本质原理就是, 每个a[i]去找比自己小的,
+那么那些很小的a[i]并不是找不到数, 而是会被大的a[j]给找到
+我想要平反一下我D题的赛时程序
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; ina(n + 5);    vt&lt;vt&lt;int&gt;&gt; pos(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        if (a[i] &lt; n) &#123;            pos[a[i]].push_back(i);            ina[a[i]] = 1;        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt; n; i++) &#123;        if (!ina[i]) &#123;            continue;        &#125;        for (int m = i; m &lt; n; m += i) &#123;            // int p = lower_bound(all(pos[i]), m + 1) - pos[i].begin();            // int cnt = sz(pos[i]) - p;            if (sz(pos[m / i]) == 0) &#123;                continue;            &#125;            // int p = lower_bound(all(pos[m / i]), m + pos[m / i][0]) - pos[m / i].begin();            // int cnt = sz(pos[m / i]) - p;            int cnt = 0;            for (int j : pos[m / i]) &#123;                if (j &gt;= m + 1) &#123;                    int ii = j - m;                    if (a[ii] == i) &#123;                        cnt++;                    &#125;                &#125;            &#125;            ans += cnt;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+经过评论区有人提醒, 当a[i]全部都是1, 我这个程序的for (int j : pos[m /
+i])只会触发一次, 这样的话, 时间复杂度不会是O(n^2),
+但是现在就变成有点难分析了这个时间复杂度, 问了Gemini,
+我这个程序的最坏时间复杂度为N*sqrt(N), 那还真是阴差阳错, 写出了一个正解,
+最坏的情况应该是1到sqrt(N)各出现了sqrt(N)次
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day42</title>
     <url>/2026/02/14/%E5%AD%A6%E4%B9%A0day42/</url>
     <content><![CDATA[洛谷 P2261 [CQOI2007]
@@ -2830,37 +2830,6 @@ F
       </tags>
   </entry>
   <entry>
-    <title>学习day44</title>
-    <url>/2026/02/17/%E5%AD%A6%E4%B9%A0day44/</url>
-    <content><![CDATA[牛客周赛 Round 131
-比赛链接: https://ac.nowcoder.com/acm/contest/127703
-E
-思路: 一开始我的理解是, 一次遍历, 对每个相邻的两个元素都进行一次操作,
-最后再找最大的那个把贡献都加上去, 我认为这样是正确的,
-因为我暂时找不到反例, 但是其实有一个反例, 10 1 100 1 10, 这是一个反例,
-我顺着遍历去做操作的话, 会导致最后两项没有办法进行操作,
-其实从题目的操作可以得出, 每次操作, 贡献到的元素,
-必然不是最后最大的那个元素, 假设说顺着遍历的操作是正确的, 我枚举i,
-然后只操作1~i-1, i+1~n的元素, 贡献全部加到第i个元素, 哎,
-没想到要分成前缀和后缀
-代码
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    auto b = a;    vt&lt;ll&gt; pref(n + 5), suff(n + 5);    for (int i = 2; i &lt;= n; i++) &#123;        ll t = min(b[i], b[i - 1]);        b[i] -= t;        pref[i] = pref[i - 1] + t;    &#125;    b = a;    for (int i = n - 1; i &gt;= 1; i--) &#123;        ll t = min(b[i], b[i + 1]);        b[i] -= t;        suff[i] = suff[i + 1] + t;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ans = max(ans, pref[i - 1] + a[i] + suff[i + 1]);    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-F
-思路: 当左括号的颜色确定, 与之匹配的右括号的颜色也将确定,
-同时一个括号如果和其相邻的相同, 那么其中一个颜色确定, 另一个也确定,
-所以相邻且相同的和匹配的位置可以视作在同一个联通块,
-在同一个联通块里面的一个符号的颜色确认的时候,
-其他在联通块里面的符号的颜色也将确认,
-而不在同一个联通块里面的则互相不影响, 假设联通块的数量是c,
-那么方案的数量就是2^c
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD = 998244353;ll power(ll u, ll v) &#123;    ll res = 1;    while (v) &#123;        if (v % 2)            res = res * u % MOD;        u = u * u % MOD;        v /= 2;    &#125;    return res;&#125;// 1-baseclass DSU &#123;private:    vector&lt;int&gt; f, siz;    int n;public:    DSU(int _n) &#123;        this-&gt;n = _n;        f.resize(_n + 1);        siz.assign(_n + 1, 1);        iota(f.begin(), f.end(), 0);    &#125;    int find(int x) &#123;        if (f[x] == x)            return x;        return f[x] = find(f[x]);    &#125;    void merge(int x, int y) &#123;        x = find(x);        y = find(y);        if (x == y)            return;        f[y] = x;        siz[x] += siz[y];    &#125;    bool same(int x, int y) &#123;        return find(x) == find(y);    &#125;    int size(int x) &#123;        return siz[find(x)];    &#125;    int cnt_leader() &#123;        int res = 0;        for (int i = 1; i &lt;= n; i++) &#123;            if (f[i] == i) &#123;                res++;            &#125;        &#125;        return res;    &#125;&#125;;void solve() &#123;    int n;    cin &gt;&gt; n;    string s;    cin &gt;&gt; s;    s = &#x27; &#x27; + s;    DSU dsu(n);    vt&lt;int&gt; stk;    for (int i = 1; i &lt;= n; i++) &#123;        if (s[i] == &#x27;(&#x27;) &#123;            stk.pb(i);        &#125; else &#123;            int tp = stk.back();            stk.pop_back();            dsu.merge(i, tp);        &#125;    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        if (s[i] == s[i + 1]) &#123;            dsu.merge(i, i + 1);        &#125;    &#125;    cout &lt;&lt; power(2, dsu.cnt_leader()) &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>nowcoder</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day45</title>
     <url>/2026/02/22/%E5%AD%A6%E4%B9%A0day45/</url>
     <content><![CDATA[牛客2026年除夕娱乐赛
@@ -2909,6 +2878,37 @@ q=n-p+2
       </tags>
   </entry>
   <entry>
+    <title>学习day44</title>
+    <url>/2026/02/17/%E5%AD%A6%E4%B9%A0day44/</url>
+    <content><![CDATA[牛客周赛 Round 131
+比赛链接: https://ac.nowcoder.com/acm/contest/127703
+E
+思路: 一开始我的理解是, 一次遍历, 对每个相邻的两个元素都进行一次操作,
+最后再找最大的那个把贡献都加上去, 我认为这样是正确的,
+因为我暂时找不到反例, 但是其实有一个反例, 10 1 100 1 10, 这是一个反例,
+我顺着遍历去做操作的话, 会导致最后两项没有办法进行操作,
+其实从题目的操作可以得出, 每次操作, 贡献到的元素,
+必然不是最后最大的那个元素, 假设说顺着遍历的操作是正确的, 我枚举i,
+然后只操作1~i-1, i+1~n的元素, 贡献全部加到第i个元素, 哎,
+没想到要分成前缀和后缀
+代码
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    auto b = a;    vt&lt;ll&gt; pref(n + 5), suff(n + 5);    for (int i = 2; i &lt;= n; i++) &#123;        ll t = min(b[i], b[i - 1]);        b[i] -= t;        pref[i] = pref[i - 1] + t;    &#125;    b = a;    for (int i = n - 1; i &gt;= 1; i--) &#123;        ll t = min(b[i], b[i + 1]);        b[i] -= t;        suff[i] = suff[i + 1] + t;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ans = max(ans, pref[i - 1] + a[i] + suff[i + 1]);    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+F
+思路: 当左括号的颜色确定, 与之匹配的右括号的颜色也将确定,
+同时一个括号如果和其相邻的相同, 那么其中一个颜色确定, 另一个也确定,
+所以相邻且相同的和匹配的位置可以视作在同一个联通块,
+在同一个联通块里面的一个符号的颜色确认的时候,
+其他在联通块里面的符号的颜色也将确认,
+而不在同一个联通块里面的则互相不影响, 假设联通块的数量是c,
+那么方案的数量就是2^c
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD = 998244353;ll power(ll u, ll v) &#123;    ll res = 1;    while (v) &#123;        if (v % 2)            res = res * u % MOD;        u = u * u % MOD;        v /= 2;    &#125;    return res;&#125;// 1-baseclass DSU &#123;private:    vector&lt;int&gt; f, siz;    int n;public:    DSU(int _n) &#123;        this-&gt;n = _n;        f.resize(_n + 1);        siz.assign(_n + 1, 1);        iota(f.begin(), f.end(), 0);    &#125;    int find(int x) &#123;        if (f[x] == x)            return x;        return f[x] = find(f[x]);    &#125;    void merge(int x, int y) &#123;        x = find(x);        y = find(y);        if (x == y)            return;        f[y] = x;        siz[x] += siz[y];    &#125;    bool same(int x, int y) &#123;        return find(x) == find(y);    &#125;    int size(int x) &#123;        return siz[find(x)];    &#125;    int cnt_leader() &#123;        int res = 0;        for (int i = 1; i &lt;= n; i++) &#123;            if (f[i] == i) &#123;                res++;            &#125;        &#125;        return res;    &#125;&#125;;void solve() &#123;    int n;    cin &gt;&gt; n;    string s;    cin &gt;&gt; s;    s = &#x27; &#x27; + s;    DSU dsu(n);    vt&lt;int&gt; stk;    for (int i = 1; i &lt;= n; i++) &#123;        if (s[i] == &#x27;(&#x27;) &#123;            stk.pb(i);        &#125; else &#123;            int tp = stk.back();            stk.pop_back();            dsu.merge(i, tp);        &#125;    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        if (s[i] == s[i + 1]) &#123;            dsu.merge(i, i + 1);        &#125;    &#125;    cout &lt;&lt; power(2, dsu.cnt_leader()) &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>nowcoder</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day46</title>
     <url>/2026/02/23/%E5%AD%A6%E4%B9%A0day46/</url>
     <content><![CDATA[比赛链接: https://ac.nowcoder.com/acm/contest/128672
@@ -2934,24 +2934,6 @@ E
       </tags>
   </entry>
   <entry>
-    <title>学习day49</title>
-    <url>/2026/03/10/%E5%AD%A6%E4%B9%A0day49/</url>
-    <content><![CDATA[Codeforces Round 1085 (Div.
-1 + Div. 2)
-C
-题意: 海里有一个地形, 表示为一个数组a, a[i]表示高度,
-然后水位在h这个高度, 可以设置排水沟, 每个单位的水可以向左右下三个方向走,
-问在最多设置两个排水沟的情况下, 最多可以排走多少单位的水
-思路: 需要注意到, 假设我在列j设置了一个排水沟, 对于第i列, 它的贡献是h
-- max_a[min(i, j)][max(i, j)], 也就是取决于它们之间的最高地形,
-两个排水沟通过容斥原理解决
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    ll n, h;    cin &gt;&gt; n &gt;&gt; h;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    vt&lt;vt&lt;ll&gt;&gt; max_a(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = i; j &lt;= n; j++) &#123;            if (i == j) &#123;                max_a[i][j] = a[i];            &#125; else &#123;                max_a[i][j] = max(max_a[i][j - 1], a[j]);            &#125;        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= n; j++) &#123;            pref[i][j] = pref[i][j - 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; suff(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = n; j &gt;= 1; j--) &#123;            suff[i][j] = suff[i][j + 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ll cnt = 0;        for (int j = 1; j &lt;= n; j++) &#123;            cnt += h - max_a[min(i, j)][max(i, j)];        &#125;        ans = max(ans, cnt);    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        for (int j = i + 1; j &lt;= n; j++) &#123;            ll overlap = pref[j][i] + (j - i - 1) * (h - max_a[i][j]) + suff[i][j];            ll cnt = pref[i][n] + pref[j][n] - overlap;            ans = max(ans, cnt);        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day47</title>
     <url>/2026/02/26/%E5%AD%A6%E4%B9%A0day47/</url>
     <content><![CDATA[Educational
@@ -2972,6 +2954,46 @@ ai &amp; m = ai,
 a_i要尽可能的大, 我们就希望高位的1出现的越多次越好
 代码:
 #include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    ll s, m;    cin &gt;&gt; s &gt;&gt; m;    ll lo = 1, hi = 1e18;    if (s % (m &amp; -m)) &#123;        cout &lt;&lt; &quot;-1\n&quot;;        return;    &#125;    auto check = [&amp;](ll mid) -&gt; bool &#123;        ll ts = s;        for (int i = 60; i &gt;= 0; i--) &#123;            if (m &gt;&gt; i &amp; 1) &#123;                ll t = min(mid, ts &gt;&gt; i);                ts -= t &lt;&lt; i;            &#125;        &#125;        return !ts;    &#125;;    ll ans = -1;    while (lo &lt;= hi) &#123;        ll mid = (lo + hi) / 2;        if (check(mid)) &#123;            ans = mid;            hi = mid - 1;        &#125; else &#123;            lo = mid + 1;        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day48</title>
+    <url>/2026/02/28/%E5%AD%A6%E4%B9%A0day48/</url>
+    <content><![CDATA[Codeforces Round 1084 (Div.
+3)
+F
+题意: 有n个粒子, 每个粒子有两个属性x, y, x是能量值,
+y是能与之共存的粒子数, 另外商店里面还有m个粒子,
+问在买入商店的第i个粒子之后, 最大的能量总值是多少
+思路: 假设我们要k个粒子的话, 那么这k个粒子的y都不小于k-1,
+我们反向枚举k, 因为k值越小, 候选的粒子数越多, 然后选择x最大的k个粒子,
+这样我们就能求出不考虑从商店买粒子的情况下的最大值. 考虑商店,
+我们维护一个集合, f[k]表示k个粒子的情况排除掉最小的一个,
+给商店的例子腾出一个位置, 商店粒子的可以放在f[1]到f[y+1]的集合里面,
+我们要从中选一个最大的, 那么维护一个前缀最大值即可
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; adj(n + 5);    priority_queue&lt;ll, vt&lt;ll&gt;, greater&lt;&gt;&gt; q;    for (int i = 1; i &lt;= n; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        adj[y].push_back(x);    &#125;    ll cur = 0;    for (auto t : adj[n]) &#123;        q.push(t);        cur += t;    &#125;    while (sz(q) &gt; n + 1) &#123;        cur -= q.top();        q.pop();    &#125;    vt&lt;ll&gt; pref(n + 5);    if (sz(q) == n + 1) &#123;        pref[n + 1] = cur - q.top();    &#125; else &#123;        pref[n + 1] = cur;    &#125;    vt&lt;ll&gt; cnt(n + 5);    cnt[n + 1] = cur;    ll oans = cur;    for (int k = n; k &gt;= 1; k--) &#123;        for (auto t : adj[k - 1]) &#123;            if (sz(q) == k) &#123;                if (q.top() &lt; t) &#123;                    cur -= q.top();                    cur += t;                    q.pop();                    q.push(t);                &#125;            &#125; else &#123;                q.push(t);                cur += t;            &#125;        &#125;        while (sz(q) &gt; k) &#123;            cur -= q.top();            q.pop();        &#125;        ll t;        if (sz(q) == k) &#123;            t = cur - q.top();        &#125; else &#123;            t = cur;        &#125;        pref[k] = t;        cnt[k] = cur;        oans = max(oans, cnt[k]);    &#125;    // cout &lt;&lt; oans &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n + 1; i++) &#123;    //     cout &lt;&lt; pref[i] &lt;&lt; &quot; \n&quot;[i == n + 1];    // &#125;    for (int i = 2; i &lt;= n + 1; i++) &#123;        pref[i] = max(pref[i], pref[i - 1]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        // db(x), db(pref[y + 1]), el;        cout &lt;&lt; max(oans, x + pref[y + 1]) &lt;&lt; &quot; &quot;;    &#125;    cout &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day49</title>
+    <url>/2026/03/10/%E5%AD%A6%E4%B9%A0day49/</url>
+    <content><![CDATA[Codeforces Round 1085 (Div.
+1 + Div. 2)
+C
+题意: 海里有一个地形, 表示为一个数组a, a[i]表示高度,
+然后水位在h这个高度, 可以设置排水沟, 每个单位的水可以向左右下三个方向走,
+问在最多设置两个排水沟的情况下, 最多可以排走多少单位的水
+思路: 需要注意到, 假设我在列j设置了一个排水沟, 对于第i列, 它的贡献是h
+- max_a[min(i, j)][max(i, j)], 也就是取决于它们之间的最高地形,
+两个排水沟通过容斥原理解决
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    ll n, h;    cin &gt;&gt; n &gt;&gt; h;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    vt&lt;vt&lt;ll&gt;&gt; max_a(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = i; j &lt;= n; j++) &#123;            if (i == j) &#123;                max_a[i][j] = a[i];            &#125; else &#123;                max_a[i][j] = max(max_a[i][j - 1], a[j]);            &#125;        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= n; j++) &#123;            pref[i][j] = pref[i][j - 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; suff(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = n; j &gt;= 1; j--) &#123;            suff[i][j] = suff[i][j + 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ll cnt = 0;        for (int j = 1; j &lt;= n; j++) &#123;            cnt += h - max_a[min(i, j)][max(i, j)];        &#125;        ans = max(ans, cnt);    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        for (int j = i + 1; j &lt;= n; j++) &#123;            ll overlap = pref[j][i] + (j - i - 1) * (h - max_a[i][j]) + suff[i][j];            ll cnt = pref[i][n] + pref[j][n] - overlap;            ans = max(ans, cnt);        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -3164,25 +3186,19 @@ F
       </tags>
   </entry>
   <entry>
-    <title>学习day48</title>
-    <url>/2026/02/28/%E5%AD%A6%E4%B9%A0day48/</url>
-    <content><![CDATA[Codeforces Round 1084 (Div.
-3)
-F
-题意: 有n个粒子, 每个粒子有两个属性x, y, x是能量值,
-y是能与之共存的粒子数, 另外商店里面还有m个粒子,
-问在买入商店的第i个粒子之后, 最大的能量总值是多少
-思路: 假设我们要k个粒子的话, 那么这k个粒子的y都不小于k-1,
-我们反向枚举k, 因为k值越小, 候选的粒子数越多, 然后选择x最大的k个粒子,
-这样我们就能求出不考虑从商店买粒子的情况下的最大值. 考虑商店,
-我们维护一个集合, f[k]表示k个粒子的情况排除掉最小的一个,
-给商店的例子腾出一个位置, 商店粒子的可以放在f[1]到f[y+1]的集合里面,
-我们要从中选一个最大的, 那么维护一个前缀最大值即可
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; adj(n + 5);    priority_queue&lt;ll, vt&lt;ll&gt;, greater&lt;&gt;&gt; q;    for (int i = 1; i &lt;= n; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        adj[y].push_back(x);    &#125;    ll cur = 0;    for (auto t : adj[n]) &#123;        q.push(t);        cur += t;    &#125;    while (sz(q) &gt; n + 1) &#123;        cur -= q.top();        q.pop();    &#125;    vt&lt;ll&gt; pref(n + 5);    if (sz(q) == n + 1) &#123;        pref[n + 1] = cur - q.top();    &#125; else &#123;        pref[n + 1] = cur;    &#125;    vt&lt;ll&gt; cnt(n + 5);    cnt[n + 1] = cur;    ll oans = cur;    for (int k = n; k &gt;= 1; k--) &#123;        for (auto t : adj[k - 1]) &#123;            if (sz(q) == k) &#123;                if (q.top() &lt; t) &#123;                    cur -= q.top();                    cur += t;                    q.pop();                    q.push(t);                &#125;            &#125; else &#123;                q.push(t);                cur += t;            &#125;        &#125;        while (sz(q) &gt; k) &#123;            cur -= q.top();            q.pop();        &#125;        ll t;        if (sz(q) == k) &#123;            t = cur - q.top();        &#125; else &#123;            t = cur;        &#125;        pref[k] = t;        cnt[k] = cur;        oans = max(oans, cnt[k]);    &#125;    // cout &lt;&lt; oans &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n + 1; i++) &#123;    //     cout &lt;&lt; pref[i] &lt;&lt; &quot; \n&quot;[i == n + 1];    // &#125;    for (int i = 2; i &lt;= n + 1; i++) &#123;        pref[i] = max(pref[i], pref[i - 1]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        // db(x), db(pref[y + 1]), el;        cout &lt;&lt; max(oans, x + pref[y + 1]) &lt;&lt; &quot; &quot;;    &#125;    cout &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+    <title>学习day51</title>
+    <url>/2026/03/13/%E5%AD%A6%E4%B9%A0day51/</url>
+    <content><![CDATA[牛客练习赛149
+C
+题目链接：https://ac.nowcoder.com/acm/contest/129232/C
+思路：我一开始用dp，就是计算到达每个gcd的最小价值，然后枚举gcd，选择价值总和最小的，但是超时了，可能是map的时间复杂度和常数太大了，不然我没看出来和标解的时间复杂度差多少，正确的做法应该是bfs
+代码（超时）：
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5), b(m + 5);    int mx = 0;    // cerr &lt;&lt; &quot;hi\n&quot;;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    // cerr &lt;&lt; &quot;hi\n&quot;;    vt&lt;int&gt; cnt(mx + 5);    vt&lt;ll&gt; cnt2(mx + 5);    set&lt;int&gt; g_factors;    for (int i = 1; i &lt;= n; i++) &#123;        map&lt;int, int&gt; dp;        dp[a[i]] = 0;        // cerr &lt;&lt; &quot;hi&quot; &lt;&lt; endl;        set&lt;int&gt; cur_factors = &#123;a[i]&#125;;        for (int j = 1; j &lt;= m; j++) &#123;            for (auto factor : cur_factors) &#123;                if (dp.count(__gcd(b[j], factor)) == 0) &#123;                    dp[__gcd(b[j], factor)] = dp[factor] + 1;                &#125; else &#123;                    dp[__gcd(b[j], factor)] = min(dp[__gcd(b[j], factor)], dp[factor] + 1);                &#125;                cur_factors.insert(__gcd(b[j], factor));            &#125;        &#125;        for (auto factor : cur_factors) &#123;            cnt[factor]++;            cnt2[factor] += dp[factor];            g_factors.insert(factor);        &#125;    &#125;    ll ans = 1e18;    for (auto i : g_factors) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, cnt2[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+代码（正解）：
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; b(m + 5);    int mx = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    vt&lt;int&gt; dis(mx + 5, 1e9), cnt(mx + 5);    vt&lt;ll&gt; sum(mx + 5);    for (int i = 1; i &lt;= n; i++) &#123;        queue&lt;int&gt; q;        q.push(a[i]);        dis[a[i]] = 0;        cnt[a[i]]++;        vt&lt;int&gt; tmp;        while (!q.empty()) &#123;            int u = q.front();            q.pop();            tmp.pb(u);            for (int j = 1; j &lt;= m; j++) &#123;                int v = __gcd(b[j], u);                if (dis[v] == int(1e9)) &#123;                    dis[v] = dis[u] + 1;                    sum[v] += dis[v];                    cnt[v]++;                    q.push(v);                &#125;            &#125;        &#125;        for (auto x : tmp) &#123;            dis[x] = 1e9;        &#125;    &#125;    ll ans = 1e18;    for (int i = 1; i &lt;= mx; i++) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, sum[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
-        <tag>codeforces</tag>
+        <tag>nowcoder</tag>
       </tags>
   </entry>
   <entry>
@@ -3198,22 +3214,6 @@ C
 ]]></content>
       <tags>
         <tag>codeforces</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day51</title>
-    <url>/2026/03/13/%E5%AD%A6%E4%B9%A0day51/</url>
-    <content><![CDATA[牛客练习赛149
-C
-题目链接：https://ac.nowcoder.com/acm/contest/129232/C
-思路：我一开始用dp，就是计算到达每个gcd的最小价值，然后枚举gcd，选择价值总和最小的，但是超时了，可能是map的时间复杂度和常数太大了，不然我没看出来和标解的时间复杂度差多少，正确的做法应该是bfs
-代码（超时）：
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5), b(m + 5);    int mx = 0;    // cerr &lt;&lt; &quot;hi\n&quot;;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    // cerr &lt;&lt; &quot;hi\n&quot;;    vt&lt;int&gt; cnt(mx + 5);    vt&lt;ll&gt; cnt2(mx + 5);    set&lt;int&gt; g_factors;    for (int i = 1; i &lt;= n; i++) &#123;        map&lt;int, int&gt; dp;        dp[a[i]] = 0;        // cerr &lt;&lt; &quot;hi&quot; &lt;&lt; endl;        set&lt;int&gt; cur_factors = &#123;a[i]&#125;;        for (int j = 1; j &lt;= m; j++) &#123;            for (auto factor : cur_factors) &#123;                if (dp.count(__gcd(b[j], factor)) == 0) &#123;                    dp[__gcd(b[j], factor)] = dp[factor] + 1;                &#125; else &#123;                    dp[__gcd(b[j], factor)] = min(dp[__gcd(b[j], factor)], dp[factor] + 1);                &#125;                cur_factors.insert(__gcd(b[j], factor));            &#125;        &#125;        for (auto factor : cur_factors) &#123;            cnt[factor]++;            cnt2[factor] += dp[factor];            g_factors.insert(factor);        &#125;    &#125;    ll ans = 1e18;    for (auto i : g_factors) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, cnt2[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-代码（正解）：
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; b(m + 5);    int mx = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    vt&lt;int&gt; dis(mx + 5, 1e9), cnt(mx + 5);    vt&lt;ll&gt; sum(mx + 5);    for (int i = 1; i &lt;= n; i++) &#123;        queue&lt;int&gt; q;        q.push(a[i]);        dis[a[i]] = 0;        cnt[a[i]]++;        vt&lt;int&gt; tmp;        while (!q.empty()) &#123;            int u = q.front();            q.pop();            tmp.pb(u);            for (int j = 1; j &lt;= m; j++) &#123;                int v = __gcd(b[j], u);                if (dis[v] == int(1e9)) &#123;                    dis[v] = dis[u] + 1;                    sum[v] += dis[v];                    cnt[v]++;                    q.push(v);                &#125;            &#125;        &#125;        for (auto x : tmp) &#123;            dis[x] = 1e9;        &#125;    &#125;    ll ans = 1e18;    for (int i = 1; i &lt;= mx; i++) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, sum[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>nowcoder</tag>
       </tags>
   </entry>
   <entry>
@@ -3290,6 +3290,112 @@ https://ac.nowcoder.com/acm/contest/130107/E
 ]]></content>
       <tags>
         <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day7</title>
+    <url>/2025/11/17/%E5%AD%A6%E4%B9%A0day7/</url>
+    <content><![CDATA[github actions 是否成功运行
+今天早上醒来在床上打开了我的网页，看了一下 api
+接口，发现数据的日期还是昨天的，我以为是 github actions
+没有跑起来，但是现在打开 github
+一看，发现是有跑的记录的，所以是我的程序有问题
+纠正一下，数据的加入时间就是今天早上的，只因为数据显示的时区不一样，所以才会显示昨天的日期
+我问了一下 ai
+能不能在模型那里改存储的时间时区，它说建议不要改，展示的时候再改，好吧，那我就不改了，我在
+serializer 那里改
+from rest_framework import serializersfrom .models import HotItemfrom django.utils.timezone import localtimeclass HotItemSerializer(serializers.ModelSerializer):    class Meta:        model = HotItem        fields = &quot;__all__&quot;    def to_representation(self, instance):        data = super().to_representation(instance)        if instance.crawl_time:            data[&quot;crawl_time&quot;] = localtime(instance.crawl_time).strftime(                &quot;%Y-%m-%d %H:%M:%S&quot;            )        return data
+覆写 to_representation 就可以了
+记得要在 settings 里面修改一个配置
+TIME_ZONE = &quot;Asia/Shanghai&quot;
+一开始我直接加上 TIME_ZONE
+发现不行，为什么，因为我没有发现原来默认已经把 TIME_ZONE
+写出来了，我以为要自己加上，结果被覆盖成 UTC
+了，下次添加配置的时候一定要注意配置是不是已经写出来了
+另外介绍一个好用的工具
+python manage.py shell
+这个可以在当前后端环境当中运行 python 脚本，可以用来 debug
+和做一些测试
+render 的 free tier 限制
+我在文档里面找到说一个月最多只有 750
+小时的免费额度使用，我当时心算了一下以为是每天只能用 2.5
+小时这样，结果一按计算机是每天 25
+小时左右，我寻思不对啊，那其实一直运行着不也可以吗，后来问了一下，发现是一个账号的所有项目的总额是
+750
+小时，那如果我只有一个项目的话，就可以一直跑了，后来我要搞其他项目的话，其实直接开一个新的账号也行吧，笑嘻了，然后因为
+render 服务是十五分钟就会休眠，所以我 github actions
+每隔十分钟爬一次就能一直保证后端活着吧，好像不太多，我的 workflow
+只执行了爬虫，好像并没有对后端发送请求
+github actions
+也是有免费额度的
+好像是每个月 2000
+分钟，后面搜了一下是私人仓库才有这个限制，公开仓库是没有任何限制的，可以尽情折腾，而且就算有限制，2000
+分钟我也是完全用不完，我大概十分钟跑一次 workflow，一个月都只能用掉 100
+分钟左右
+github workflow 语法解释
+我就解释一下之前 ai 帮我写的 workflow 程序
+name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;0 22 * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.11&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1
+schdule 是定时执行的意思，上面那个 cron 的时间格式分别是分 时 日 月
+星期，星号就是所有的意思，这很显然，所以”0 22 * * *” 就是每天 UTC 时间
+22 点，也就是北京时间 6 点，因为北京时间是 UTC+8，减去 8
+小时就是标准时间
+检出代码的意思就是从仓库里面把代码拉到虚拟机里面，然后 python setup
+的部分应该也是 github 那边提前写好的一些脚本，我打算把 python 版本改成
+3.14，没事找事，因为我发现我本地的版本是 3.14，顺便说一下检查 python
+版本的命令是 python -V
+上面的 yml
+代码会发现有些字段前面带一个-号，这代表它是列表里面的元素，比如说 steps
+吧，它就是一个列表，后面就有很多个列表元素，每个-号都代表这是一个新元素，光是理解这个程序应该就够我用了，接下来该了解一下一些
+github 的相关插件了，不然每次都要上去 github 那边执行操作还是挺烦的
+schedule:  # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC  - cron: &quot;0 * * * *&quot;  - cron: &quot;10 * * * *&quot;  - cron: &quot;20 * * * *&quot;  - cron: &quot;30 * * * *&quot;  - cron: &quot;40 * * * *&quot;  - cron: &quot;50 * * * *&quot;
+每隔十分钟是可以这样写，但是有点笨了
+schedule:  - cron: &quot;*/10 * * * *&quot;
+这样写是更加聪明的，它的功能和上面的一样，只是我看不太懂这个语法，不过这样写就对了
+github 相关插件
+vscode 的 git 相关操作太简单了，应该不用特意说
+原来 github actions 插件一直在左边，悬停一下就能看到显示 github
+actions 了，然后 git 的插件是一个长得像 Y 型的树
+有一个 gitignore 插件，右键文件就可以添加文件到.gitignore
+里面了，很方便
+分支流程
+main 分支是实际发布的分支，然后应该再创建一个 develop
+分支，开发完成之后再 merge 到 main 分支上面，然后 develop
+分支也不用删，相当于是一个版本比较新的 main 分支
+唤醒后端
+name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;*/10 * * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.14&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1      # 6 对后端发送请求，唤醒后端      - name: Wake up backend        run: |          curl -X GET https://your-backend-url.onrender.com/healthcheck || true
+首先 run: |这里解释一下，这个|是多行字符串的意思，在 run
+下面带缩进的行都是属于 run 这个字段的，然后 curl
+是系统自带的一个命令，|| true 这里是防止请求失败然后返回错误结果导致
+workflow failed 了
+一个 vue
+事件触发很操蛋的地方
+比如说我写了一个函数
+handleClick，没有参数，那我写@click=“handleClick()”就是错的，@click=“handleClick”或者@click=“() =&gt;
+handleClick()”才是对的，但是如果我这个函数是有参数的，@click=“handleClick(e)”这样就是没问题的，虽然按道理来说应该要写成@click=“()
+=&gt; handleClick(e)”的，但是这里 vue
+提供的一个语法糖，怪不得之前我一直没搞懂
+在 vscode
+上面 merge develop 分支到 main 分支上面
+首先切换到 main 分支，然后在 git 插件那里，找 Source
+Control，在下面的 change 那里找…，然后找到 branch，点击 merge，找到
+develop 分支，最后就行了，藏得有点深，我还特意找了个教程
+github 删除文件
+可以直接在仓库里面点进文件然后 delete this file
+develop 分支的必要性
+说实话个人项目直接在 main
+分支上开发就行了，这样效率高多了，前面我开一个 develop
+分支只是玩玩而已
+github actions 定时触发频率
+我上次设置成十分钟触发一次，结果发现触发频率超低，我干脆改成每分钟触发，结果发现时间间隔在
+5 到 20 分钟不等，非常不稳定，哎，免费的东西能用就不错了
+唤醒后端动作没有用
+# 6 对后端发送请求，唤醒后端- name: Ping backend  run: |    curl -I https://hottagplatform.onrender.com/api/hot/ \      -H &quot;User-Agent: Mozilla/5.0&quot; \      --max-time 30 \      || echo &quot;Ping failed&quot;
+好像说是一开始单纯的 get
+太短太简单了，直接被后端忽略了，所以没有唤醒后端，现在改成这样，加上一个
+header，这样后端就不会忽略这个请求了
+]]></content>
+      <tags>
+        <tag>github actions</tag>
       </tags>
   </entry>
   <entry>
@@ -3511,112 +3617,6 @@ superuser 这样才能访问后台
       </tags>
   </entry>
   <entry>
-    <title>学习day7</title>
-    <url>/2025/11/17/%E5%AD%A6%E4%B9%A0day7/</url>
-    <content><![CDATA[github actions 是否成功运行
-今天早上醒来在床上打开了我的网页，看了一下 api
-接口，发现数据的日期还是昨天的，我以为是 github actions
-没有跑起来，但是现在打开 github
-一看，发现是有跑的记录的，所以是我的程序有问题
-纠正一下，数据的加入时间就是今天早上的，只因为数据显示的时区不一样，所以才会显示昨天的日期
-我问了一下 ai
-能不能在模型那里改存储的时间时区，它说建议不要改，展示的时候再改，好吧，那我就不改了，我在
-serializer 那里改
-from rest_framework import serializersfrom .models import HotItemfrom django.utils.timezone import localtimeclass HotItemSerializer(serializers.ModelSerializer):    class Meta:        model = HotItem        fields = &quot;__all__&quot;    def to_representation(self, instance):        data = super().to_representation(instance)        if instance.crawl_time:            data[&quot;crawl_time&quot;] = localtime(instance.crawl_time).strftime(                &quot;%Y-%m-%d %H:%M:%S&quot;            )        return data
-覆写 to_representation 就可以了
-记得要在 settings 里面修改一个配置
-TIME_ZONE = &quot;Asia/Shanghai&quot;
-一开始我直接加上 TIME_ZONE
-发现不行，为什么，因为我没有发现原来默认已经把 TIME_ZONE
-写出来了，我以为要自己加上，结果被覆盖成 UTC
-了，下次添加配置的时候一定要注意配置是不是已经写出来了
-另外介绍一个好用的工具
-python manage.py shell
-这个可以在当前后端环境当中运行 python 脚本，可以用来 debug
-和做一些测试
-render 的 free tier 限制
-我在文档里面找到说一个月最多只有 750
-小时的免费额度使用，我当时心算了一下以为是每天只能用 2.5
-小时这样，结果一按计算机是每天 25
-小时左右，我寻思不对啊，那其实一直运行着不也可以吗，后来问了一下，发现是一个账号的所有项目的总额是
-750
-小时，那如果我只有一个项目的话，就可以一直跑了，后来我要搞其他项目的话，其实直接开一个新的账号也行吧，笑嘻了，然后因为
-render 服务是十五分钟就会休眠，所以我 github actions
-每隔十分钟爬一次就能一直保证后端活着吧，好像不太多，我的 workflow
-只执行了爬虫，好像并没有对后端发送请求
-github actions
-也是有免费额度的
-好像是每个月 2000
-分钟，后面搜了一下是私人仓库才有这个限制，公开仓库是没有任何限制的，可以尽情折腾，而且就算有限制，2000
-分钟我也是完全用不完，我大概十分钟跑一次 workflow，一个月都只能用掉 100
-分钟左右
-github workflow 语法解释
-我就解释一下之前 ai 帮我写的 workflow 程序
-name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;0 22 * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.11&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1
-schdule 是定时执行的意思，上面那个 cron 的时间格式分别是分 时 日 月
-星期，星号就是所有的意思，这很显然，所以”0 22 * * *” 就是每天 UTC 时间
-22 点，也就是北京时间 6 点，因为北京时间是 UTC+8，减去 8
-小时就是标准时间
-检出代码的意思就是从仓库里面把代码拉到虚拟机里面，然后 python setup
-的部分应该也是 github 那边提前写好的一些脚本，我打算把 python 版本改成
-3.14，没事找事，因为我发现我本地的版本是 3.14，顺便说一下检查 python
-版本的命令是 python -V
-上面的 yml
-代码会发现有些字段前面带一个-号，这代表它是列表里面的元素，比如说 steps
-吧，它就是一个列表，后面就有很多个列表元素，每个-号都代表这是一个新元素，光是理解这个程序应该就够我用了，接下来该了解一下一些
-github 的相关插件了，不然每次都要上去 github 那边执行操作还是挺烦的
-schedule:  # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC  - cron: &quot;0 * * * *&quot;  - cron: &quot;10 * * * *&quot;  - cron: &quot;20 * * * *&quot;  - cron: &quot;30 * * * *&quot;  - cron: &quot;40 * * * *&quot;  - cron: &quot;50 * * * *&quot;
-每隔十分钟是可以这样写，但是有点笨了
-schedule:  - cron: &quot;*/10 * * * *&quot;
-这样写是更加聪明的，它的功能和上面的一样，只是我看不太懂这个语法，不过这样写就对了
-github 相关插件
-vscode 的 git 相关操作太简单了，应该不用特意说
-原来 github actions 插件一直在左边，悬停一下就能看到显示 github
-actions 了，然后 git 的插件是一个长得像 Y 型的树
-有一个 gitignore 插件，右键文件就可以添加文件到.gitignore
-里面了，很方便
-分支流程
-main 分支是实际发布的分支，然后应该再创建一个 develop
-分支，开发完成之后再 merge 到 main 分支上面，然后 develop
-分支也不用删，相当于是一个版本比较新的 main 分支
-唤醒后端
-name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;*/10 * * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.14&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1      # 6 对后端发送请求，唤醒后端      - name: Wake up backend        run: |          curl -X GET https://your-backend-url.onrender.com/healthcheck || true
-首先 run: |这里解释一下，这个|是多行字符串的意思，在 run
-下面带缩进的行都是属于 run 这个字段的，然后 curl
-是系统自带的一个命令，|| true 这里是防止请求失败然后返回错误结果导致
-workflow failed 了
-一个 vue
-事件触发很操蛋的地方
-比如说我写了一个函数
-handleClick，没有参数，那我写@click=“handleClick()”就是错的，@click=“handleClick”或者@click=“() =&gt;
-handleClick()”才是对的，但是如果我这个函数是有参数的，@click=“handleClick(e)”这样就是没问题的，虽然按道理来说应该要写成@click=“()
-=&gt; handleClick(e)”的，但是这里 vue
-提供的一个语法糖，怪不得之前我一直没搞懂
-在 vscode
-上面 merge develop 分支到 main 分支上面
-首先切换到 main 分支，然后在 git 插件那里，找 Source
-Control，在下面的 change 那里找…，然后找到 branch，点击 merge，找到
-develop 分支，最后就行了，藏得有点深，我还特意找了个教程
-github 删除文件
-可以直接在仓库里面点进文件然后 delete this file
-develop 分支的必要性
-说实话个人项目直接在 main
-分支上开发就行了，这样效率高多了，前面我开一个 develop
-分支只是玩玩而已
-github actions 定时触发频率
-我上次设置成十分钟触发一次，结果发现触发频率超低，我干脆改成每分钟触发，结果发现时间间隔在
-5 到 20 分钟不等，非常不稳定，哎，免费的东西能用就不错了
-唤醒后端动作没有用
-# 6 对后端发送请求，唤醒后端- name: Ping backend  run: |    curl -I https://hottagplatform.onrender.com/api/hot/ \      -H &quot;User-Agent: Mozilla/5.0&quot; \      --max-time 30 \      || echo &quot;Ping failed&quot;
-好像说是一开始单纯的 get
-太短太简单了，直接被后端忽略了，所以没有唤醒后端，现在改成这样，加上一个
-header，这样后端就不会忽略这个请求了
-]]></content>
-      <tags>
-        <tag>github actions</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day8</title>
     <url>/2025/11/18/%E5%AD%A6%E4%B9%A0day8/</url>
     <content><![CDATA[建立软链接清理 C 盘
@@ -3671,34 +3671,6 @@ setTimeout 延时了 500ms，发现同样的逻辑能找到这个 button
       </tags>
   </entry>
   <entry>
-    <title>毕设day2</title>
-    <url>/2026/03/08/%E6%AF%95%E8%AE%BEday2/</url>
-    <content><![CDATA[添加diary的CRUD
-我发现ai给我的程序大部分功能都侧重在ai和画像可视化这些部分,
-但是最基本的日记编写却是十分简陋,
-最开始连查看自己写过的日记的功能都没有,
-现在还没有实现删除自己写过的日记的功能
-要添加CRUD的功能, 日记这边删除了, 不是就这样完事了, 对应的,
-向量数据库那边也要删除相关的记录, 不然画像和日记这两边就会不同步
-我还是修改一下prompt吧, 感觉让ai用颜文字来回答问题还是太癫了,
-到时候也不利于展示
-添加登录系统
-现在这个日记系统的功能基本上都完成了, 针对单个用户来说,
-但是我认为一个web系统应该支持不同的用户登录,
-不然就没有什么太大的实用价值, 接下来就是要修改一下数据库, 添加几个表,
-然后又添加几个接口, 然后再修改一下前端逻辑
-首先这里的认证系统, 依旧是选择简单好用的simple-jwt
-pip install djangorestframework-simplejwt
-清空旧数据：在后端执行 python manage.py flush，因为旧日记没有关联 user_id，会导致列表显示报错。
-居然还有这种操作
-]]></content>
-      <tags>
-        <tag>vue</tag>
-        <tag>毕业设计</tag>
-        <tag>chromadb</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day9</title>
     <url>/2025/11/19/%E5%AD%A6%E4%B9%A0day9/</url>
     <content><![CDATA[vue-router 注意事项
@@ -3742,6 +3714,93 @@ source__value 去找外键的属性值
 ]]></content>
       <tags>
         <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hexo部署博客注意事项</title>
+    <url>/2025/10/20/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
+    <content><![CDATA[部署命令
+清理之前生成的缓存文件和静态文件
+$ hexo clean
+静态文件包括以下两个文件：
+
+./public/
+./.deploy_git/
+
+缓存文件则是：
+
+./cache/
+
+本地生成静态文件
+$ hexo g
+本地预览页面
+$ hexo s
+部署页面到github pages服务
+$ hexo d
+主题更换
+主题在**_config.yml**里面更改theme属性
+如果在更改主题之后，发现页面部署失败的话，可能是因为有部分主题使用了Pug模板引擎，而本地项目还没有安装相关插件
+可以通过以下命令安装：
+$ npm install hexo-renderer-pug hexo-renderer-stylus --save
+]]></content>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕设day2</title>
+    <url>/2026/03/08/%E6%AF%95%E8%AE%BEday2/</url>
+    <content><![CDATA[添加diary的CRUD
+我发现ai给我的程序大部分功能都侧重在ai和画像可视化这些部分,
+但是最基本的日记编写却是十分简陋,
+最开始连查看自己写过的日记的功能都没有,
+现在还没有实现删除自己写过的日记的功能
+要添加CRUD的功能, 日记这边删除了, 不是就这样完事了, 对应的,
+向量数据库那边也要删除相关的记录, 不然画像和日记这两边就会不同步
+我还是修改一下prompt吧, 感觉让ai用颜文字来回答问题还是太癫了,
+到时候也不利于展示
+添加登录系统
+现在这个日记系统的功能基本上都完成了, 针对单个用户来说,
+但是我认为一个web系统应该支持不同的用户登录,
+不然就没有什么太大的实用价值, 接下来就是要修改一下数据库, 添加几个表,
+然后又添加几个接口, 然后再修改一下前端逻辑
+首先这里的认证系统, 依旧是选择简单好用的simple-jwt
+pip install djangorestframework-simplejwt
+清空旧数据：在后端执行 python manage.py flush，因为旧日记没有关联 user_id，会导致列表显示报错。
+居然还有这种操作
+]]></content>
+      <tags>
+        <tag>vue</tag>
+        <tag>毕业设计</tag>
+        <tag>chromadb</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕设day3</title>
+    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
+    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
+建议直接设置成一分钟
+感觉加载真的太慢了, 到时候毕业设计怎么搞了,
+是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
+但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
+反而我需要的是即时生成可见的明显效果
+用户的token有效时间太短了, 我给调成一个礼拜了
+艹, 刚才观察了一下趋势分析图的逻辑,
+没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
+那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
+可能要通过一些数学手段来拟合出一条直线,
+然后判断斜率是否在正常范围以内
+这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
+那么这样也能叫做情绪平稳吗
+现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
+一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
+也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
+其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
+在性能好的服务器上面跑又要花大钱
+]]></content>
+      <tags>
+        <tag>vue</tag>
+        <tag>毕业设计</tag>
       </tags>
   </entry>
   <entry>
@@ -3967,65 +4026,6 @@ system_prompt = f&quot;&quot;&quot;        你是一个拥有超强洞察力的�
       </tags>
   </entry>
   <entry>
-    <title>hexo部署博客注意事项</title>
-    <url>/2025/10/20/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
-    <content><![CDATA[部署命令
-清理之前生成的缓存文件和静态文件
-$ hexo clean
-静态文件包括以下两个文件：
-
-./public/
-./.deploy_git/
-
-缓存文件则是：
-
-./cache/
-
-本地生成静态文件
-$ hexo g
-本地预览页面
-$ hexo s
-部署页面到github pages服务
-$ hexo d
-主题更换
-主题在**_config.yml**里面更改theme属性
-如果在更改主题之后，发现页面部署失败的话，可能是因为有部分主题使用了Pug模板引擎，而本地项目还没有安装相关插件
-可以通过以下命令安装：
-$ npm install hexo-renderer-pug hexo-renderer-stylus --save
-]]></content>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>毕设day3</title>
-    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
-    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
-建议直接设置成一分钟
-感觉加载真的太慢了, 到时候毕业设计怎么搞了,
-是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
-但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
-反而我需要的是即时生成可见的明显效果
-用户的token有效时间太短了, 我给调成一个礼拜了
-艹, 刚才观察了一下趋势分析图的逻辑,
-没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
-那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
-可能要通过一些数学手段来拟合出一条直线,
-然后判断斜率是否在正常范围以内
-这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
-那么这样也能叫做情绪平稳吗
-现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
-一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
-也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
-其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
-在性能好的服务器上面跑又要花大钱
-]]></content>
-      <tags>
-        <tag>vue</tag>
-        <tag>毕业设计</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>毕设day4</title>
     <url>/2026/03/12/%E6%AF%95%E8%AE%BEday4/</url>
     <content><![CDATA[今天主要的任务就是把ai写的代码给看懂,
@@ -4063,6 +4063,24 @@ sim_score = 1.0 / (1.0 + dist)
     <content><![CDATA[chat_with_memory的逻辑就是寻找和问题dist最短的10篇资料，然后再重新针对这个10篇文档计算文档的分数，然后取最高的5篇
 情绪分数的趋势图，好像是取最近的14篇日记，然后趋势的斜率是那最近的3篇，然后(recent[2]
 - recent[0]) / 2就是斜率，听说这个就是最小二乘法计算得到的结果
+]]></content>
+      <tags>
+        <tag>毕业设计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕设day6</title>
+    <url>/2026/03/14/%E6%AF%95%E8%AE%BEday6/</url>
+    <content><![CDATA[今天的主要任务就是完成爬取名人日记验证算法可行性
+这里爬的是鲁迅的笔记，刚好有一本书就叫做《鲁迅笔记》，一行一天的格式，内容比较短，但是样本足够多，非常适合拿来做测试样本
+created_at = models.DateTimeField(auto_now_add=True)
+这段代码是创建的时候强制赋值
+import django.utils.timezonecreated_at = models.DateTimeField(default=django.utils.timezone.now, verbose_name=&quot;创建时间&quot;)
+这段代码是在这个字段没有提供值的时候才提供一个默认值
+画像这里，我之前开题报告应该是说到有四个维度，但是我尝试过很多个账号，输入不同的日记，看到的通常只有两个维度，这里我修改一下services.py的ProfileService
+之前老师一直跟我强调用户输入这个问题，看来这个爬取微博博文这个功能是不做不行了，所以现在呢，我打算搞一个微博登录的功能，然后登录之后能够根据微博对应账号的博文，加载到这个日记系统里面
+为了模拟这个从微博爬取数据的功能的，如果要通过微博授权登录的话，这个是不现实的，因为这个要在微博开发平台那边注册，另外一个思路就是从公开的网站去直接拿公开资料，比如名人的微博主页是公开的，我可以拿到名人的UID，但是呢，如果这个功能做成一个接口的话，就是要自动化去访问对应UID的主页，但是没想到连看个主页都要先登录，所以被拦截的，要跳过拦截的话，复制我自己的cookie是个方法，但是后续如果要上线的话，不能让大家都用我的cookie吧，其实我还是倾向于不要上线的，所以也许应该跟导师沟通一下
+现在微博能根据UID爬取了，日记也能标记来源了，但是时间没能和微博那边同步，有点难搞，不强求了，反正我的趋势图是根据最近的时间排序，也就是相对顺序，又不是绝对的，就算时间准确了也没有用，只要顺序对了就行
 ]]></content>
       <tags>
         <tag>毕业设计</tag>
@@ -4353,18 +4371,30 @@ LLM
       </tags>
   </entry>
   <entry>
-    <title>毕设day6</title>
-    <url>/2026/03/14/%E6%AF%95%E8%AE%BEday6/</url>
-    <content><![CDATA[今天的主要任务就是完成爬取名人日记验证算法可行性
-这里爬的是鲁迅的笔记，刚好有一本书就叫做《鲁迅笔记》，一行一天的格式，内容比较短，但是样本足够多，非常适合拿来做测试样本
-created_at = models.DateTimeField(auto_now_add=True)
-这段代码是创建的时候强制赋值
-import django.utils.timezonecreated_at = models.DateTimeField(default=django.utils.timezone.now, verbose_name=&quot;创建时间&quot;)
-这段代码是在这个字段没有提供值的时候才提供一个默认值
-画像这里，我之前开题报告应该是说到有四个维度，但是我尝试过很多个账号，输入不同的日记，看到的通常只有两个维度，这里我修改一下services.py的ProfileService
-之前老师一直跟我强调用户输入这个问题，看来这个爬取微博博文这个功能是不做不行了，所以现在呢，我打算搞一个微博登录的功能，然后登录之后能够根据微博对应账号的博文，加载到这个日记系统里面
-为了模拟这个从微博爬取数据的功能的，如果要通过微博授权登录的话，这个是不现实的，因为这个要在微博开发平台那边注册，另外一个思路就是从公开的网站去直接拿公开资料，比如名人的微博主页是公开的，我可以拿到名人的UID，但是呢，如果这个功能做成一个接口的话，就是要自动化去访问对应UID的主页，但是没想到连看个主页都要先登录，所以被拦截的，要跳过拦截的话，复制我自己的cookie是个方法，但是后续如果要上线的话，不能让大家都用我的cookie吧，其实我还是倾向于不要上线的，所以也许应该跟导师沟通一下
-现在微博能根据UID爬取了，日记也能标记来源了，但是时间没能和微博那边同步，有点难搞，不强求了，反正我的趋势图是根据最近的时间排序，也就是相对顺序，又不是绝对的，就算时间准确了也没有用，只要顺序对了就行
+    <title>毕设笔记</title>
+    <url>/2026/03/24/%E6%AF%95%E8%AE%BE%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[开发了支持 JSON 网络令牌 JWT (JSON Web Token)
+鉴权的分布式账户体系，利用元数据过滤技术实现了多租户场景下语义空间的物理隔离
+这句话的意思就是开发了一个支持多个用户的系统，元数据过滤技术就是在向量数据库里面根据user_id来获取数据，保证数据之间互不干扰
+这个元数据过滤技术看起来十分地简单，没想到还专门起了一个专业名词
+多用户并发环境下的数据隔离测试
+开多个分页应该就能做到并发
+# 使用 SentenceTransformer 加载模型        # 该模型会自动从 hf-mirror.com 下载，约 400MB，只需下载一次        self.emb_fn = SentenceTransformerEmbeddingFunction(            model_name=&quot;paraphrase-multilingual-MiniLM-L12-v2&quot;        )
+这个sentenceTransformer的作用就是将句子当中的文字向量化，就是所谓的Embedding啊
+闪光灯记忆
+就是情感强度越极化的记忆令人更加深刻
+无状态认证
+就是jwt
+token那一套逻辑，服务器并不会记住哪个用户登录了，只会给用户一个token，接收到token的时候看过期了没有，没有过期就解密得到用户id
+滑动窗口
+这题的滑动窗口的意思好像就是，虽然我只是拿了最近三篇日记的情绪分数做斜率计算，但是每次新增笔记的时候，最新三篇日记的区间就会改变，这就是一个滑动，原来滑动在这里，感觉有点小题大作了
+非结构化和结构化
+非结构化就是比较散乱没有规范的数据，结构化就像是表格那种，或者数据库里面的那种数据形式，论文当中提到的非结构化的数据通常都是指日记原文或者微博推文这种，非结构化转结构化就是把散乱的数据整合起来
+图和表的题注格式
+图的题注在下面，表在上面，为什么这样搞呢，不是很懂
+公式题注
+word的公式插入可以插入latex，那其实latex还有什么优势？应该是文字格式的问题吧，word那边复制文字直接贴的话，格式会变
+公式题注的插入方法可以这么搞，首先要求就是公式在中间，然后题注在右边，可以搞一个一行二列的表格，边框改成无，然后插入题注，这时候题注可能会在表格下方，ctrl+x然后贴进表格里面就行了
 ]]></content>
       <tags>
         <tag>毕业设计</tag>
@@ -4415,33 +4445,14 @@ UI 和交互。
       </tags>
   </entry>
   <entry>
-    <title>毕设笔记</title>
-    <url>/2026/03/24/%E6%AF%95%E8%AE%BE%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[开发了支持 JSON 网络令牌 JWT (JSON Web Token)
-鉴权的分布式账户体系，利用元数据过滤技术实现了多租户场景下语义空间的物理隔离
-这句话的意思就是开发了一个支持多个用户的系统，元数据过滤技术就是在向量数据库里面根据user_id来获取数据，保证数据之间互不干扰
-这个元数据过滤技术看起来十分地简单，没想到还专门起了一个专业名词
-多用户并发环境下的数据隔离测试
-开多个分页应该就能做到并发
-# 使用 SentenceTransformer 加载模型        # 该模型会自动从 hf-mirror.com 下载，约 400MB，只需下载一次        self.emb_fn = SentenceTransformerEmbeddingFunction(            model_name=&quot;paraphrase-multilingual-MiniLM-L12-v2&quot;        )
-这个sentenceTransformer的作用就是将句子当中的文字向量化，就是所谓的Embedding啊
-闪光灯记忆
-就是情感强度越极化的记忆令人更加深刻
-无状态认证
-就是jwt
-token那一套逻辑，服务器并不会记住哪个用户登录了，只会给用户一个token，接收到token的时候看过期了没有，没有过期就解密得到用户id
-滑动窗口
-这题的滑动窗口的意思好像就是，虽然我只是拿了最近三篇日记的情绪分数做斜率计算，但是每次新增笔记的时候，最新三篇日记的区间就会改变，这就是一个滑动，原来滑动在这里，感觉有点小题大作了
-非结构化和结构化
-非结构化就是比较散乱没有规范的数据，结构化就像是表格那种，或者数据库里面的那种数据形式，论文当中提到的非结构化的数据通常都是指日记原文或者微博推文这种，非结构化转结构化就是把散乱的数据整合起来
-图和表的题注格式
-图的题注在下面，表在上面，为什么这样搞呢，不是很懂
-公式题注
-word的公式插入可以插入latex，那其实latex还有什么优势？应该是文字格式的问题吧，word那边复制文字直接贴的话，格式会变
-公式题注的插入方法可以这么搞，首先要求就是公式在中间，然后题注在右边，可以搞一个一行二列的表格，边框改成无，然后插入题注，这时候题注可能会在表格下方，ctrl+x然后贴进表格里面就行了
+    <title>电脑端微信图片加载慢的解决方法</title>
+    <url>/2026/03/21/%E7%94%B5%E8%84%91%E7%AB%AF%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[WIN11系统：在系统的“设置”-“网络和Internet”-“高级网络设置”里选择网卡的“更多适配器选项”，将“Internet协议版本6(TCP/IPv6)”复选框取消勾选并点击确定。
+选择连接的wifi的那个“更多适配器选项”就行
 ]]></content>
       <tags>
-        <tag>毕业设计</tag>
+        <tag>电脑问题</tag>
+        <tag>网络配置</tag>
       </tags>
   </entry>
   <entry>
@@ -4499,17 +4510,6 @@ word的公式插入可以插入latex，那其实latex还有什么优势？应该
       </tags>
   </entry>
   <entry>
-    <title>电脑端微信图片加载慢的解决方法</title>
-    <url>/2026/03/21/%E7%94%B5%E8%84%91%E7%AB%AF%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[WIN11系统：在系统的“设置”-“网络和Internet”-“高级网络设置”里选择网卡的“更多适配器选项”，将“Internet协议版本6(TCP/IPv6)”复选框取消勾选并点击确定。
-选择连接的wifi的那个“更多适配器选项”就行
-]]></content>
-      <tags>
-        <tag>电脑问题</tag>
-        <tag>网络配置</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>路由守卫&amp;pinia持久化存储&amp;跨域请求解决</title>
     <url>/2025/10/20/%E8%B7%AF%E7%94%B1%E5%AE%88%E5%8D%AB-pinia%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8-%E8%B7%A8%E5%9F%9F%E8%AF%B7%E6%B1%82%E8%A7%A3%E5%86%B3/</url>
     <content><![CDATA[动态加载路由
@@ -4537,7 +4537,19 @@ npm install pinia-plugin-persistedstate
   <entry>
     <title>错题集</title>
     <url>/2026/03/25/%E9%94%99%E9%A2%98%E9%9B%86/</url>
-    <content><![CDATA[https://codeforces.com/contest/2143/problem/C
+    <content><![CDATA[https://codeforces.com/contest/2217/problem/C
+这道题，我不会证明，如果要证明的话，应该是挺麻烦的，之前已经证明过gcd(p,
+n) = 1才能用步长p走完n的剩余系，所以gcd(n, a) = 1和gcd(m, b) =
+1是必要条件，然后要走回原点的话就是往下往右各走lcm(n, m)步，观察到n * m
+= gcd(n, m) * lcm(n, m)，往下往右总和访问了2lcm(n,
+m)个格子，所以如果gcd(n, m) &gt; 2的话肯定是NO，至于gcd(n, m) &lt;=
+2证明如下
+
+
+alt text
+
+#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define pb push_back#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define ts cerr &lt;&lt; &quot;line: &quot; &lt;&lt; __LINE__ &lt;&lt; endl#else#define db(x) 114514#define el 1919810#define ts 42#endifvoid solve() &#123;    ll n, m, a, b;    cin &gt;&gt; n &gt;&gt; m &gt;&gt; a &gt;&gt; b;    if (gcd(n, a) == 1 &amp;&amp; gcd(m, b) == 1 &amp;&amp; gcd(n, m) &lt;= 2) &#123;        cout &lt;&lt; &quot;YES\n&quot;;    &#125; else &#123;        cout &lt;&lt; &quot;NO\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+https://codeforces.com/contest/2143/problem/C
 这道题，我想到了大概的做法，但是不够完善，最后还是看了题解，重点就是dp状态的设置
 dp[i][j][k]表示前i个元素，然后序列当中最长子序列的个数不超过2的方案总数，j和k分别记录最长子序列的第一个和第二个数，但不完全是，为了能够记录子序列，j和k应该尽可能的大，这样在加入a[i]的时候才能判断是否产生了新的递减子序列
 #include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define pb push_back#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define ts cerr &lt;&lt; &quot;line: &quot; &lt;&lt; __LINE__ &lt;&lt; endl#else#define db(x) 114514#define el 1919810#define ts 42#endifconst ll MOD = 1e9 + 7;void add(ll &amp;u, ll v) &#123;    u += v;    if (u &gt;= MOD) u -= MOD;    if (u &lt; 0) u += MOD;&#125;void solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    vt&lt;vt&lt;vt&lt;ll&gt;&gt;&gt; dp(n + 5, vt&lt;vt&lt;ll&gt;&gt;(n + 5, vt&lt;ll&gt;(n + 5)));    dp[0][0][0] = 1;    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 0; j &lt;= n; j++) &#123;            for (int k = 0; k &lt;= j; k++) &#123;                add(dp[i][j][k], dp[i - 1][j][k]);                if (a[i] &gt;= j) &#123;                    add(dp[i][a[i]][k], dp[i - 1][j][k]);                &#125; else if (j &gt; a[i] &amp;&amp; a[i] &gt;= k) &#123;                    add(dp[i][j][a[i]], dp[i - 1][j][k]);                &#125;            &#125;        &#125;    &#125;    ll ans = 0;    for (int j = 0; j &lt;= n; j++) &#123;        for (int k = 0; k &lt;= j; k++) &#123;            add(ans, dp[n][j][k]);        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
