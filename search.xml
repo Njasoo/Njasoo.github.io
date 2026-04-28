@@ -397,6 +397,16 @@ $json_data = file_get_contents(&quot;php://input&quot;); // 获取到的是json�
       </tags>
   </entry>
   <entry>
+    <title>js贪吃蛇</title>
+    <url>/2025/11/01/js%E8%B4%AA%E5%90%83%E8%9B%87/</url>
+    <content><![CDATA[贪吃蛇的关键逻辑在于，移动蛇的时候，其实是生成一个新的头，然后把尾巴去掉，而不是遍历蛇的身体每个坐标，然后移动
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;贪吃蛇游戏&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;h2&gt;贪吃蛇 🐍&lt;/h2&gt;    &lt;div id=&quot;game&quot;&gt;&lt;/div&gt;&lt;/body&gt;&lt;script&gt;const size = 20;const game = document.getElementById(&quot;game&quot;);const cells = [];for (let i = 0; i &lt; size * size; i++) &#123;    const cell = document.createElement(&quot;div&quot;);    cell.classList.add(&quot;cell&quot;);    game.appendChild(cell);    cells.push(cell);&#125;function index(x, y) &#123;    return y * size + x; // 列优先吗&#125;let snake = [&#123;x: 5, y: 5&#125;, &#123;x: 4, y: 5&#125;, &#123;x: 3, y: 5&#125;];let direction = &quot;right&quot;;let food = &#123;x: 10, y: 10&#125;;function render() &#123;    cells.forEach(c =&gt; c.className = &quot;cell&quot;);    for (let s of snake) &#123;        cells[index(s.x, s.y)].classList.add(&quot;snake&quot;)    &#125;    cells[index(food.x, food.y)].classList.add(&quot;food&quot;);&#125;function move() &#123;    const head = &#123;...snake[0]&#125;; // 展开，作用是深拷贝，直接复制会传引用    if (direction == &quot;right&quot;) head.x++;    if (direction == &quot;left&quot;) head.x--;    if (direction == &quot;up&quot;) head.y--;    if (direction == &quot;down&quot;) head.y++;    if (head.x &lt; 0 || head.x &gt;= size || head.y &lt; 0 || head.y &gt;= size) &#123;        alert(&quot;游戏结束&quot;);        clearInterval(timer);        return;    &#125;    for (let s of snake) &#123;        if (s.x === head.x &amp;&amp; s.y === head.y) &#123;            alert(&quot;游戏结束&quot;);            clearInterval(timer);            return;        &#125;    &#125;    snake.unshift(head); // 头部插入元素    if (head.x === food.x &amp;&amp; head.y === food.y) &#123;        food = &#123;x: Math.floor(Math.random() * size), y: Math.floor(Math.random() * size)&#125;;    &#125; else &#123;        snake.pop();    &#125;    render();&#125;document.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.key === &quot;ArrowUp&quot; &amp;&amp; direction !== &quot;down&quot;) direction = &quot;up&quot;;    if (e.key === &quot;ArrowDown&quot; &amp;&amp; direction !== &quot;up&quot;) direction = &quot;down&quot;;    if (e.key === &quot;ArrowLeft&quot; &amp;&amp; direction !== &quot;right&quot;) direction = &quot;left&quot;;    if (e.key === &quot;ArrowRight&quot; &amp;&amp; direction !== &quot;left&quot;) direction = &quot;right&quot;;&#125;)render();const timer = setInterval(move, 200);&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    flex-direction: column;    align-items: center;    background: #fafafa;&#125;#game &#123;    display: grid;    grid-template-columns: repeat(20, 20px);    grid-template-rows: repeat(20, 20px);    gap: 1px;    background: #ccc;    margin-top: 20px;&#125;.cell &#123;    width: 20px;    height: 20px;    background: white;&#125;.snake &#123;    background: green;&#125;.food &#123;    background: red;&#125;&lt;/style&gt;&lt;/html&gt;
+]]></content>
+      <tags>
+        <tag>js</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>js小游戏-反应测试</title>
     <url>/2025/11/01/js%E5%B0%8F%E6%B8%B8%E6%88%8F-%E5%8F%8D%E5%BA%94%E6%B5%8B%E8%AF%95/</url>
     <content><![CDATA[挺好玩的，蛮神奇的，事件触发改成用鼠标的话，反应时间测出来是270ms左右，但是用keydown事件直接变成180ms左右，可能是鼠标按键抬起来太费时间了
@@ -407,13 +417,28 @@ $json_data = file_get_contents(&quot;php://input&quot;); // 获取到的是json�
       </tags>
   </entry>
   <entry>
-    <title>js贪吃蛇</title>
-    <url>/2025/11/01/js%E8%B4%AA%E5%90%83%E8%9B%87/</url>
-    <content><![CDATA[贪吃蛇的关键逻辑在于，移动蛇的时候，其实是生成一个新的头，然后把尾巴去掉，而不是遍历蛇的身体每个坐标，然后移动
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;贪吃蛇游戏&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;h2&gt;贪吃蛇 🐍&lt;/h2&gt;    &lt;div id=&quot;game&quot;&gt;&lt;/div&gt;&lt;/body&gt;&lt;script&gt;const size = 20;const game = document.getElementById(&quot;game&quot;);const cells = [];for (let i = 0; i &lt; size * size; i++) &#123;    const cell = document.createElement(&quot;div&quot;);    cell.classList.add(&quot;cell&quot;);    game.appendChild(cell);    cells.push(cell);&#125;function index(x, y) &#123;    return y * size + x; // 列优先吗&#125;let snake = [&#123;x: 5, y: 5&#125;, &#123;x: 4, y: 5&#125;, &#123;x: 3, y: 5&#125;];let direction = &quot;right&quot;;let food = &#123;x: 10, y: 10&#125;;function render() &#123;    cells.forEach(c =&gt; c.className = &quot;cell&quot;);    for (let s of snake) &#123;        cells[index(s.x, s.y)].classList.add(&quot;snake&quot;)    &#125;    cells[index(food.x, food.y)].classList.add(&quot;food&quot;);&#125;function move() &#123;    const head = &#123;...snake[0]&#125;; // 展开，作用是深拷贝，直接复制会传引用    if (direction == &quot;right&quot;) head.x++;    if (direction == &quot;left&quot;) head.x--;    if (direction == &quot;up&quot;) head.y--;    if (direction == &quot;down&quot;) head.y++;    if (head.x &lt; 0 || head.x &gt;= size || head.y &lt; 0 || head.y &gt;= size) &#123;        alert(&quot;游戏结束&quot;);        clearInterval(timer);        return;    &#125;    for (let s of snake) &#123;        if (s.x === head.x &amp;&amp; s.y === head.y) &#123;            alert(&quot;游戏结束&quot;);            clearInterval(timer);            return;        &#125;    &#125;    snake.unshift(head); // 头部插入元素    if (head.x === food.x &amp;&amp; head.y === food.y) &#123;        food = &#123;x: Math.floor(Math.random() * size), y: Math.floor(Math.random() * size)&#125;;    &#125; else &#123;        snake.pop();    &#125;    render();&#125;document.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.key === &quot;ArrowUp&quot; &amp;&amp; direction !== &quot;down&quot;) direction = &quot;up&quot;;    if (e.key === &quot;ArrowDown&quot; &amp;&amp; direction !== &quot;up&quot;) direction = &quot;down&quot;;    if (e.key === &quot;ArrowLeft&quot; &amp;&amp; direction !== &quot;right&quot;) direction = &quot;left&quot;;    if (e.key === &quot;ArrowRight&quot; &amp;&amp; direction !== &quot;left&quot;) direction = &quot;right&quot;;&#125;)render();const timer = setInterval(move, 200);&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    flex-direction: column;    align-items: center;    background: #fafafa;&#125;#game &#123;    display: grid;    grid-template-columns: repeat(20, 20px);    grid-template-rows: repeat(20, 20px);    gap: 1px;    background: #ccc;    margin-top: 20px;&#125;.cell &#123;    width: 20px;    height: 20px;    background: white;&#125;.snake &#123;    background: green;&#125;.food &#123;    background: red;&#125;&lt;/style&gt;&lt;/html&gt;
+    <title>php快速入门</title>
+    <url>/2025/10/20/php%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[.php文件可以当成html文件来写
+php语句只在php文件当中生效, 或者在html文件当中引入php也可以生效
+查看数据类型和值
+var_dump(x)
+字符串连接符
+.
+EOF定界符
+&lt;&lt;&lt;EOF
+必须顶头写, 独占一行, 结束标记要有分号
+&lt;?phpecho &lt;&lt;&lt;EOFEOF;
+其实结束字符可以用任意的字符替代
+使用了定界符, echo的中间语句如果有变量的话, 可以直接写进去,
+而不需要用.来连接
+echo &lt;&lt;&lt;EOF $a $b $cEOF;
+也可以直接写单双引号, 不需要转义符号
+可以解析html语句
+php标签
 ]]></content>
       <tags>
-        <tag>js</tag>
+        <tag>php</tag>
       </tags>
   </entry>
   <entry>
@@ -464,31 +489,6 @@ pnpm -v
       </tags>
   </entry>
   <entry>
-    <title>php快速入门</title>
-    <url>/2025/10/20/php%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</url>
-    <content><![CDATA[.php文件可以当成html文件来写
-php语句只在php文件当中生效, 或者在html文件当中引入php也可以生效
-查看数据类型和值
-var_dump(x)
-字符串连接符
-.
-EOF定界符
-&lt;&lt;&lt;EOF
-必须顶头写, 独占一行, 结束标记要有分号
-&lt;?phpecho &lt;&lt;&lt;EOFEOF;
-其实结束字符可以用任意的字符替代
-使用了定界符, echo的中间语句如果有变量的话, 可以直接写进去,
-而不需要用.来连接
-echo &lt;&lt;&lt;EOF $a $b $cEOF;
-也可以直接写单双引号, 不需要转义符号
-可以解析html语句
-php标签
-]]></content>
-      <tags>
-        <tag>php</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python sort函数</title>
     <url>/2025/12/25/python-sort%E5%87%BD%E6%95%B0/</url>
     <content><![CDATA[解构元素
@@ -497,6 +497,30 @@ key 函数
 sort 将以 key 的返回值从小到大排序
 arr = [2, 3, 1, 4, 5]arr.sort(key=lambda x: -x)print(arr)
 所以这样是从大到小排序
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python使用笔记</title>
+    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[dict
+cnt=&#123;&#125;
+这样就可以定义一个字典
+n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
+dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
+keys()和values()都是可迭代的对象, 类似list
+PriorityQueue
+from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
+我建议封装一个top()函数来实现真正的top()
+def top(pq):    tp=pq.get()    pq.put(tp)    return tp
+array
+a.insert(0,0)
+第一个参数是下标
+a.sort() 原地排序
+sorted(a) 返回排序后的副本
+tp=stk.pop() 弹出最后的元素
 ]]></content>
       <tags>
         <tag>python</tag>
@@ -648,30 +672,6 @@ npm install zustand
 ]]></content>
       <tags>
         <tag>react</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python使用笔记</title>
-    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[dict
-cnt=&#123;&#125;
-这样就可以定义一个字典
-n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
-dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
-keys()和values()都是可迭代的对象, 类似list
-PriorityQueue
-from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
-我建议封装一个top()函数来实现真正的top()
-def top(pq):    tp=pq.get()    pq.put(tp)    return tp
-array
-a.insert(0,0)
-第一个参数是下标
-a.sort() 原地排序
-sorted(a) 返回排序后的副本
-tp=stk.pop() 弹出最后的元素
-]]></content>
-      <tags>
-        <tag>python</tag>
       </tags>
   </entry>
   <entry>
@@ -1056,6 +1056,17 @@ var num = 0;outPoint: for (var i = 0; i &lt; 10; i++) &#123;  for (var j = 0; j 
       </tags>
   </entry>
   <entry>
+    <title>一个部署环境的小问题</title>
+    <url>/2025/12/19/%E4%B8%80%E4%B8%AA%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[数据库强制 ssl
+DATABASES = &#123;        &quot;default&quot;: dj_database_url.config(            default=os.getenv(&quot;DATABASE_URL&quot;),            conn_max_age=600,            ssl_require=True,  # 👈 关键        )    &#125;
+加上这个配置
+]]></content>
+      <tags>
+        <tag>postgresql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>vuex</title>
     <url>/2025/10/20/vuex/</url>
     <content><![CDATA[vuex
@@ -1105,17 +1116,6 @@ useRouter和useStore必须在setup的作用域内使用,
 ]]></content>
       <tags>
         <tag>vuex</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>一个部署环境的小问题</title>
-    <url>/2025/12/19/%E4%B8%80%E4%B8%AA%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[数据库强制 ssl
-DATABASES = &#123;        &quot;default&quot;: dj_database_url.config(            default=os.getenv(&quot;DATABASE_URL&quot;),            conn_max_age=600,            ssl_require=True,  # 👈 关键        )    &#125;
-加上这个配置
-]]></content>
-      <tags>
-        <tag>postgresql</tag>
       </tags>
   </entry>
   <entry>
@@ -1231,75 +1231,6 @@ setTimeout作用是什么，我说了是设置一个间隔，然后不断地执�
       <tags>
         <tag>前端</tag>
         <tag>字节</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>字节前端二面总结</title>
-    <url>/2025/11/10/%E5%AD%97%E8%8A%82%E5%89%8D%E7%AB%AF%E4%BA%8C%E9%9D%A2%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[这次的面试感觉表现的非常差，其实就是我的方向错了，我老是专注于应用这一方面，但是面试的时候主要问的是原理，其实也是非常地有道理，毕竟如果只会应用的话，和培训班就是没有区别的，但是其实科班人员写工程代码，也不会比培训班的人好到哪里去
-我回忆一下今天面试问了什么，那些我答出来的就不写了
-
-在浏览器输入 url 之后按下回车键发生了什么
-按下了回车键之后，首先会通过 DNS 协议来从域名解析出目标服务器的 IP
-地址，获取到这个 IP 地址之后，会通过 TCP
-三次握手来建立连接，然后就可以开始发送 HTTP
-请求了，然后服务器会根据请求的内容返回响应的信息，同时浏览器会根据返回的数据类型进行不同的解析，下面具体说一下渲染的过程，首先会解析
-html 生成 DOM 树，然后再解析 CSS 生成 CSSOM，然后将这两部分合并成 render
-tree，然后就可以进行布局以及绘制
-顺便要说一下关键点，比如说解析 html 的时候，碰到了 script
-标签，会先停止解析，选择先去执行 js，因为 js 可能会改变 DOM 的结构，js
-是没有相关的树的，只是执行里面的逻辑而已
-顺便再说一下，这个解析 html 树的过程是自上而下的
-vue3 的生命周期
-说实话这个真不应该不懂的，哎，但是做项目的时候确实没有用到，感觉所谓自顶向下的学习方法也是有点问题的啊，就是知识面会过于偏向应用，过于偏向应用有什么问题呢，好像又没有什么问题，但是有很多只是吧，是需要先知道的前提下才有意识去用，搞不懂呢
-然后面试官首先问的是 setup
-这个周期，干的一些事情吧，我先按照文档的顺序解释一下，每个生命周期吧
-首先是这个
-onMounted，作用就是注册一个回调函数，然后在组件挂载完成之后执行的一个逻辑，那么什么情况下一个组件称之为挂载完成呢，所有的同步子组件已经被挂载，自身的
-DOM
-树已经创建完成并且被插入到父容器当中，简单地说一下什么是同步子组件，什么是异步子组件吧，同步子组件就是立即加载，然后异步子组件就是用到的时候才加载，更进一步的解释感觉真没有必要了，反正都是八股文而已
-第二，onUpdated，也是注册一个回调函数，在响应式状态发生改变从而导致
-DOM 树也发生改变之后会调用
-第三，onUnmounted，在组件被卸载的时候调用，什么叫做卸载，就是他的所有子组件都已经被卸载，以及他的所有相关的响应式作用都已经停止，这么解释完之后其实还是不太懂，要举几个具体的例子，比如说
-v-if，当这个布尔表达式为 false
-的时候，相关组件就会被卸载，还有就是页面跳转的时候，从 Home.vue 跳转到
-About.vue，Home.vue 也会被卸载，具体的例子就是这样
-onBeforeMount，组件挂载之前调用，在这个生命周期，组件的响应式状态已经被设置，但是相关的
-DOM 还没有被创建
-onBeforeUpdate，在这个时候，组件的响应式状态已经发生了改变，但是 DOM
-还没有被正式更改
-onBeforeUnmount，组件被卸载之前调用
-有没有用过 keep alive
-我甚至都不知道这是一个什么玩意，连辩解的地步都没有，只能说自己不会了
-这个就不在这里作答了，这好像是一个比较庞大的一个知识点，所以要系统地去学习
-setup 是什么，了解吗 我的回答是不了解，完全不会啊
-setup 在生命周期里面是最先的，在 onBeforeMount
-前面，所以总结一下吧，vue3 生命周期的顺序就是 setup, onBeforeMount,
-onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted
-setup 是 vue3
-的入口函数，主要的作用就是定义响应式数据，方法，计算属性，侦听器还有生命周期钩子，然后因为在
-setup 这个周期，组件没有被挂载，所以是没有 this 能用的，script setup 是
-setup 的语法糖，然后就不需要写 export default 和 return
-这些语句，感觉回答这些就行了，毕竟实际上使用的时候都是直接用语法糖的
-有一个商城，我要显示 top10
-的信息，但是数据量非常地大，内存无法全部放下，应该怎么取到这个 top10
-这道题其实我的大致思路是正确的，但是有些地方我有点不冷静，脑筋没转过来
-这道题蛮奇怪的，说是一道算法题，其实根本就不是常规的算法题，我一开始还以为这是一道大数据的算法题，一开始我的思路很混乱，说什么分成
-10 台主机去存这个数据，然后每台主机去取出 top1
-的数据，然后我发现这不对啊，其实每台主机取 top10
-就行了，至于怎么取，肯定是优先队列吧，另外再优化一下回答，不是分成十台主机，而是分成若干台主机使得每台主机能把被分割之后的数据存到内存里面，然后每台主机取
-top10 的数据，然后这些数据再取一次 top10
-就行了，然后我还跟面试官说什么，感觉这不是算法优化，这是在堆硬件，但是感觉我的大致思想是说对了，应该算是我过了，另外我也说了二叉堆的原理，哎果然打算法竞赛的还是要懂原理的啊，还好我到现在都还记得怎么手撸二叉堆，不是白学的
-在实习当中期望的工作内容是什么
-这题好笼统好抽象啊，纯纯凑数的吧，感觉就是在预示着我即将被淘汰，我不应该话太多篇章在这话题上面的，我说了什么希望组内的氛围好一点，然后工作量不要太严重，然后人际关系希望能够和谐一点之类的，感觉完全没有说出一些积极方面的东西，答得也是非常地差
-对的对的，我在回答的时候不应该说这么多工作氛围的事情的，应该说多一点自己希望接触到什么技术，就说自己想要接触到项目工程化和性能优化的内容这样，因为这些在个人项目当中是比较难接触到的，个人项目都是比较小型的项目，所以说性能优化和工程化没有那么重要，反而会影响到开发效率，但是在庞大的项目当中，性能优化就体现得很明显，而多人合作的大项目也更加需要工程化的思想
-
-]]></content>
-      <tags>
-        <tag>前端</tag>
-        <tag>字节</tag>
-        <tag>面试</tag>
-        <tag>总结</tag>
       </tags>
   </entry>
   <entry>
@@ -1462,6 +1393,75 @@ router 这些
       </tags>
   </entry>
   <entry>
+    <title>字节前端二面总结</title>
+    <url>/2025/11/10/%E5%AD%97%E8%8A%82%E5%89%8D%E7%AB%AF%E4%BA%8C%E9%9D%A2%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[这次的面试感觉表现的非常差，其实就是我的方向错了，我老是专注于应用这一方面，但是面试的时候主要问的是原理，其实也是非常地有道理，毕竟如果只会应用的话，和培训班就是没有区别的，但是其实科班人员写工程代码，也不会比培训班的人好到哪里去
+我回忆一下今天面试问了什么，那些我答出来的就不写了
+
+在浏览器输入 url 之后按下回车键发生了什么
+按下了回车键之后，首先会通过 DNS 协议来从域名解析出目标服务器的 IP
+地址，获取到这个 IP 地址之后，会通过 TCP
+三次握手来建立连接，然后就可以开始发送 HTTP
+请求了，然后服务器会根据请求的内容返回响应的信息，同时浏览器会根据返回的数据类型进行不同的解析，下面具体说一下渲染的过程，首先会解析
+html 生成 DOM 树，然后再解析 CSS 生成 CSSOM，然后将这两部分合并成 render
+tree，然后就可以进行布局以及绘制
+顺便要说一下关键点，比如说解析 html 的时候，碰到了 script
+标签，会先停止解析，选择先去执行 js，因为 js 可能会改变 DOM 的结构，js
+是没有相关的树的，只是执行里面的逻辑而已
+顺便再说一下，这个解析 html 树的过程是自上而下的
+vue3 的生命周期
+说实话这个真不应该不懂的，哎，但是做项目的时候确实没有用到，感觉所谓自顶向下的学习方法也是有点问题的啊，就是知识面会过于偏向应用，过于偏向应用有什么问题呢，好像又没有什么问题，但是有很多只是吧，是需要先知道的前提下才有意识去用，搞不懂呢
+然后面试官首先问的是 setup
+这个周期，干的一些事情吧，我先按照文档的顺序解释一下，每个生命周期吧
+首先是这个
+onMounted，作用就是注册一个回调函数，然后在组件挂载完成之后执行的一个逻辑，那么什么情况下一个组件称之为挂载完成呢，所有的同步子组件已经被挂载，自身的
+DOM
+树已经创建完成并且被插入到父容器当中，简单地说一下什么是同步子组件，什么是异步子组件吧，同步子组件就是立即加载，然后异步子组件就是用到的时候才加载，更进一步的解释感觉真没有必要了，反正都是八股文而已
+第二，onUpdated，也是注册一个回调函数，在响应式状态发生改变从而导致
+DOM 树也发生改变之后会调用
+第三，onUnmounted，在组件被卸载的时候调用，什么叫做卸载，就是他的所有子组件都已经被卸载，以及他的所有相关的响应式作用都已经停止，这么解释完之后其实还是不太懂，要举几个具体的例子，比如说
+v-if，当这个布尔表达式为 false
+的时候，相关组件就会被卸载，还有就是页面跳转的时候，从 Home.vue 跳转到
+About.vue，Home.vue 也会被卸载，具体的例子就是这样
+onBeforeMount，组件挂载之前调用，在这个生命周期，组件的响应式状态已经被设置，但是相关的
+DOM 还没有被创建
+onBeforeUpdate，在这个时候，组件的响应式状态已经发生了改变，但是 DOM
+还没有被正式更改
+onBeforeUnmount，组件被卸载之前调用
+有没有用过 keep alive
+我甚至都不知道这是一个什么玩意，连辩解的地步都没有，只能说自己不会了
+这个就不在这里作答了，这好像是一个比较庞大的一个知识点，所以要系统地去学习
+setup 是什么，了解吗 我的回答是不了解，完全不会啊
+setup 在生命周期里面是最先的，在 onBeforeMount
+前面，所以总结一下吧，vue3 生命周期的顺序就是 setup, onBeforeMount,
+onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted
+setup 是 vue3
+的入口函数，主要的作用就是定义响应式数据，方法，计算属性，侦听器还有生命周期钩子，然后因为在
+setup 这个周期，组件没有被挂载，所以是没有 this 能用的，script setup 是
+setup 的语法糖，然后就不需要写 export default 和 return
+这些语句，感觉回答这些就行了，毕竟实际上使用的时候都是直接用语法糖的
+有一个商城，我要显示 top10
+的信息，但是数据量非常地大，内存无法全部放下，应该怎么取到这个 top10
+这道题其实我的大致思路是正确的，但是有些地方我有点不冷静，脑筋没转过来
+这道题蛮奇怪的，说是一道算法题，其实根本就不是常规的算法题，我一开始还以为这是一道大数据的算法题，一开始我的思路很混乱，说什么分成
+10 台主机去存这个数据，然后每台主机去取出 top1
+的数据，然后我发现这不对啊，其实每台主机取 top10
+就行了，至于怎么取，肯定是优先队列吧，另外再优化一下回答，不是分成十台主机，而是分成若干台主机使得每台主机能把被分割之后的数据存到内存里面，然后每台主机取
+top10 的数据，然后这些数据再取一次 top10
+就行了，然后我还跟面试官说什么，感觉这不是算法优化，这是在堆硬件，但是感觉我的大致思想是说对了，应该算是我过了，另外我也说了二叉堆的原理，哎果然打算法竞赛的还是要懂原理的啊，还好我到现在都还记得怎么手撸二叉堆，不是白学的
+在实习当中期望的工作内容是什么
+这题好笼统好抽象啊，纯纯凑数的吧，感觉就是在预示着我即将被淘汰，我不应该话太多篇章在这话题上面的，我说了什么希望组内的氛围好一点，然后工作量不要太严重，然后人际关系希望能够和谐一点之类的，感觉完全没有说出一些积极方面的东西，答得也是非常地差
+对的对的，我在回答的时候不应该说这么多工作氛围的事情的，应该说多一点自己希望接触到什么技术，就说自己想要接触到项目工程化和性能优化的内容这样，因为这些在个人项目当中是比较难接触到的，个人项目都是比较小型的项目，所以说性能优化和工程化没有那么重要，反而会影响到开发效率，但是在庞大的项目当中，性能优化就体现得很明显，而多人合作的大项目也更加需要工程化的思想
+
+]]></content>
+      <tags>
+        <tag>前端</tag>
+        <tag>字节</tag>
+        <tag>面试</tag>
+        <tag>总结</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day10</title>
     <url>/2025/11/20/%E5%AD%A6%E4%B9%A0day10/</url>
     <content><![CDATA[清华源下载
@@ -1545,19 +1545,6 @@ post 和 put 这些方法不能用缓存
       </tags>
   </entry>
   <entry>
-    <title>学习day13</title>
-    <url>/2025/11/26/%E5%AD%A6%E4%B9%A0day13/</url>
-    <content><![CDATA[pinia 持久化
-pnpm install pinia-plugin-persistedstate
-import &#123; defineStore &#125; from &quot;pinia&quot;;export const useNewsStore = defineStore(&quot;news&quot;, &#123;  state: () =&gt; (&#123;    current_platform: &quot;bilibili&quot;,  &#125;),  persist: true,&#125;);
-state 是一个 reactive 对象
-v-model 可以绑定 reactive 对象的属性，watch 属性要写 getter
-]]></content>
-      <tags>
-        <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day12</title>
     <url>/2025/11/25/%E5%AD%A6%E4%B9%A0day12/</url>
     <content><![CDATA[vueuse/core，一个 vue
@@ -1604,6 +1591,19 @@ new Array(10)  .fill(null as unknown as NewsItem)  .map(() =&gt; (&#123; ...temp
 ]]></content>
       <tags>
         <tag>scss</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day13</title>
+    <url>/2025/11/26/%E5%AD%A6%E4%B9%A0day13/</url>
+    <content><![CDATA[pinia 持久化
+pnpm install pinia-plugin-persistedstate
+import &#123; defineStore &#125; from &quot;pinia&quot;;export const useNewsStore = defineStore(&quot;news&quot;, &#123;  state: () =&gt; (&#123;    current_platform: &quot;bilibili&quot;,  &#125;),  persist: true,&#125;);
+state 是一个 reactive 对象
+v-model 可以绑定 reactive 对象的属性，watch 属性要写 getter
+]]></content>
+      <tags>
+        <tag>vue</tag>
       </tags>
   </entry>
   <entry>
@@ -1995,6 +1995,20 @@ class DepartmentOut(Schema):    id: int    title: str    class Config:        or
       </tags>
   </entry>
   <entry>
+    <title>学习day26</title>
+    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
+    <content><![CDATA[在 next 项目中使用 sqlite
+安装依赖
+pnpm install better-sqlite3
+密码加密库
+npm install bcryptjs
+]]></content>
+      <tags>
+        <tag>next</tag>
+        <tag>sqlite</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day25</title>
     <url>/2025/12/10/%E5%AD%A6%E4%B9%A0day25/</url>
     <content><![CDATA[text 对齐要点
@@ -2033,20 +2047,6 @@ next api
       <tags>
         <tag>next</tag>
         <tag>prisma</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day26</title>
-    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
-    <content><![CDATA[在 next 项目中使用 sqlite
-安装依赖
-pnpm install better-sqlite3
-密码加密库
-npm install bcryptjs
-]]></content>
-      <tags>
-        <tag>next</tag>
-        <tag>sqlite</tag>
       </tags>
   </entry>
   <entry>
@@ -2149,6 +2149,27 @@ token 请求 username, 不应该存在 zustand 的, 但是这里先这么干
       </tags>
   </entry>
   <entry>
+    <title>学习day30</title>
+    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
+    <content><![CDATA[树节点
+select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
+2016 年的投资
+# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
+count 是行数, sum 是总和
+游戏玩法分析 IV
+select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
+这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
+我也不太懂, 但是这能过
+select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
+这个可能是比较好懂的, 但是性能差了一点, 注意 join
+之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
+包起来
+]]></content>
+      <tags>
+        <tag>sql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day29</title>
     <url>/2025/12/15/%E5%AD%A6%E4%B9%A0day29/</url>
     <content><![CDATA[常用状态码
@@ -2176,27 +2197,6 @@ def get_token():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data =
 ]]></content>
       <tags>
         <tag>状态码</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day30</title>
-    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
-    <content><![CDATA[树节点
-select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
-2016 年的投资
-# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
-count 是行数, sum 是总和
-游戏玩法分析 IV
-select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
-这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
-我也不太懂, 但是这能过
-select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
-这个可能是比较好懂的, 但是性能差了一点, 注意 join
-之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
-包起来
-]]></content>
-      <tags>
-        <tag>sql</tag>
       </tags>
   </entry>
   <entry>
@@ -2506,66 +2506,6 @@ a[n], a[2]在一块
       </tags>
   </entry>
   <entry>
-    <title>学习day4</title>
-    <url>/2025/11/14/%E5%AD%A6%E4%B9%A0day4/</url>
-    <content><![CDATA[很久之前就学过爬虫了，但是只会用，不知道原理是什么，现在来简单地学习一下吧。
-User-Agent
-是爬虫的时候必须提供的请求头里面的一个字段，告诉服务器我的设备或浏览器类型，不提供这个的话，服务器一看就知道我不是人类，就会拒绝响应
-www.zhihu.com/billboard，这个是知乎的热点头条API，要爬虫的话，从这里爬会比较轻松一点
-soup = BeautifulSoup(html, &quot;lxml&quot;)
-这个 lxml 是目前最快的 html
-解析库，听说是爬虫最常用的一个库，也可以用默认的 html.parser，是 python
-自带的
-我在爬知乎的热度榜的时候发生了失败的情况，居然还要加上
-Cookie，知乎也是做了一点初级的防爬机制的
-还有编码的时候要把 encoding 改成 utf-8，不然会乱码
-soup = BeautifulSoup(res.text, &quot;lxml&quot;)print(soup)with open(&quot;test.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:    f.write(soup.prettify())
-这个 prettify 方法就是解析之后的 html
-树进行一个美观化的操作，不会改变实际的内容，就是加点缩进，原本是没有缩进的，全部靠左对齐的
-a_tags = soup.select(&quot;td.td-02 a&quot;)
-这个 select
-方法挺好用的，空格表示后代，逗号表示并列的关系，类名记得加上.号，比 find
-或者 find_all 要好用
-这次要做的这个各大平台热榜数据可视化的系统，为什么要把爬虫得到的数据放在数据库里面的，原因是如果我直接从前端去访问
-api
-大概率是会被跨域拦截的，同时前端是没有办法去调用爬虫程序的，但是后端可以，这也就是后端的作用
-还有一个问题就是，我后端可以调用爬虫程序，那我干脆爬完之后不存到数据库里面，我直接就是返回给前端行不行，理论上可行，但是实际上，每次前端调用数据的时候，后端都要爬一次，过度频繁地爬虫可能会导致我被网站封
-IP，这样太危险了，所以比较合理的方式是我在后端每天爬一次，然后存在数据库里面，等前端要用这些数据的时候我再从数据库里面拿出来，还有一个原因就是爬虫的速度太慢了，从数据库拿会比较快
-python manage.py xxx.py 用这个命令去跑一个脚本程序和直接用 python
-跑脚本程序的区别就是第一个命令会提供 django 配置好的环境，比如 orm 和
-settings 里面的东西，其实最重要的就是
-ORM，我可以在脚本里面操纵数据库
-在 python
-的函数里面修改一个变量的时候，它默认都是局部变量，如果使用的是全局变量，需要加上
-global 关键字，没有加的话，能访问，但是不能修改
-import requests as rqimport jsonfrom bs4 import BeautifulSoupheaders = &#123;    &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36&quot;,    &quot;Cookie&quot;: &quot;SUB=_2AkMeSm12f8NxqwFRmv0WzGPmb49-zgjEieKoFpytJRMxHRl-yT9yqlUjtRB6NcpDmXB8v7jCDdUOANFsLEoZJwuDT4Wu; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9W5Ip-3.Qjwa_aD0wH30D.qZ; _s_tentry=passport.weibo.com; Apache=8441114877984.956.1763107391573; SINAGLOBAL=8441114877984.956.1763107391573; ULV=1763107391574:1:1:1:8441114877984.956.1763107391573:&quot;,&#125;def fetch_weibo_hot():    url = &quot;https://s.weibo.com/top/summary?cate=realtimehot&quot;    res = rq.get(url, headers=headers)    res.encoding = &quot;utf-8&quot;    soup = BeautifulSoup(res.text, &quot;lxml&quot;)    a_tags = soup.select(&quot;td.td-02 a&quot;)    cnt = 0    res = []    for a_tag in a_tags:        new_obj = &#123;&quot;title&quot;: a_tag.string, &quot;rank&quot;: cnt, &quot;source&quot;: &quot;weibo&quot;&#125;        res.append(new_obj)        cnt += 1        if cnt == 10:            break    return resif __name__ == &quot;__main__&quot;:    res = fetch_weibo_hot()    print(res)
-现在终于知道 if 条件那段代码的作用是什么了，当上面这个 py
-文件作为模块被其他文件引用的话，无论是否用到，模块最顶层的代码都会被执行一遍，如果加上
-if 条件的话，就不会被执行
-ok，新发现，python
-文件引用的时候，会从两个方面去找，第一个是基于当前文件的路径位置，第二个就是
-sys.path，所以如果自己在 sys.path 加上了新东西，就可以根据 sys.path
-里面的路径来引入文件，python 都能识别的，顺便说一下 sys.path
-这个不叫环境变量，这个叫做模块的搜索路径范围（大概是）
-sys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
-这里我想干的事情是在外部文件（项目外面的文件）里面使用后端项目里面定义的模型，所以需要进行一些配置，才能使用，第一行代码就是添加这个模组的搜索范围，然后第二行才是这个这个环境变量，记得这个
-key 一定要叫 DJANGO_SETTINGS_MODULE，这是规定的，搞完之后就可以 setup
-了，然后就可以在这个脚本文件里面使用 ORM 了
-from weibo_spider import fetch_weibo_hotfrom zhihu_spider import fetch_zhihu_hotfrom bilibili_spider import fetch_bilibili_hotimport osimport djangoimport syssys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()from hotItem.models import HotItemif __name__ == &quot;__main__&quot;:    res_weibo = fetch_weibo_hot()    res_zhihu = fetch_zhihu_hot()    res_bilibili = fetch_bilibili_hot()
-一个仔细想想也能想到的问题，要加载完之后才能引入模型，不然就找不到了，但是
-vscode 没有报错，所以我以为是可以的
-current_file_path = os.path.abspath(__file__)BASE_URL = os.path.dirname(os.path.dirname(current_file_path))sys.path.append(BASE_URL)# assert Falseos.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
-这样写才是对的，上面给的关于 django
-配置环境变量的代码，路径那部分是基于工作目录的，那是不对的，这里看代码应该挺好懂的，os.path.dirname
-是文件夹或者文件所在的目录名，sys.path.append
-要穿的参数就是一个绝对路径，current_file_path 这个不用解释了
-]]></content>
-      <tags>
-        <tag>python</tag>
-        <tag>爬虫</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day39</title>
     <url>/2026/02/09/%E5%AD%A6%E4%B9%A0day39/</url>
     <content><![CDATA[Codeforces Round 1078 (Div.
@@ -2693,29 +2633,63 @@ aj交换到a{i+1}的交换次数是j-i-1, 少了一个a_i,
       </tags>
   </entry>
   <entry>
-    <title>学习day42</title>
-    <url>/2026/02/14/%E5%AD%A6%E4%B9%A0day42/</url>
-    <content><![CDATA[洛谷 P2261 [CQOI2007]
-余数求和
-题意: 计算
-$$
-G(n, k) = \sum_{i = 1} ^ {n} {k \space mod \space i}
-$$
-思路:
-$$
-a \bmod b = a - \lfloor a/b \rfloor \cdot b \\
-\sum_{i=1}^{n} k \bmod i = \sum_{i=1}^{n} (k - \lfloor k/i \rfloor)
-\cdot i = n \cdot k - \sum_{i=1}^{n} \lfloor k/i \rfloor \cdot i
-$$
-不同的k/i的值大概有sqrt(k)个, 要问为什么, em…, 可以打表看看
-对于一个最小的l, 使得, k/l=t, 要再求最大的r使得, k/r=t,
-这个也许可以用二分来求, 但是更好的方法是运算, 注意到t*r&lt;=k,
-r&lt;=k/t, 所以直接r=k/t
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    ll n, k;    cin &gt;&gt; n &gt;&gt; k;    ll ans = n * k;    for (ll l = 1, r; l &lt;= n; l = r + 1) &#123;        ll t = k / l;        if (t) r = min(k / t, n);        else r = n;        ans -= (l + r) * (r - l + 1) / 2 * t;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
+    <title>学习day4</title>
+    <url>/2025/11/14/%E5%AD%A6%E4%B9%A0day4/</url>
+    <content><![CDATA[很久之前就学过爬虫了，但是只会用，不知道原理是什么，现在来简单地学习一下吧。
+User-Agent
+是爬虫的时候必须提供的请求头里面的一个字段，告诉服务器我的设备或浏览器类型，不提供这个的话，服务器一看就知道我不是人类，就会拒绝响应
+www.zhihu.com/billboard，这个是知乎的热点头条API，要爬虫的话，从这里爬会比较轻松一点
+soup = BeautifulSoup(html, &quot;lxml&quot;)
+这个 lxml 是目前最快的 html
+解析库，听说是爬虫最常用的一个库，也可以用默认的 html.parser，是 python
+自带的
+我在爬知乎的热度榜的时候发生了失败的情况，居然还要加上
+Cookie，知乎也是做了一点初级的防爬机制的
+还有编码的时候要把 encoding 改成 utf-8，不然会乱码
+soup = BeautifulSoup(res.text, &quot;lxml&quot;)print(soup)with open(&quot;test.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:    f.write(soup.prettify())
+这个 prettify 方法就是解析之后的 html
+树进行一个美观化的操作，不会改变实际的内容，就是加点缩进，原本是没有缩进的，全部靠左对齐的
+a_tags = soup.select(&quot;td.td-02 a&quot;)
+这个 select
+方法挺好用的，空格表示后代，逗号表示并列的关系，类名记得加上.号，比 find
+或者 find_all 要好用
+这次要做的这个各大平台热榜数据可视化的系统，为什么要把爬虫得到的数据放在数据库里面的，原因是如果我直接从前端去访问
+api
+大概率是会被跨域拦截的，同时前端是没有办法去调用爬虫程序的，但是后端可以，这也就是后端的作用
+还有一个问题就是，我后端可以调用爬虫程序，那我干脆爬完之后不存到数据库里面，我直接就是返回给前端行不行，理论上可行，但是实际上，每次前端调用数据的时候，后端都要爬一次，过度频繁地爬虫可能会导致我被网站封
+IP，这样太危险了，所以比较合理的方式是我在后端每天爬一次，然后存在数据库里面，等前端要用这些数据的时候我再从数据库里面拿出来，还有一个原因就是爬虫的速度太慢了，从数据库拿会比较快
+python manage.py xxx.py 用这个命令去跑一个脚本程序和直接用 python
+跑脚本程序的区别就是第一个命令会提供 django 配置好的环境，比如 orm 和
+settings 里面的东西，其实最重要的就是
+ORM，我可以在脚本里面操纵数据库
+在 python
+的函数里面修改一个变量的时候，它默认都是局部变量，如果使用的是全局变量，需要加上
+global 关键字，没有加的话，能访问，但是不能修改
+import requests as rqimport jsonfrom bs4 import BeautifulSoupheaders = &#123;    &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36&quot;,    &quot;Cookie&quot;: &quot;SUB=_2AkMeSm12f8NxqwFRmv0WzGPmb49-zgjEieKoFpytJRMxHRl-yT9yqlUjtRB6NcpDmXB8v7jCDdUOANFsLEoZJwuDT4Wu; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9W5Ip-3.Qjwa_aD0wH30D.qZ; _s_tentry=passport.weibo.com; Apache=8441114877984.956.1763107391573; SINAGLOBAL=8441114877984.956.1763107391573; ULV=1763107391574:1:1:1:8441114877984.956.1763107391573:&quot;,&#125;def fetch_weibo_hot():    url = &quot;https://s.weibo.com/top/summary?cate=realtimehot&quot;    res = rq.get(url, headers=headers)    res.encoding = &quot;utf-8&quot;    soup = BeautifulSoup(res.text, &quot;lxml&quot;)    a_tags = soup.select(&quot;td.td-02 a&quot;)    cnt = 0    res = []    for a_tag in a_tags:        new_obj = &#123;&quot;title&quot;: a_tag.string, &quot;rank&quot;: cnt, &quot;source&quot;: &quot;weibo&quot;&#125;        res.append(new_obj)        cnt += 1        if cnt == 10:            break    return resif __name__ == &quot;__main__&quot;:    res = fetch_weibo_hot()    print(res)
+现在终于知道 if 条件那段代码的作用是什么了，当上面这个 py
+文件作为模块被其他文件引用的话，无论是否用到，模块最顶层的代码都会被执行一遍，如果加上
+if 条件的话，就不会被执行
+ok，新发现，python
+文件引用的时候，会从两个方面去找，第一个是基于当前文件的路径位置，第二个就是
+sys.path，所以如果自己在 sys.path 加上了新东西，就可以根据 sys.path
+里面的路径来引入文件，python 都能识别的，顺便说一下 sys.path
+这个不叫环境变量，这个叫做模块的搜索路径范围（大概是）
+sys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
+这里我想干的事情是在外部文件（项目外面的文件）里面使用后端项目里面定义的模型，所以需要进行一些配置，才能使用，第一行代码就是添加这个模组的搜索范围，然后第二行才是这个这个环境变量，记得这个
+key 一定要叫 DJANGO_SETTINGS_MODULE，这是规定的，搞完之后就可以 setup
+了，然后就可以在这个脚本文件里面使用 ORM 了
+from weibo_spider import fetch_weibo_hotfrom zhihu_spider import fetch_zhihu_hotfrom bilibili_spider import fetch_bilibili_hotimport osimport djangoimport syssys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()from hotItem.models import HotItemif __name__ == &quot;__main__&quot;:    res_weibo = fetch_weibo_hot()    res_zhihu = fetch_zhihu_hot()    res_bilibili = fetch_bilibili_hot()
+一个仔细想想也能想到的问题，要加载完之后才能引入模型，不然就找不到了，但是
+vscode 没有报错，所以我以为是可以的
+current_file_path = os.path.abspath(__file__)BASE_URL = os.path.dirname(os.path.dirname(current_file_path))sys.path.append(BASE_URL)# assert Falseos.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
+这样写才是对的，上面给的关于 django
+配置环境变量的代码，路径那部分是基于工作目录的，那是不对的，这里看代码应该挺好懂的，os.path.dirname
+是文件夹或者文件所在的目录名，sys.path.append
+要穿的参数就是一个绝对路径，current_file_path 这个不用解释了
 ]]></content>
       <tags>
-        <tag>luogu</tag>
+        <tag>python</tag>
+        <tag>爬虫</tag>
       </tags>
   </entry>
   <entry>
@@ -2788,6 +2762,32 @@ i])只会触发一次, 这样的话, 时间复杂度不会是O(n^2),
 ]]></content>
       <tags>
         <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day42</title>
+    <url>/2026/02/14/%E5%AD%A6%E4%B9%A0day42/</url>
+    <content><![CDATA[洛谷 P2261 [CQOI2007]
+余数求和
+题意: 计算
+$$
+G(n, k) = \sum_{i = 1} ^ {n} {k \space mod \space i}
+$$
+思路:
+$$
+a \bmod b = a - \lfloor a/b \rfloor \cdot b \\
+\sum_{i=1}^{n} k \bmod i = \sum_{i=1}^{n} (k - \lfloor k/i \rfloor)
+\cdot i = n \cdot k - \sum_{i=1}^{n} \lfloor k/i \rfloor \cdot i
+$$
+不同的k/i的值大概有sqrt(k)个, 要问为什么, em…, 可以打表看看
+对于一个最小的l, 使得, k/l=t, 要再求最大的r使得, k/r=t,
+这个也许可以用二分来求, 但是更好的方法是运算, 注意到t*r&lt;=k,
+r&lt;=k/t, 所以直接r=k/t
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueint main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    ll n, k;    cin &gt;&gt; n &gt;&gt; k;    ll ans = n * k;    for (ll l = 1, r; l &lt;= n; l = r + 1) &#123;        ll t = k / l;        if (t) r = min(k / t, n);        else r = n;        ans -= (l + r) * (r - l + 1) / 2 * t;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>luogu</tag>
       </tags>
   </entry>
   <entry>
@@ -3000,25 +3000,6 @@ C
       </tags>
   </entry>
   <entry>
-    <title>学习day50</title>
-    <url>/2026/03/11/%E5%AD%A6%E4%B9%A0day50/</url>
-    <content><![CDATA[牛客周赛 Round 134
-F
-题目链接: https://ac.nowcoder.com/acm/contest/129231/F
-思路: 其实这道题我自己想出来了, 但是感觉这个思路有点牛逼,
-但是又感觉其实大家都是这个思路, 并没有什么牛逼的地方, 但是就记录一下吧,
-就是dp前缀[1…i]有多少种划分方案, 同理dp后缀,
-然后枚举满足s[i…j]是回文串的(i, j),
-贡献就是(j-i+1)^2*dp前缀[i-1]*dp后缀[j+1],
-怎么dp和怎么预处理s[i…j]是否是回文串, 这个就看基本功了
-代码
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD=998244353;ll power(ll u,ll v)&#123;    ll res=1;    while(v)&#123;        if(v%2) res=res*u%MOD;        u=u*u%MOD;        v/=2;    &#125;    return res;&#125;void add(ll &amp;u,ll v)&#123;    u+=v;    if(u&gt;=MOD) u-=MOD;    if(u&lt;0) u+=MOD;&#125;ll prod(ll u,ll v)&#123;    return u*v%MOD;&#125;void solve()&#123;    int n;    cin&gt;&gt;n;    string s;    cin&gt;&gt;s;    s=&#x27; &#x27;+s;    auto is_p=[&amp;](string str)-&gt;bool&#123;        for(int i=0,j=sz(str)-1;i&lt;j;i++,j--)&#123;            if(str[i]!=str[j]) return false;        &#125;        return true;    &#125;;    vt&lt;vt&lt;bool&gt;&gt; isp(n+5,vt&lt;bool&gt;(n+5));    for(int i=1;i&lt;=n;i++)&#123;        string t;        for(int j=i;j&lt;=n;j++)&#123;            t+=s[j];            if(is_p(t))&#123;                isp[i][j]=true;            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp1(n+5);    dp1[0]=1;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=i;j++)&#123;            if(isp[j][i])&#123;                add(dp1[i],dp1[j-1]);            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp2(n+5);    dp2[n+1]=1;    for(int i=n;i&gt;=1;i--)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                add(dp2[i],dp2[j+1]);            &#125;        &#125;    &#125;    ll ans=0;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                ll len_2=1LL*(j-i+1)*(j-i+1)%MOD;                add(ans,(len_2*dp1[i-1]%MOD)*dp2[j+1]%MOD);            &#125;        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>nowcoder</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day5</title>
     <url>/2025/11/15/%E5%AD%A6%E4%B9%A0day5/</url>
     <content><![CDATA[走了一堆弯路
@@ -3186,6 +3167,25 @@ vue-router 了，我明天应该主要先研究怎么部署前后端
       </tags>
   </entry>
   <entry>
+    <title>学习day50</title>
+    <url>/2026/03/11/%E5%AD%A6%E4%B9%A0day50/</url>
+    <content><![CDATA[牛客周赛 Round 134
+F
+题目链接: https://ac.nowcoder.com/acm/contest/129231/F
+思路: 其实这道题我自己想出来了, 但是感觉这个思路有点牛逼,
+但是又感觉其实大家都是这个思路, 并没有什么牛逼的地方, 但是就记录一下吧,
+就是dp前缀[1…i]有多少种划分方案, 同理dp后缀,
+然后枚举满足s[i…j]是回文串的(i, j),
+贡献就是(j-i+1)^2*dp前缀[i-1]*dp后缀[j+1],
+怎么dp和怎么预处理s[i…j]是否是回文串, 这个就看基本功了
+代码
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD=998244353;ll power(ll u,ll v)&#123;    ll res=1;    while(v)&#123;        if(v%2) res=res*u%MOD;        u=u*u%MOD;        v/=2;    &#125;    return res;&#125;void add(ll &amp;u,ll v)&#123;    u+=v;    if(u&gt;=MOD) u-=MOD;    if(u&lt;0) u+=MOD;&#125;ll prod(ll u,ll v)&#123;    return u*v%MOD;&#125;void solve()&#123;    int n;    cin&gt;&gt;n;    string s;    cin&gt;&gt;s;    s=&#x27; &#x27;+s;    auto is_p=[&amp;](string str)-&gt;bool&#123;        for(int i=0,j=sz(str)-1;i&lt;j;i++,j--)&#123;            if(str[i]!=str[j]) return false;        &#125;        return true;    &#125;;    vt&lt;vt&lt;bool&gt;&gt; isp(n+5,vt&lt;bool&gt;(n+5));    for(int i=1;i&lt;=n;i++)&#123;        string t;        for(int j=i;j&lt;=n;j++)&#123;            t+=s[j];            if(is_p(t))&#123;                isp[i][j]=true;            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp1(n+5);    dp1[0]=1;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=i;j++)&#123;            if(isp[j][i])&#123;                add(dp1[i],dp1[j-1]);            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp2(n+5);    dp2[n+1]=1;    for(int i=n;i&gt;=1;i--)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                add(dp2[i],dp2[j+1]);            &#125;        &#125;    &#125;    ll ans=0;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                ll len_2=1LL*(j-i+1)*(j-i+1)%MOD;                add(ans,(len_2*dp1[i-1]%MOD)*dp2[j+1]%MOD);            &#125;        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>nowcoder</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day51</title>
     <url>/2026/03/13/%E5%AD%A6%E4%B9%A0day51/</url>
     <content><![CDATA[牛客练习赛149
@@ -3246,6 +3246,26 @@ C
       </tags>
   </entry>
   <entry>
+    <title>学习day54</title>
+    <url>/2026/03/20/%E5%AD%A6%E4%B9%A0day54/</url>
+    <content><![CDATA[Squarepoint
+Challenge (Codeforces Round 1055, Div. 1 + Div. 2)
+D
+思路：要考虑什么时候才会使得A的操作数增加1，就是当那个数是全1的形式
+100001，末尾的1直接被A先干掉，没救了
+110001，末尾的1，先被A干掉，后续可以不操作，直到1再次出现在个位，直接加1
+1000100001，同样地，等1出现在个位，+1可以给这个1续命，最后必然会有一堆1连在一起
+所以说，有两个1的能产生贡献，但是仅有两个1的且有一个1在个位的可能会被干掉，假设这样的数有x个，A干一个，B救一个
+A能干掉(x+1)/2个，B救x/2个
+代码：
+#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define pb push_back#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#else#define db(x) 114514#define el 1919810#endifvoid solve() &#123;    int n, q;    cin &gt;&gt; n &gt;&gt; q;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; pref1(n + 5), pref2(n + 5), pref3(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        // bitset&lt;10&gt; b = a[i];        // db(b), el;        pref1[i] = pref1[i - 1] + (__builtin_popcount(a[i]) &gt;= 2);        pref2[i] = pref2[i - 1] + (__builtin_popcount(a[i]) == 2 &amp;&amp; a[i] % 2 == 1);        pref3[i] = pref3[i - 1];        int x = a[i];        while (x &gt; 1) &#123;            x /= 2;            pref3[i]++;        &#125;    &#125;    while (q--) &#123;        int l, r;        cin &gt;&gt; l &gt;&gt; r;        int ans = pref3[r] - pref3[l - 1];        // db(ans), el;        int cnt1 = pref1[r] - pref1[l - 1];        int cnt2 = pref2[r] - pref2[l - 1];        cnt2 = (cnt2 + 1) / 2;        cnt1 -= cnt2;        ans += cnt1;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+这题有点绕，看过题数感觉有点被骗了，但是其实也不算难
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day55</title>
     <url>/2026/03/21/%E5%AD%A6%E4%B9%A0day55/</url>
     <content><![CDATA[https://ac.nowcoder.com/acm/contest/129583/C
@@ -3267,26 +3287,6 @@ C
 https://ac.nowcoder.com/acm/contest/130107/E
 思路：以为是思维，没想到是树上dp，dp[i]表示节点i是否是一个好点，叶子结点是好点，另外一种就是能到达至少两个好点的点也是一个好点，因为小紫能封堵小红后续的一个点，所以如果小红后续只有一个好点，小紫直接把这个点封掉就是了，所以至少需要两个，小红往回走是浪费时间，所以只需要考虑子节点，所以dp是成立的
 #include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define pb push_back#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#else#define db(x) 114514#define el 1919810#endifvoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;vt&lt;int&gt;&gt; adj(n + 5);    for (int i = 1; i &lt; n; i++) &#123;        int u, v;        cin &gt;&gt; u &gt;&gt; v;        adj[u].pb(v);        adj[v].pb(u);    &#125;    vt&lt;bool&gt; dp(n + 5);    auto dfs = [&amp;](auto &amp;&amp;self, int u, int p) -&gt; void &#123;        int cnt = 0;        bool has_son = false;        for (int v : adj[u]) &#123;            if (v == p)                continue;            self(self, v, u);            cnt += dp[v];            has_son = true;        &#125;        if (!has_son)            dp[u] = true;        if (cnt &gt;= 2)            dp[u] = true;    &#125;;    dfs(dfs, 1, 0);    for (int v : adj[1]) &#123;        if (dp[v]) &#123;            cout &lt;&lt; &quot;red\n&quot;;            return;        &#125;    &#125;    cout &lt;&lt; &quot;purple\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day54</title>
-    <url>/2026/03/20/%E5%AD%A6%E4%B9%A0day54/</url>
-    <content><![CDATA[Squarepoint
-Challenge (Codeforces Round 1055, Div. 1 + Div. 2)
-D
-思路：要考虑什么时候才会使得A的操作数增加1，就是当那个数是全1的形式
-100001，末尾的1直接被A先干掉，没救了
-110001，末尾的1，先被A干掉，后续可以不操作，直到1再次出现在个位，直接加1
-1000100001，同样地，等1出现在个位，+1可以给这个1续命，最后必然会有一堆1连在一起
-所以说，有两个1的能产生贡献，但是仅有两个1的且有一个1在个位的可能会被干掉，假设这样的数有x个，A干一个，B救一个
-A能干掉(x+1)/2个，B救x/2个
-代码：
-#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define pb push_back#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#else#define db(x) 114514#define el 1919810#endifvoid solve() &#123;    int n, q;    cin &gt;&gt; n &gt;&gt; q;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; pref1(n + 5), pref2(n + 5), pref3(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        // bitset&lt;10&gt; b = a[i];        // db(b), el;        pref1[i] = pref1[i - 1] + (__builtin_popcount(a[i]) &gt;= 2);        pref2[i] = pref2[i - 1] + (__builtin_popcount(a[i]) == 2 &amp;&amp; a[i] % 2 == 1);        pref3[i] = pref3[i - 1];        int x = a[i];        while (x &gt; 1) &#123;            x /= 2;            pref3[i]++;        &#125;    &#125;    while (q--) &#123;        int l, r;        cin &gt;&gt; l &gt;&gt; r;        int ans = pref3[r] - pref3[l - 1];        // db(ans), el;        int cnt1 = pref1[r] - pref1[l - 1];        int cnt2 = pref2[r] - pref2[l - 1];        cnt2 = (cnt2 + 1) / 2;        cnt1 -= cnt2;        ans += cnt1;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-这题有点绕，看过题数感觉有点被骗了，但是其实也不算难
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -3511,60 +3511,6 @@ superuser 这样才能访问后台
       </tags>
   </entry>
   <entry>
-    <title>学习day8</title>
-    <url>/2025/11/18/%E5%AD%A6%E4%B9%A0day8/</url>
-    <content><![CDATA[建立软链接清理 C 盘
-在开始今天的学习之前，我注意到了我电脑的 C
-盘不知道为什么突然又快爆了，之前清理过好几次，都是一些 node
-以及浏览器的缓存，不是一些很重要的东西，但是要这样频繁地去清理很麻烦，之前听说过软链接这个东西，我想用这玩意给我的
-C 盘腾一点空间，毕竟我的 D 盘占用率还是比较低的
-C:这个目录占了有 30GB+，但是我就想转一个 10GB 左右，底下有 Temp
-目录，更新频率蛮高的，但是它的大小不大，我找了一下这里面的 Android
-目录有
-10GB+，就决定转移它了，尽管它上次更新已经快两年前，其他目录的文件不敢乱删
-mklink /j C:\Users\Njaso\AppData\Local\Android D:\Android
-/j
-就是建立目录链接，第一个参数是目标地址，这个目标地址一定是要不存在的，第二个参数源地址
-添加 drf 分页器
-局部分页
-from .models import HotItemfrom .serializers import HotItemSerializerfrom rest_framework.generics import ListAPIViewfrom rest_framework.pagination import PageNumberPaginationclass HotItemPagination(PageNumberPagination):    page_size = 10  # 默认每页10条记录    page_size_query_param = &quot;page_size&quot;  # 前端参数命名, .e.g ?page_size=114    max_page_size = 100class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
-一定要用 ListAPIVIew，或者 modelViewSet，不然不会生效，max_page_size
-就是允许用户重定义 page_size 的上限，超过了 max_page_size
-不会发生什么，只会改回上限的值
-全局分页
-settings.py
-REST_FRAMEWORK = &#123;    &quot;DEFAULT_PAGINATION_CLASS&quot;: &quot;rest_framework.pagination.PageNumberPagination&quot;,    &quot;PAGE_SIZE&quot;: 10,&#125;
-全局设置无法让用户传入 page_size 参数
-class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
-用了全局分页器，View 这边也不用写 pagination_class
-npm 添加自定义命令
-package.json
-&quot;scripts&quot;: &#123;    &quot;build&quot;: &quot;hexo generate&quot;,    &quot;clean&quot;: &quot;hexo clean&quot;,    &quot;deploy&quot;: &quot;hexo deploy&quot;,    &quot;server&quot;: &quot;hexo server&quot;,    &quot;cgd&quot;: &quot;hexo clean &amp; hexo g &amp; hexo d&quot;  &#125;,
-执行命令的方法就是 npm run cgd
-设置路径别名
-vite.config.ts
-import &#123; defineConfig &#125; from &quot;vite&quot;;import vue from &quot;@vitejs/plugin-vue&quot;;import tailwindcss from &quot;@tailwindcss/vite&quot;;import path from &quot;path&quot;;// https://vite.dev/config/export default defineConfig(&#123;  plugins: [vue(), tailwindcss()],  resolve: &#123;    alias: &#123;      &quot;@&quot;: path.resolve(__dirname, &quot;./src&quot;),    &#125;,  &#125;,&#125;);
-前端调用@的时候可能会报错，不要管
-tsconfig.app.json
-&quot;baseUrl&quot;: &quot;.&quot;,&quot;paths&quot;: &#123;    &quot;@/*&quot;: [&quot;src/*&quot;]&#125;
-在这个文件的 compilerOptions 里面也添加上这两项
-节流函数
-手写版本
-// 快速点击下一页的时候，会导致页码和实际内容不同步，这时候需要利用节流来限制短时间内频繁操作的行为export const useThrottle = (fn: Function, delay: number = 300) =&gt; &#123;  let last = 0;  return (...args: any[]) =&gt; &#123;    const now = Date.now();    if (now - last &gt;= delay) &#123;      last = now;      return fn(...args);    &#125;  &#125;;&#125;;
-节流就是为了防止短时间内多次进行同一操作，设置了每次操作的时间间隔
-composable
-composable
-指一些可以复用的逻辑，比如防抖节流这些（不过通常不会手写），存在/src/composables
-里面
-记录一个 bug
-在组件渲染出来之前，你去找这个 HTML 元素，它可能是 null，我通过
-setTimeout 延时了 500ms，发现同样的逻辑能找到这个 button
-]]></content>
-      <tags>
-        <tag>系统存储</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day7</title>
     <url>/2025/11/17/%E5%AD%A6%E4%B9%A0day7/</url>
     <content><![CDATA[github actions 是否成功运行
@@ -3717,6 +3663,60 @@ source__value 去找外键的属性值
       </tags>
   </entry>
   <entry>
+    <title>学习day8</title>
+    <url>/2025/11/18/%E5%AD%A6%E4%B9%A0day8/</url>
+    <content><![CDATA[建立软链接清理 C 盘
+在开始今天的学习之前，我注意到了我电脑的 C
+盘不知道为什么突然又快爆了，之前清理过好几次，都是一些 node
+以及浏览器的缓存，不是一些很重要的东西，但是要这样频繁地去清理很麻烦，之前听说过软链接这个东西，我想用这玩意给我的
+C 盘腾一点空间，毕竟我的 D 盘占用率还是比较低的
+C:这个目录占了有 30GB+，但是我就想转一个 10GB 左右，底下有 Temp
+目录，更新频率蛮高的，但是它的大小不大，我找了一下这里面的 Android
+目录有
+10GB+，就决定转移它了，尽管它上次更新已经快两年前，其他目录的文件不敢乱删
+mklink /j C:\Users\Njaso\AppData\Local\Android D:\Android
+/j
+就是建立目录链接，第一个参数是目标地址，这个目标地址一定是要不存在的，第二个参数源地址
+添加 drf 分页器
+局部分页
+from .models import HotItemfrom .serializers import HotItemSerializerfrom rest_framework.generics import ListAPIViewfrom rest_framework.pagination import PageNumberPaginationclass HotItemPagination(PageNumberPagination):    page_size = 10  # 默认每页10条记录    page_size_query_param = &quot;page_size&quot;  # 前端参数命名, .e.g ?page_size=114    max_page_size = 100class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
+一定要用 ListAPIVIew，或者 modelViewSet，不然不会生效，max_page_size
+就是允许用户重定义 page_size 的上限，超过了 max_page_size
+不会发生什么，只会改回上限的值
+全局分页
+settings.py
+REST_FRAMEWORK = &#123;    &quot;DEFAULT_PAGINATION_CLASS&quot;: &quot;rest_framework.pagination.PageNumberPagination&quot;,    &quot;PAGE_SIZE&quot;: 10,&#125;
+全局设置无法让用户传入 page_size 参数
+class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
+用了全局分页器，View 这边也不用写 pagination_class
+npm 添加自定义命令
+package.json
+&quot;scripts&quot;: &#123;    &quot;build&quot;: &quot;hexo generate&quot;,    &quot;clean&quot;: &quot;hexo clean&quot;,    &quot;deploy&quot;: &quot;hexo deploy&quot;,    &quot;server&quot;: &quot;hexo server&quot;,    &quot;cgd&quot;: &quot;hexo clean &amp; hexo g &amp; hexo d&quot;  &#125;,
+执行命令的方法就是 npm run cgd
+设置路径别名
+vite.config.ts
+import &#123; defineConfig &#125; from &quot;vite&quot;;import vue from &quot;@vitejs/plugin-vue&quot;;import tailwindcss from &quot;@tailwindcss/vite&quot;;import path from &quot;path&quot;;// https://vite.dev/config/export default defineConfig(&#123;  plugins: [vue(), tailwindcss()],  resolve: &#123;    alias: &#123;      &quot;@&quot;: path.resolve(__dirname, &quot;./src&quot;),    &#125;,  &#125;,&#125;);
+前端调用@的时候可能会报错，不要管
+tsconfig.app.json
+&quot;baseUrl&quot;: &quot;.&quot;,&quot;paths&quot;: &#123;    &quot;@/*&quot;: [&quot;src/*&quot;]&#125;
+在这个文件的 compilerOptions 里面也添加上这两项
+节流函数
+手写版本
+// 快速点击下一页的时候，会导致页码和实际内容不同步，这时候需要利用节流来限制短时间内频繁操作的行为export const useThrottle = (fn: Function, delay: number = 300) =&gt; &#123;  let last = 0;  return (...args: any[]) =&gt; &#123;    const now = Date.now();    if (now - last &gt;= delay) &#123;      last = now;      return fn(...args);    &#125;  &#125;;&#125;;
+节流就是为了防止短时间内多次进行同一操作，设置了每次操作的时间间隔
+composable
+composable
+指一些可以复用的逻辑，比如防抖节流这些（不过通常不会手写），存在/src/composables
+里面
+记录一个 bug
+在组件渲染出来之前，你去找这个 HTML 元素，它可能是 null，我通过
+setTimeout 延时了 500ms，发现同样的逻辑能找到这个 button
+]]></content>
+      <tags>
+        <tag>系统存储</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>hexo部署博客注意事项</title>
     <url>/2025/10/20/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
     <content><![CDATA[部署命令
@@ -3773,34 +3773,6 @@ pip install djangorestframework-simplejwt
         <tag>vue</tag>
         <tag>毕业设计</tag>
         <tag>chromadb</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>毕设day3</title>
-    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
-    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
-建议直接设置成一分钟
-感觉加载真的太慢了, 到时候毕业设计怎么搞了,
-是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
-但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
-反而我需要的是即时生成可见的明显效果
-用户的token有效时间太短了, 我给调成一个礼拜了
-艹, 刚才观察了一下趋势分析图的逻辑,
-没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
-那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
-可能要通过一些数学手段来拟合出一条直线,
-然后判断斜率是否在正常范围以内
-这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
-那么这样也能叫做情绪平稳吗
-现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
-一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
-也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
-其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
-在性能好的服务器上面跑又要花大钱
-]]></content>
-      <tags>
-        <tag>vue</tag>
-        <tag>毕业设计</tag>
       </tags>
   </entry>
   <entry>
@@ -4026,13 +3998,30 @@ system_prompt = f&quot;&quot;&quot;        你是一个拥有超强洞察力的�
       </tags>
   </entry>
   <entry>
-    <title>毕设day5</title>
-    <url>/2026/03/13/%E6%AF%95%E8%AE%BEday5/</url>
-    <content><![CDATA[chat_with_memory的逻辑就是寻找和问题dist最短的10篇资料，然后再重新针对这个10篇文档计算文档的分数，然后取最高的5篇
-情绪分数的趋势图，好像是取最近的14篇日记，然后趋势的斜率是那最近的3篇，然后(recent[2]
-- recent[0]) / 2就是斜率，听说这个就是最小二乘法计算得到的结果
+    <title>毕设day3</title>
+    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
+    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
+建议直接设置成一分钟
+感觉加载真的太慢了, 到时候毕业设计怎么搞了,
+是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
+但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
+反而我需要的是即时生成可见的明显效果
+用户的token有效时间太短了, 我给调成一个礼拜了
+艹, 刚才观察了一下趋势分析图的逻辑,
+没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
+那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
+可能要通过一些数学手段来拟合出一条直线,
+然后判断斜率是否在正常范围以内
+这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
+那么这样也能叫做情绪平稳吗
+现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
+一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
+也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
+其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
+在性能好的服务器上面跑又要花大钱
 ]]></content>
       <tags>
+        <tag>vue</tag>
         <tag>毕业设计</tag>
       </tags>
   </entry>
@@ -4063,6 +4052,17 @@ dist = results[&quot;distances&quot;][0][i] if &quot;distances&quot; in results 
 sim_score = 1.0 / (1.0 + dist)
 这个就是一个向量相似度的一个分数, 首先是距离越小说明越相关,
 所以说明相关程度和dist成反比关系, 分母+1, 是为了防止分母为零
+]]></content>
+      <tags>
+        <tag>毕业设计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕设day5</title>
+    <url>/2026/03/13/%E6%AF%95%E8%AE%BEday5/</url>
+    <content><![CDATA[chat_with_memory的逻辑就是寻找和问题dist最短的10篇资料，然后再重新针对这个10篇文档计算文档的分数，然后取最高的5篇
+情绪分数的趋势图，好像是取最近的14篇日记，然后趋势的斜率是那最近的3篇，然后(recent[2]
+- recent[0]) / 2就是斜率，听说这个就是最小二乘法计算得到的结果
 ]]></content>
       <tags>
         <tag>毕业设计</tag>
@@ -4541,7 +4541,10 @@ npm install pinia-plugin-persistedstate
   <entry>
     <title>错题集</title>
     <url>/2026/03/25/%E9%94%99%E9%A2%98%E9%9B%86/</url>
-    <content><![CDATA[https://codeforces.com/contest/2222/problem/C
+    <content><![CDATA[https://ac.nowcoder.com/acm/contest/133523/C
+贪心去匹配就好，证明不好证，但是去想的话，发现确实只能这么干了
+#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define sz(x) int((x).size())#define vt vector#define rg(x, l, r) (x).begin() + 1, (x).begin() + r + 1#define all(x) (x).begin(), (x).end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define ts cerr &lt;&lt; &quot;line: &quot; &lt;&lt; __LINE__ &lt;&lt; endl#else#define db(x) 114514#define el 1919810#define ts 42#endifvoid solve() &#123;    string s;    cin &gt;&gt; s;    int l = 0, r = sz(s) - 1;    while (l &lt; r) &#123;        if (s[l] == s[r]) &#123;            l++, r--;            continue;        &#125;        if (s[l] == &#x27;n&#x27; &amp;&amp; s[r] == &#x27;m&#x27;) &#123;            if (l + 1 &lt; r &amp;&amp; s[l + 1] == &#x27;n&#x27;) &#123;                l += 2;                r--;                continue;            &#125; else &#123;                cout &lt;&lt; &quot;NO\n&quot;;                return;            &#125;        &#125;        if (s[r] == &#x27;n&#x27; &amp;&amp; s[l] == &#x27;m&#x27;) &#123;            if (r - 1 &gt; l &amp;&amp; s[r - 1] == &#x27;n&#x27;) &#123;                l++;                r -= 2;                continue;            &#125; else &#123;                cout &lt;&lt; &quot;NO\n&quot;;                return;            &#125;        &#125;    &#125;    cout &lt;&lt; &quot;YES\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+https://codeforces.com/contest/2222/problem/C
 如果这道题是分成多个子数组，然后平均数相同，我们会知道平均数肯定是全局平均数，这是显然的，但是中位数不是非常直观
 假设每个子数组中位数是M，分成了k个子数组，子数组内小于M的记为less_i,
 同理med_i, large_i
