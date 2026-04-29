@@ -307,34 +307,6 @@ app.use(&#x27;/table1&#x27;, table1Route);
       </tags>
   </entry>
   <entry>
-    <title>hexo部署问题的解决</title>
-    <url>/2026/03/13/hexo%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3/</url>
-    <content><![CDATA[这几天一直显示hexo部署失败，说是port 443访问超时
-ai告诉我用ssh连接，这个ssh可以在github仓库那边看到
-恭喜你解决了问题！我会用通俗的比喻 + 核心原理，把整个过程的逻辑讲清楚，你就能明白「为什么要做这些操作」，而不只是「做了什么」：一、先纠正一个关键口误：你复制的是「公钥」，不是「私钥」你之前操作中 “复制本地私钥” 是口误 —— 实际是把公钥（id_rsa.pub）传到 GitHub，私钥（id_rsa）永远保存在本地，绝对不能泄露（泄露就等于别人能冒充你操作仓库）。二、核心原理拆解（从「为什么用 SSH」开始）1. 为什么不用 HTTPS，非要用 SSH？你最开始遇到的问题是：HTTPS访问GitHub 443端口超时（国内网络屏蔽 GitHub 的 HTTPS 直连）。HTTPS 访问仓库：每次 push/deploy 都要输账号密码（或令牌），且国内直连大概率超时；SSH 访问仓库：通过「密钥对认证」，无需输密码，且能通过改端口（443）绕过屏蔽，更稳定。简单说：SSH 是解决「国内连 GitHub 超时 + 免密码认证」的最优方案。2. SSH 密钥对（私钥 + 公钥）的核心原理：「钥匙 + 锁」可以把 SSH 认证想象成「家门的锁和钥匙」：本地私钥（id_rsa）：你家门的「唯一钥匙」，保存在你电脑的C:\Users\你的用户名\.ssh\里，只有你有，绝对不能给别人；GitHub 上的公钥（id_rsa.pub）：你挂在 GitHub 服务器上的「家门锁」，公钥可以随便给（比如传到 GitHub），因为它只能 “验证钥匙是否匹配”，不能反过来生成钥匙；认证逻辑：你的 Git（Hexo 调用 Git）通过 SSH 连接 GitHub 时，GitHub 会说：“证明你是主人 —— 用我的锁（公钥）验证你的钥匙（私钥）”；本地用私钥做加密验证，GitHub 用公钥解密，验证通过就允许你操作仓库；验证失败就会报 Permission denied (publickey)（钥匙和锁不匹配）。3. 本地私钥 / 公钥到底是什么？生成过程：你执行 ssh-keygen -t rsa -C &quot;你的邮箱&quot; 时，电脑生成了两个文件：id_rsa（私钥）：一串加密的字符串，是你的「专属钥匙」，文件权限必须严格（仅你自己可读），否则 SSH 会认为不安全而拒绝使用；id_rsa.pub（公钥）：从私钥衍生的「锁」，是明文的字符串（以ssh-rsa开头），可以放心复制到 GitHub。文件位置：Windows 下在 C:\Users\你的用户名\.ssh\ 里，这是 SSH 协议默认查找密钥的位置，改了位置就会找不到。你遇到的错误依次对应：第一步：22 端口不通 → 改 SSH 配置用 443 端口；第二步：密钥对不匹配 / 私钥权限错 → 核对公钥、改私钥权限；第三步：认证通过 → deploy 成功。5. 为什么要改私钥权限（chmod 600）？SSH 协议有严格的安全规则：私钥文件不能被除你之外的任何人访问（否则可能被窃取）。Windows 默认给id_rsa开放了 “所有用户可读” 的权限，SSH 会认为这个私钥不安全，直接拒绝使用；执行 chmod 600 ~/.ssh/id_rsa 后，只有你当前用户能读写这个文件，SSH 才会认可它。6. 为什么要确认主机密钥（输入 yes）？首次连接ssh.github.com:443时，Git 会验证「对方是不是真的 GitHub 服务器」（防止被钓鱼）：GitHub 返回它的「主机密钥指纹」（你看到的SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU）；你输入yes后，Git 会把这个指纹保存到~/.ssh/known_hosts，后续连接就不用再验证，确保你连的是真 GitHub。
-一个公钥可以给多个仓库使用，
-ssh-keygen -t rsa -C &quot;jason749573@163.com&quot;
-输入这个命令会生成公钥和私钥，保存的地方如下
-win+r，然后输入%USERPROFILE%.ssh，这里是ssh密钥保存的地方
-其中有一个id_rsa.pub和id_rsa，pub后缀的是公钥，要添加到github账户里面，公钥的作用就像是保险柜的号码，私钥就是对应号码保险柜的钥匙
-这次改成ssh的连接方式后，还做了一个操作，就是在保存ssh的那个文件夹底下，创建了一个config文件
-输入了一下内容
-Host github.com  Hostname ssh.github.com  Port 443  User git
-ssh默认的端口好像是22，但是22端口push失败了，改成了443端口之后就可以了
-22端口听说是被针对屏蔽了，因为这个是ssh服务专属端口，443本来是https协议用的端口，但是也配备了ssh服务
-ssh -T git@github.com
-这个命令是用来测试ssh连接是否正常
-git remote -v
-查看远程仓库地址
-git remote set-url origin git@github.com:用户名/仓库名.git
-设置远程仓库地址
-]]></content>
-      <tags>
-        <tag>git</tag>
-        <tag>ssh</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hello World</title>
     <url>/2025/10/20/hello-world/</url>
     <content><![CDATA[Welcome to Hexo! This is your very
@@ -397,6 +369,34 @@ $json_data = file_get_contents(&quot;php://input&quot;); // 获取到的是json�
       </tags>
   </entry>
   <entry>
+    <title>hexo部署问题的解决</title>
+    <url>/2026/03/13/hexo%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3/</url>
+    <content><![CDATA[这几天一直显示hexo部署失败，说是port 443访问超时
+ai告诉我用ssh连接，这个ssh可以在github仓库那边看到
+恭喜你解决了问题！我会用通俗的比喻 + 核心原理，把整个过程的逻辑讲清楚，你就能明白「为什么要做这些操作」，而不只是「做了什么」：一、先纠正一个关键口误：你复制的是「公钥」，不是「私钥」你之前操作中 “复制本地私钥” 是口误 —— 实际是把公钥（id_rsa.pub）传到 GitHub，私钥（id_rsa）永远保存在本地，绝对不能泄露（泄露就等于别人能冒充你操作仓库）。二、核心原理拆解（从「为什么用 SSH」开始）1. 为什么不用 HTTPS，非要用 SSH？你最开始遇到的问题是：HTTPS访问GitHub 443端口超时（国内网络屏蔽 GitHub 的 HTTPS 直连）。HTTPS 访问仓库：每次 push/deploy 都要输账号密码（或令牌），且国内直连大概率超时；SSH 访问仓库：通过「密钥对认证」，无需输密码，且能通过改端口（443）绕过屏蔽，更稳定。简单说：SSH 是解决「国内连 GitHub 超时 + 免密码认证」的最优方案。2. SSH 密钥对（私钥 + 公钥）的核心原理：「钥匙 + 锁」可以把 SSH 认证想象成「家门的锁和钥匙」：本地私钥（id_rsa）：你家门的「唯一钥匙」，保存在你电脑的C:\Users\你的用户名\.ssh\里，只有你有，绝对不能给别人；GitHub 上的公钥（id_rsa.pub）：你挂在 GitHub 服务器上的「家门锁」，公钥可以随便给（比如传到 GitHub），因为它只能 “验证钥匙是否匹配”，不能反过来生成钥匙；认证逻辑：你的 Git（Hexo 调用 Git）通过 SSH 连接 GitHub 时，GitHub 会说：“证明你是主人 —— 用我的锁（公钥）验证你的钥匙（私钥）”；本地用私钥做加密验证，GitHub 用公钥解密，验证通过就允许你操作仓库；验证失败就会报 Permission denied (publickey)（钥匙和锁不匹配）。3. 本地私钥 / 公钥到底是什么？生成过程：你执行 ssh-keygen -t rsa -C &quot;你的邮箱&quot; 时，电脑生成了两个文件：id_rsa（私钥）：一串加密的字符串，是你的「专属钥匙」，文件权限必须严格（仅你自己可读），否则 SSH 会认为不安全而拒绝使用；id_rsa.pub（公钥）：从私钥衍生的「锁」，是明文的字符串（以ssh-rsa开头），可以放心复制到 GitHub。文件位置：Windows 下在 C:\Users\你的用户名\.ssh\ 里，这是 SSH 协议默认查找密钥的位置，改了位置就会找不到。你遇到的错误依次对应：第一步：22 端口不通 → 改 SSH 配置用 443 端口；第二步：密钥对不匹配 / 私钥权限错 → 核对公钥、改私钥权限；第三步：认证通过 → deploy 成功。5. 为什么要改私钥权限（chmod 600）？SSH 协议有严格的安全规则：私钥文件不能被除你之外的任何人访问（否则可能被窃取）。Windows 默认给id_rsa开放了 “所有用户可读” 的权限，SSH 会认为这个私钥不安全，直接拒绝使用；执行 chmod 600 ~/.ssh/id_rsa 后，只有你当前用户能读写这个文件，SSH 才会认可它。6. 为什么要确认主机密钥（输入 yes）？首次连接ssh.github.com:443时，Git 会验证「对方是不是真的 GitHub 服务器」（防止被钓鱼）：GitHub 返回它的「主机密钥指纹」（你看到的SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU）；你输入yes后，Git 会把这个指纹保存到~/.ssh/known_hosts，后续连接就不用再验证，确保你连的是真 GitHub。
+一个公钥可以给多个仓库使用，
+ssh-keygen -t rsa -C &quot;jason749573@163.com&quot;
+输入这个命令会生成公钥和私钥，保存的地方如下
+win+r，然后输入%USERPROFILE%.ssh，这里是ssh密钥保存的地方
+其中有一个id_rsa.pub和id_rsa，pub后缀的是公钥，要添加到github账户里面，公钥的作用就像是保险柜的号码，私钥就是对应号码保险柜的钥匙
+这次改成ssh的连接方式后，还做了一个操作，就是在保存ssh的那个文件夹底下，创建了一个config文件
+输入了一下内容
+Host github.com  Hostname ssh.github.com  Port 443  User git
+ssh默认的端口好像是22，但是22端口push失败了，改成了443端口之后就可以了
+22端口听说是被针对屏蔽了，因为这个是ssh服务专属端口，443本来是https协议用的端口，但是也配备了ssh服务
+ssh -T git@github.com
+这个命令是用来测试ssh连接是否正常
+git remote -v
+查看远程仓库地址
+git remote set-url origin git@github.com:用户名/仓库名.git
+设置远程仓库地址
+]]></content>
+      <tags>
+        <tag>git</tag>
+        <tag>ssh</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>js贪吃蛇</title>
     <url>/2025/11/01/js%E8%B4%AA%E5%90%83%E8%9B%87/</url>
     <content><![CDATA[贪吃蛇的关键逻辑在于，移动蛇的时候，其实是生成一个新的头，然后把尾巴去掉，而不是遍历蛇的身体每个坐标，然后移动
@@ -404,41 +404,6 @@ $json_data = file_get_contents(&quot;php://input&quot;); // 获取到的是json�
 ]]></content>
       <tags>
         <tag>js</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>js小游戏-反应测试</title>
-    <url>/2025/11/01/js%E5%B0%8F%E6%B8%B8%E6%88%8F-%E5%8F%8D%E5%BA%94%E6%B5%8B%E8%AF%95/</url>
-    <content><![CDATA[挺好玩的，蛮神奇的，事件触发改成用鼠标的话，反应时间测出来是270ms左右，但是用keydown事件直接变成180ms左右，可能是鼠标按键抬起来太费时间了
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;Reaction Time Test&lt;/title&gt;&lt;/head&gt;&lt;body class=&quot;waiting&quot;&gt;    &lt;div class=&quot;flex-container&quot;&gt;        &lt;h1 class=&quot;mytext&quot;&gt;按下空格进行测试&lt;/h1&gt;        &lt;h1 class=&quot;mytext&quot;&gt;&lt;/h1&gt;    &lt;/div&gt;&lt;/body&gt;&lt;script&gt;const body = document.bodyconst text = document.getElementsByClassName(&quot;mytext&quot;)[0];const avgTimeText = document.getElementsByClassName(&quot;mytext&quot;)[1];let startTime = null;let cnt = 0;let avg = 0;let timerId = null;body.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.code == &quot;Space&quot;) &#123; // e.code == &quot;Space&quot;也行        avgTimeText.textContent = &quot;&quot;;        if (body.className == &quot;testing&quot;) &#123;            body.className = &quot;waiting&quot;;            text.textContent = &quot;不要提前按&quot;;            clearTimeout(timerId);        &#125; else if (body.className == &quot;starting&quot;) &#123;            body.className = &quot;waiting&quot;;            const timeSpend = performance.now() - startTime;            text.textContent = timeSpend.toString() + &quot;ms&quot;;            cnt++;            avg += timeSpend;            if (cnt == 5) &#123;                cnt = 0;                avg /= 5;                avg = Number(Math.floor(avg));                avgTimeText.textContent = &quot;平均时间：&quot; + avg.toString() + &quot;ms, 按下空格再次测试&quot;;                avg = 0;            &#125; else &#123;                avgTimeText.textContent = cnt.toString() + &quot;/5&quot;;            &#125;        &#125; else if (body.className == &quot;waiting&quot;) &#123;            body.className = &quot;testing&quot;;            text.textContent = &quot;等待变绿...&quot;;            const delay = Math.random() * 1000 + 2000;            timerId = setTimeout(function() &#123;                requestAnimationFrame(() =&gt; &#123;                    body.className = &quot;starting&quot;;                    text.textContent = &quot;按下空格&quot;;                    startTime = performance.now();                &#125;)            &#125;, delay);        &#125;        console.log(&quot;点击事件触发&quot;)    &#125;&#125;)&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    justify-content: center;    align-items: center;    height: 100vh;&#125;.flex-container &#123;    display: flex;    flex-direction: column;    align-items: center;    justify-content: center;&#125;body:hover &#123;    cursor: pointer;&#125;.waiting &#123;    background: rgb(0, 0, 255);&#125;.testing &#123;    background-color: red;&#125;.starting &#123;    background-color: rgb(0, 255, 0);&#125;.mytext &#123;    color: white;    font-size: 50px;&#125;&lt;/style&gt;&lt;/html&gt;
-]]></content>
-      <tags>
-        <tag>js</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>php快速入门</title>
-    <url>/2025/10/20/php%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</url>
-    <content><![CDATA[.php文件可以当成html文件来写
-php语句只在php文件当中生效, 或者在html文件当中引入php也可以生效
-查看数据类型和值
-var_dump(x)
-字符串连接符
-.
-EOF定界符
-&lt;&lt;&lt;EOF
-必须顶头写, 独占一行, 结束标记要有分号
-&lt;?phpecho &lt;&lt;&lt;EOFEOF;
-其实结束字符可以用任意的字符替代
-使用了定界符, echo的中间语句如果有变量的话, 可以直接写进去,
-而不需要用.来连接
-echo &lt;&lt;&lt;EOF $a $b $cEOF;
-也可以直接写单双引号, 不需要转义符号
-可以解析html语句
-php标签
-]]></content>
-      <tags>
-        <tag>php</tag>
       </tags>
   </entry>
   <entry>
@@ -468,6 +433,55 @@ let args = [...arguments]
       </tags>
   </entry>
   <entry>
+    <title>js小游戏-反应测试</title>
+    <url>/2025/11/01/js%E5%B0%8F%E6%B8%B8%E6%88%8F-%E5%8F%8D%E5%BA%94%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[挺好玩的，蛮神奇的，事件触发改成用鼠标的话，反应时间测出来是270ms左右，但是用keydown事件直接变成180ms左右，可能是鼠标按键抬起来太费时间了
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;    &lt;title&gt;Reaction Time Test&lt;/title&gt;&lt;/head&gt;&lt;body class=&quot;waiting&quot;&gt;    &lt;div class=&quot;flex-container&quot;&gt;        &lt;h1 class=&quot;mytext&quot;&gt;按下空格进行测试&lt;/h1&gt;        &lt;h1 class=&quot;mytext&quot;&gt;&lt;/h1&gt;    &lt;/div&gt;&lt;/body&gt;&lt;script&gt;const body = document.bodyconst text = document.getElementsByClassName(&quot;mytext&quot;)[0];const avgTimeText = document.getElementsByClassName(&quot;mytext&quot;)[1];let startTime = null;let cnt = 0;let avg = 0;let timerId = null;body.addEventListener(&quot;keydown&quot;, e =&gt; &#123;    if (e.code == &quot;Space&quot;) &#123; // e.code == &quot;Space&quot;也行        avgTimeText.textContent = &quot;&quot;;        if (body.className == &quot;testing&quot;) &#123;            body.className = &quot;waiting&quot;;            text.textContent = &quot;不要提前按&quot;;            clearTimeout(timerId);        &#125; else if (body.className == &quot;starting&quot;) &#123;            body.className = &quot;waiting&quot;;            const timeSpend = performance.now() - startTime;            text.textContent = timeSpend.toString() + &quot;ms&quot;;            cnt++;            avg += timeSpend;            if (cnt == 5) &#123;                cnt = 0;                avg /= 5;                avg = Number(Math.floor(avg));                avgTimeText.textContent = &quot;平均时间：&quot; + avg.toString() + &quot;ms, 按下空格再次测试&quot;;                avg = 0;            &#125; else &#123;                avgTimeText.textContent = cnt.toString() + &quot;/5&quot;;            &#125;        &#125; else if (body.className == &quot;waiting&quot;) &#123;            body.className = &quot;testing&quot;;            text.textContent = &quot;等待变绿...&quot;;            const delay = Math.random() * 1000 + 2000;            timerId = setTimeout(function() &#123;                requestAnimationFrame(() =&gt; &#123;                    body.className = &quot;starting&quot;;                    text.textContent = &quot;按下空格&quot;;                    startTime = performance.now();                &#125;)            &#125;, delay);        &#125;        console.log(&quot;点击事件触发&quot;)    &#125;&#125;)&lt;/script&gt;&lt;style&gt;body &#123;    display: flex;    justify-content: center;    align-items: center;    height: 100vh;&#125;.flex-container &#123;    display: flex;    flex-direction: column;    align-items: center;    justify-content: center;&#125;body:hover &#123;    cursor: pointer;&#125;.waiting &#123;    background: rgb(0, 0, 255);&#125;.testing &#123;    background-color: red;&#125;.starting &#123;    background-color: rgb(0, 255, 0);&#125;.mytext &#123;    color: white;    font-size: 50px;&#125;&lt;/style&gt;&lt;/html&gt;
+]]></content>
+      <tags>
+        <tag>js</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python sort函数</title>
+    <url>/2025/12/25/python-sort%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[解构元素
+arr = [[1, 2], [3, 4]]for [l, r] in arr:    print(l, r)
+key 函数
+sort 将以 key 的返回值从小到大排序
+arr = [2, 3, 1, 4, 5]arr.sort(key=lambda x: -x)print(arr)
+所以这样是从大到小排序
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>php快速入门</title>
+    <url>/2025/10/20/php%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[.php文件可以当成html文件来写
+php语句只在php文件当中生效, 或者在html文件当中引入php也可以生效
+查看数据类型和值
+var_dump(x)
+字符串连接符
+.
+EOF定界符
+&lt;&lt;&lt;EOF
+必须顶头写, 独占一行, 结束标记要有分号
+&lt;?phpecho &lt;&lt;&lt;EOFEOF;
+其实结束字符可以用任意的字符替代
+使用了定界符, echo的中间语句如果有变量的话, 可以直接写进去,
+而不需要用.来连接
+echo &lt;&lt;&lt;EOF $a $b $cEOF;
+也可以直接写单双引号, 不需要转义符号
+可以解析html语句
+php标签
+]]></content>
+      <tags>
+        <tag>php</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>pnpm-npm的上位替代?</title>
     <url>/2025/11/11/pnpm-npm%E7%9A%84%E4%B8%8A%E4%BD%8D%E6%9B%BF%E4%BB%A3/</url>
     <content><![CDATA[听说 pnpm
@@ -486,44 +500,6 @@ pnpm -v
       <tags>
         <tag>pnpm</tag>
         <tag>包管理器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python sort函数</title>
-    <url>/2025/12/25/python-sort%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[解构元素
-arr = [[1, 2], [3, 4]]for [l, r] in arr:    print(l, r)
-key 函数
-sort 将以 key 的返回值从小到大排序
-arr = [2, 3, 1, 4, 5]arr.sort(key=lambda x: -x)print(arr)
-所以这样是从大到小排序
-]]></content>
-      <tags>
-        <tag>python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python使用笔记</title>
-    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[dict
-cnt=&#123;&#125;
-这样就可以定义一个字典
-n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
-dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
-keys()和values()都是可迭代的对象, 类似list
-PriorityQueue
-from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
-我建议封装一个top()函数来实现真正的top()
-def top(pq):    tp=pq.get()    pq.put(tp)    return tp
-array
-a.insert(0,0)
-第一个参数是下标
-a.sort() 原地排序
-sorted(a) 返回排序后的副本
-tp=stk.pop() 弹出最后的元素
-]]></content>
-      <tags>
-        <tag>python</tag>
       </tags>
   </entry>
   <entry>
@@ -675,6 +651,30 @@ npm install zustand
       </tags>
   </entry>
   <entry>
+    <title>python使用笔记</title>
+    <url>/2026/03/03/python%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[dict
+cnt=&#123;&#125;
+这样就可以定义一个字典
+n,x=map(int,input().split())a=list(map(int,input().split()))cnt=&#123;&#125;for aa in a:    if aa not in cnt:        cnt[aa]=1    else:        cnt[aa]+=1mx=max(cnt.values())print(mx)
+dict是没有初始值的, 如果某个key不在dict里面的时候, 要手动赋初始值
+keys()和values()都是可迭代的对象, 类似list
+PriorityQueue
+from queue import PriorityQueuepq=PriorityQueue()pq.put(1)pq.get() # top()+pop()pq.qsize() # 返回长度
+我建议封装一个top()函数来实现真正的top()
+def top(pq):    tp=pq.get()    pq.put(tp)    return tp
+array
+a.insert(0,0)
+第一个参数是下标
+a.sort() 原地排序
+sorted(a) 返回排序后的副本
+tp=stk.pop() 弹出最后的元素
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>react-day2</title>
     <url>/2025/11/06/react-day2/</url>
     <content><![CDATA[Zustand
@@ -786,70 +786,6 @@ npm create vite@latest client
       </tags>
   </entry>
   <entry>
-    <title>react-day4</title>
-    <url>/2025/11/08/react-day4/</url>
-    <content><![CDATA[Arco 组件库
-一开始以为是哪里来的野鸡 UI
-库，但是听说这是字节开发的，那不得不学了，安装方法如下
-npm install @arco-design/web-react
-复习一下 axios 吧
-在前端的 src 文件夹底下创建一个 api 文件夹，然后在里面再创建一个
-request.js，具体的代码如下
-import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: &quot;https://127.0.0.1:8000/api/&quot;,  timeout: 5000,&#125;);export default request;
-这里的 timeout 单位是 ms
-然后我们在同一个 api 目录底下编写关于模型的增删改查封装接口，首先是
-todos，创建一个 todo.js，然后加上这些代码
-import request from &quot;./request&quot;;export const getTodos = () =&gt; request.get(&quot;todos/&quot;); //记得不要加上大括号，加上的话是没有返回值的export const createTodo = (data) =&gt; request.post(&quot;todos/&quot;, data);export const updateTodo = (id, data) =&gt; request.put(`todos/$&#123;id&#125;`, data);export const deleteTodo = (id) =&gt; request.delete(`todos/$&#123;id&#125;`);
-顺便说一下，axios 的增删改查函数返回的结果都是 promise
-对象，也就是说可以用 then 来写回调函数
-cors 配置再复习
-妈的，忘记在 settings 的 installed_apps 加上关于 cors 的 app
-了，具体加法是这样的
-INSTALLED_APPS = [    ...    &quot;corsheaders&quot;,]MIDDLEWARE = [    ...    &quot;corsheaders.middleware.CorsMiddleware&quot;,  # 放前面！！    &quot;django.middleware.common.CommonMiddleware&quot;,]CORS_ALLOW_ALL_ORIGINS = True  # 允许所有的请求源# CORS_ALLOWED_ORIGINS = [#     &quot;http://localhost:5173&quot;,#     &quot;http://127.0.0.1:5173&quot;,  # 这个是比较规范的写法# ]
-加上这些代码就行了，反正每安装一个库，就看一下 installed_apps
-这里是不是要加上，没加上就完全用不了
-create 接口的优化
-const handleAdd = () =&gt; &#123;  if (!title.trim()) return;  createTodo(&#123; title, completed: false &#125;)    // .then(() =&gt; &#123;    //   //其实create是有返回数据的，但是我可以选择忽略    //   setTitle(&quot;&quot;);    //   fetchTodos();    // &#125;) //但是感觉用这个刚创建的对象直接更新数组好像更快啊，少了一次请求    .then((res) =&gt; &#123;      setTodos((s) =&gt; [...s, res.data]);      setTitle(&quot;&quot;);    &#125;)    .catch((err) =&gt; console.error(err));&#125;;
-原因已经写在注释那里了
-前端 put 请求优化
-const handleToggle = (todo) =&gt; &#123;  updateTodo(todo.id, &#123;    title: todo.title,    completed: !todo.completed,  &#125;)    .then(() =&gt; &#123;      setTodos((s) =&gt;        s.map((t) =&gt; (t.id === todo.id ? &#123; ...t, completed: !t.completed &#125; : t))      );    &#125;)    .catch((err) =&gt; console.error(error));&#125;;
-直接 getTodos
-了也行，但是多一次请求，这样算是一种优化方案吧，就是尽量地减少请求的次数，或许面试的时候可以说一说
-url 记得加上斜杠
-drf
-是严格遵循标准的，末尾没有加上斜杠的话，是不会自动补上，会直接报错，另外想说一下
-put 感觉不是很好用，要传入整个对象，好像还是 patch 比较好用
-异步的问题又出现了
-onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(fetchTodos())                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
-这样写是不行的，因为 fetchTodos()就直接执行了，
-onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(() =&gt; fetchTodos())                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
-要么就这样写
-onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(fetchTodos)                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
-要么直接传函数引用进去，但是这样有点难理解，建议还是用上面那种比较常见的方式来做
-一个冷知识
-其实 await 和 then 的作用是一样的，可能 await
-的代码量会比较少吧，要问我比较喜欢哪一个，我会觉得 await
-的代码会比较优雅
-zustand 的 get 参数
-之前都是在 set 函数里面用 state 参数来访问 store
-的数据，今天才发现可以直接用 get 来访问 state
-的数据，具体给几个例子就应该能动了
-import &#123; create &#125; from &quot;zustand&quot;;import &#123; getTodos, updateTodo, deleteTodo, createTodo &#125; from &quot;../api/todo&quot;;export const todoStore = create((set, get) =&gt; (&#123;  //set用来设置属性，get用来访问属性  todos: [],  fetchTodos: async () =&gt; &#123;    const res = await getTodos();    set(&#123; todos: res.data &#125;);  &#125;,  addTodo: async (title) =&gt; &#123;    await createTodo(&#123; title, completed: false &#125;);    get().fetchTodos();  &#125;,  updateTodo: async (title) =&gt; &#123;&#125;,&#125;));
-get()直接就是 state 本体了，然后就访问里面的属性了
-然后刚才也说到了为什么用 await，这个 await 和 then
-回调函数是等价的，原因也很简单，就是因为这个 axios
-封装的函数本身就是异步的，所以当然要写异步函数
-zustand 创建的 store
-的属性都是响应式的
-这里的响应式跟 vue
-不一样，不过反正都可以理解为，当这些响应式的数据改变的时候，页面也会动态地改变。以后可以把一些页面要展示的内容都写在
-zustand 里面然后全局引用
-]]></content>
-      <tags>
-        <tag>react</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>react工具大全</title>
     <url>/2025/12/03/react%E5%B7%A5%E5%85%B7%E5%A4%A7%E5%85%A8/</url>
     <content><![CDATA[
@@ -917,6 +853,70 @@ select customer_idfrom Customer cross join (    select count(*) as total    from
 ]]></content>
       <tags>
         <tag>sql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>react-day4</title>
+    <url>/2025/11/08/react-day4/</url>
+    <content><![CDATA[Arco 组件库
+一开始以为是哪里来的野鸡 UI
+库，但是听说这是字节开发的，那不得不学了，安装方法如下
+npm install @arco-design/web-react
+复习一下 axios 吧
+在前端的 src 文件夹底下创建一个 api 文件夹，然后在里面再创建一个
+request.js，具体的代码如下
+import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: &quot;https://127.0.0.1:8000/api/&quot;,  timeout: 5000,&#125;);export default request;
+这里的 timeout 单位是 ms
+然后我们在同一个 api 目录底下编写关于模型的增删改查封装接口，首先是
+todos，创建一个 todo.js，然后加上这些代码
+import request from &quot;./request&quot;;export const getTodos = () =&gt; request.get(&quot;todos/&quot;); //记得不要加上大括号，加上的话是没有返回值的export const createTodo = (data) =&gt; request.post(&quot;todos/&quot;, data);export const updateTodo = (id, data) =&gt; request.put(`todos/$&#123;id&#125;`, data);export const deleteTodo = (id) =&gt; request.delete(`todos/$&#123;id&#125;`);
+顺便说一下，axios 的增删改查函数返回的结果都是 promise
+对象，也就是说可以用 then 来写回调函数
+cors 配置再复习
+妈的，忘记在 settings 的 installed_apps 加上关于 cors 的 app
+了，具体加法是这样的
+INSTALLED_APPS = [    ...    &quot;corsheaders&quot;,]MIDDLEWARE = [    ...    &quot;corsheaders.middleware.CorsMiddleware&quot;,  # 放前面！！    &quot;django.middleware.common.CommonMiddleware&quot;,]CORS_ALLOW_ALL_ORIGINS = True  # 允许所有的请求源# CORS_ALLOWED_ORIGINS = [#     &quot;http://localhost:5173&quot;,#     &quot;http://127.0.0.1:5173&quot;,  # 这个是比较规范的写法# ]
+加上这些代码就行了，反正每安装一个库，就看一下 installed_apps
+这里是不是要加上，没加上就完全用不了
+create 接口的优化
+const handleAdd = () =&gt; &#123;  if (!title.trim()) return;  createTodo(&#123; title, completed: false &#125;)    // .then(() =&gt; &#123;    //   //其实create是有返回数据的，但是我可以选择忽略    //   setTitle(&quot;&quot;);    //   fetchTodos();    // &#125;) //但是感觉用这个刚创建的对象直接更新数组好像更快啊，少了一次请求    .then((res) =&gt; &#123;      setTodos((s) =&gt; [...s, res.data]);      setTitle(&quot;&quot;);    &#125;)    .catch((err) =&gt; console.error(err));&#125;;
+原因已经写在注释那里了
+前端 put 请求优化
+const handleToggle = (todo) =&gt; &#123;  updateTodo(todo.id, &#123;    title: todo.title,    completed: !todo.completed,  &#125;)    .then(() =&gt; &#123;      setTodos((s) =&gt;        s.map((t) =&gt; (t.id === todo.id ? &#123; ...t, completed: !t.completed &#125; : t))      );    &#125;)    .catch((err) =&gt; console.error(error));&#125;;
+直接 getTodos
+了也行，但是多一次请求，这样算是一种优化方案吧，就是尽量地减少请求的次数，或许面试的时候可以说一说
+url 记得加上斜杠
+drf
+是严格遵循标准的，末尾没有加上斜杠的话，是不会自动补上，会直接报错，另外想说一下
+put 感觉不是很好用，要传入整个对象，好像还是 patch 比较好用
+异步的问题又出现了
+onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(fetchTodos())                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
+这样写是不行的，因为 fetchTodos()就直接执行了，
+onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(() =&gt; fetchTodos())                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
+要么就这样写
+onClick=&#123;() =&gt; &#123;                deleteTodo(todo.id)                  .then(fetchTodos)                  .catch((err) =&gt; console.error(err)); //也是懒到一个极致              &#125;&#125;
+要么直接传函数引用进去，但是这样有点难理解，建议还是用上面那种比较常见的方式来做
+一个冷知识
+其实 await 和 then 的作用是一样的，可能 await
+的代码量会比较少吧，要问我比较喜欢哪一个，我会觉得 await
+的代码会比较优雅
+zustand 的 get 参数
+之前都是在 set 函数里面用 state 参数来访问 store
+的数据，今天才发现可以直接用 get 来访问 state
+的数据，具体给几个例子就应该能动了
+import &#123; create &#125; from &quot;zustand&quot;;import &#123; getTodos, updateTodo, deleteTodo, createTodo &#125; from &quot;../api/todo&quot;;export const todoStore = create((set, get) =&gt; (&#123;  //set用来设置属性，get用来访问属性  todos: [],  fetchTodos: async () =&gt; &#123;    const res = await getTodos();    set(&#123; todos: res.data &#125;);  &#125;,  addTodo: async (title) =&gt; &#123;    await createTodo(&#123; title, completed: false &#125;);    get().fetchTodos();  &#125;,  updateTodo: async (title) =&gt; &#123;&#125;,&#125;));
+get()直接就是 state 本体了，然后就访问里面的属性了
+然后刚才也说到了为什么用 await，这个 await 和 then
+回调函数是等价的，原因也很简单，就是因为这个 axios
+封装的函数本身就是异步的，所以当然要写异步函数
+zustand 创建的 store
+的属性都是响应式的
+这里的响应式跟 vue
+不一样，不过反正都可以理解为，当这些响应式的数据改变的时候，页面也会动态地改变。以后可以把一些页面要展示的内容都写在
+zustand 里面然后全局引用
+]]></content>
+      <tags>
+        <tag>react</tag>
       </tags>
   </entry>
   <entry>
@@ -1056,17 +1056,6 @@ var num = 0;outPoint: for (var i = 0; i &lt; 10; i++) &#123;  for (var j = 0; j 
       </tags>
   </entry>
   <entry>
-    <title>一个部署环境的小问题</title>
-    <url>/2025/12/19/%E4%B8%80%E4%B8%AA%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[数据库强制 ssl
-DATABASES = &#123;        &quot;default&quot;: dj_database_url.config(            default=os.getenv(&quot;DATABASE_URL&quot;),            conn_max_age=600,            ssl_require=True,  # 👈 关键        )    &#125;
-加上这个配置
-]]></content>
-      <tags>
-        <tag>postgresql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>vuex</title>
     <url>/2025/10/20/vuex/</url>
     <content><![CDATA[vuex
@@ -1128,6 +1117,17 @@ useRouter和useStore必须在setup的作用域内使用,
       </tags>
   </entry>
   <entry>
+    <title>一个部署环境的小问题</title>
+    <url>/2025/12/19/%E4%B8%80%E4%B8%AA%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[数据库强制 ssl
+DATABASES = &#123;        &quot;default&quot;: dj_database_url.config(            default=os.getenv(&quot;DATABASE_URL&quot;),            conn_max_age=600,            ssl_require=True,  # 👈 关键        )    &#125;
+加上这个配置
+]]></content>
+      <tags>
+        <tag>postgresql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>前端学习day2</title>
     <url>/2025/11/12/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0day2/</url>
     <content><![CDATA[昨天发现 ts-node 运行 ts
@@ -1155,23 +1155,6 @@ Array(n).fill(Array(m).fill(0))这个玩意会导致每一行都用同一个引�
       </tags>
   </entry>
   <entry>
-    <title>前端学习day3</title>
-    <url>/2025/11/13/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0day3/</url>
-    <content><![CDATA[python-dotenv 是一个 python 库，作用是用来加载.env 里面的配置
-django-admin startproject backend .
-全栈项目才更经常用这个命令？听说是这样的
-tailwind css 的设计思想就是用类名来写
-css，每个类名提供一个原子化的操作，这样我们开发者就不用去烦恼类名应该要写什么，类名即功能，另外就是开发速度也比较快，因为
-tailwind 的类名通常都很简短，然后听过 tailwind UI 就是自己开发的一个基于
-tailwind css 的组件库
-]]></content>
-      <tags>
-        <tag>前端</tag>
-        <tag>django</tag>
-        <tag>chatgpt</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>参考文献笔记</title>
     <url>/2025/11/22/%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[RAG
@@ -1193,6 +1176,23 @@ RAG 的流程，对于每个小问题都得到答案，最后再将多个答案�
       </tags>
   </entry>
   <entry>
+    <title>前端学习day3</title>
+    <url>/2025/11/13/%E5%89%8D%E7%AB%AF%E5%AD%A6%E4%B9%A0day3/</url>
+    <content><![CDATA[python-dotenv 是一个 python 库，作用是用来加载.env 里面的配置
+django-admin startproject backend .
+全栈项目才更经常用这个命令？听说是这样的
+tailwind css 的设计思想就是用类名来写
+css，每个类名提供一个原子化的操作，这样我们开发者就不用去烦恼类名应该要写什么，类名即功能，另外就是开发速度也比较快，因为
+tailwind 的类名通常都很简短，然后听过 tailwind UI 就是自己开发的一个基于
+tailwind css 的组件库
+]]></content>
+      <tags>
+        <tag>前端</tag>
+        <tag>django</tag>
+        <tag>chatgpt</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基于django-channels的多人聊天室demo</title>
     <url>/2025/10/20/%E5%9F%BA%E4%BA%8Edjango-channels%E7%9A%84%E5%A4%9A%E4%BA%BA%E8%81%8A%E5%A4%A9%E5%AE%A4demo/</url>
     <content><![CDATA[django项目创建
@@ -1207,30 +1207,6 @@ django-admin startproject $project_name .
 ]]></content>
       <tags>
         <tag>django python redis channels</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>字节前端一面</title>
-    <url>/2025/10/30/%E5%AD%97%E8%8A%82%E5%89%8D%E7%AB%AF%E4%B8%80%E9%9D%A2/</url>
-    <content><![CDATA[项目
-自己之前就只是做了一些学习项目，所以面试官也只是问了一些很常规的东西，例如不同组件之间传递的方法，我就说了父子节点之间用props/emit，其他情况用pinia，然后面试官就问还有没有其他的，我也就没答出来
-axios封装做了一些什么，其实我细节已经不记得了，我就是瞎吹，说封装了一个传参数，然后自动拼装url，面试官表示有点疑惑，可能没说到重点，然后为了多说一点，把请求拦截和响应拦截说了一下，提到了在请求拦截里面加token。诶，我的回答好像没有问题，我的方法有个正规名字，叫接口参数化，就是提前写好要接受的参数以及拼装url的逻辑
-然后面试官就顺着这方向继续问，问这个token怎么存的，我说存在localstorage里面，我跟后端搞混了，说了redis，然后面试官提醒了才记得这是后端干的事，所以我也想不起来前端还用什么方法存token，我忘记我有没有说pinia了。还可以存在sessionStorage和cookie之类的东西里面，主要应该还是存在cookie里面，我要花点时间了解一下cookie了
-然后面试官也问了后端存token在redis的目的是什么的，我就说是按键值对来存的，token做key，user-id做value这样去存，然后后端就可以只根据token来获得用户的所有资料
-还问了数据库的数据类型，这个问题感觉蛮怪的，随便吹了一下varchar，date，file，integer这些，然后问了一下char和varchar的区别是什么，我就说是字符和字符串的区别，我也不清楚是不是真的是这样。答案好像不是这样，完蛋了，char是固定长度的字符串，然后varchar是自适应长度的字符串，艹
-有没有用过ai，ai主要在前端有什么应用，艹，我还真不太会说，我就说主要是学习，或者是debug的时候用，如果真要写的话，可能是css这些有点帮助，然后说，后端这些复杂逻辑的东西可能比较会需要用到ai，但是感觉这样和我想表达的反过来的，应该是要复杂逻辑才需要人，不复杂的重复工作用ai，但是没说出来
-啊还有一个很重要的问题，ref和reactive的区别是什么，我说主要是基础类型习惯用ref，对象和数组就用reactive，但是我没回答出来如果ref用在对象上面会不会造成什么问题，现在我知道了有什么区别了，ref用在对象上面的话，对象的属性是不会变成响应式的，而reactive能保证属性也是响应式的
-setTimeout作用是什么，我说了是设置一个间隔，然后不断地执行里面的代码，我说错了，只会执行一次，然后面试官问我，那个设置的时延是否准确，我不知道，其实是不能保证准确的，如果当前异步的任务比较频繁的话，settimeout本身也是一个异步的行为，所以可能就排不上队，然后延迟执行
-代码题
-第一题就用js，从数组里面写成一棵树，哎，不是很会js，前面就一直用话术来跟面试官说能不能用c++，其实确实也没有什么用c++的必要，感觉是纯纯地表现出自己不会js，主要还是把思路给说出来了，然后把思路说的很复杂，什么反向建边，拓扑排序什么的，写了一堆奇奇怪怪的代码，面试官点了一下，我还是没搞懂，还是得多花时间用js写复杂代码
-第二题是原题啊，超级简单的搜索回溯题，就秒了，我就直接用c++了
-规划
-为什么选择前端，讲了一堆废话，说什么因为前端比较能快速看到成果，成就感比较多，正反馈及时什么什么的，不知道能怎么说了
-问喜欢前端还是后端，其实我真想说我都不喜欢，但是一定要选一个，我只能说两边都同时搞，然后前端因为之前投岗位收了前端，所以可能继续往这方面发展，哎，可能其实事实就是前端就是不如后端，后端就是要高贵一点
-]]></content>
-      <tags>
-        <tag>前端</tag>
-        <tag>字节</tag>
       </tags>
   </entry>
   <entry>
@@ -1393,6 +1369,135 @@ router 这些
       </tags>
   </entry>
   <entry>
+    <title>字节前端一面</title>
+    <url>/2025/10/30/%E5%AD%97%E8%8A%82%E5%89%8D%E7%AB%AF%E4%B8%80%E9%9D%A2/</url>
+    <content><![CDATA[项目
+自己之前就只是做了一些学习项目，所以面试官也只是问了一些很常规的东西，例如不同组件之间传递的方法，我就说了父子节点之间用props/emit，其他情况用pinia，然后面试官就问还有没有其他的，我也就没答出来
+axios封装做了一些什么，其实我细节已经不记得了，我就是瞎吹，说封装了一个传参数，然后自动拼装url，面试官表示有点疑惑，可能没说到重点，然后为了多说一点，把请求拦截和响应拦截说了一下，提到了在请求拦截里面加token。诶，我的回答好像没有问题，我的方法有个正规名字，叫接口参数化，就是提前写好要接受的参数以及拼装url的逻辑
+然后面试官就顺着这方向继续问，问这个token怎么存的，我说存在localstorage里面，我跟后端搞混了，说了redis，然后面试官提醒了才记得这是后端干的事，所以我也想不起来前端还用什么方法存token，我忘记我有没有说pinia了。还可以存在sessionStorage和cookie之类的东西里面，主要应该还是存在cookie里面，我要花点时间了解一下cookie了
+然后面试官也问了后端存token在redis的目的是什么的，我就说是按键值对来存的，token做key，user-id做value这样去存，然后后端就可以只根据token来获得用户的所有资料
+还问了数据库的数据类型，这个问题感觉蛮怪的，随便吹了一下varchar，date，file，integer这些，然后问了一下char和varchar的区别是什么，我就说是字符和字符串的区别，我也不清楚是不是真的是这样。答案好像不是这样，完蛋了，char是固定长度的字符串，然后varchar是自适应长度的字符串，艹
+有没有用过ai，ai主要在前端有什么应用，艹，我还真不太会说，我就说主要是学习，或者是debug的时候用，如果真要写的话，可能是css这些有点帮助，然后说，后端这些复杂逻辑的东西可能比较会需要用到ai，但是感觉这样和我想表达的反过来的，应该是要复杂逻辑才需要人，不复杂的重复工作用ai，但是没说出来
+啊还有一个很重要的问题，ref和reactive的区别是什么，我说主要是基础类型习惯用ref，对象和数组就用reactive，但是我没回答出来如果ref用在对象上面会不会造成什么问题，现在我知道了有什么区别了，ref用在对象上面的话，对象的属性是不会变成响应式的，而reactive能保证属性也是响应式的
+setTimeout作用是什么，我说了是设置一个间隔，然后不断地执行里面的代码，我说错了，只会执行一次，然后面试官问我，那个设置的时延是否准确，我不知道，其实是不能保证准确的，如果当前异步的任务比较频繁的话，settimeout本身也是一个异步的行为，所以可能就排不上队，然后延迟执行
+代码题
+第一题就用js，从数组里面写成一棵树，哎，不是很会js，前面就一直用话术来跟面试官说能不能用c++，其实确实也没有什么用c++的必要，感觉是纯纯地表现出自己不会js，主要还是把思路给说出来了，然后把思路说的很复杂，什么反向建边，拓扑排序什么的，写了一堆奇奇怪怪的代码，面试官点了一下，我还是没搞懂，还是得多花时间用js写复杂代码
+第二题是原题啊，超级简单的搜索回溯题，就秒了，我就直接用c++了
+规划
+为什么选择前端，讲了一堆废话，说什么因为前端比较能快速看到成果，成就感比较多，正反馈及时什么什么的，不知道能怎么说了
+问喜欢前端还是后端，其实我真想说我都不喜欢，但是一定要选一个，我只能说两边都同时搞，然后前端因为之前投岗位收了前端，所以可能继续往这方面发展，哎，可能其实事实就是前端就是不如后端，后端就是要高贵一点
+]]></content>
+      <tags>
+        <tag>前端</tag>
+        <tag>字节</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>字节面试准备</title>
+    <url>/2025/10/29/%E5%AD%97%E8%8A%82%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87/</url>
+    <content><![CDATA[TCP/IP
+是一个面向连接，可进行可靠传输的协议
+过程就是三次握手，握手过程就是，客户端发送请求连接，服务器收到之后返回一个ack，然后客户端再返回ack
+然后还会通过序号、重传、滑动窗口这些机制来实现可靠传输
+UDP
+不可靠传输，没有连接，直接传输，游戏这种比较关注数据传输时延的可能用UDP用的比较多
+HTTP
+HTTP1.0是短连接，每次请求都要独立建立一次TCP连接，
+HTTP1.1多了持久连接，一个TCP连接可以处理多个请求，HTTP2有多路复用，一个TCP连接也可以处理多个请求，但是1.1是串行的，这个是并行的
+websocket
+是基于TCP的一个协议，是长连接，全双工的，客户端和服务器都可以同时发送信息，就很适合实时交互的场景
+pinia
+用defineStore来定义一个store，state是定义属性的地方，getter是获取通过state计算得到的一些值，actions就是对state的属性进行一些更改
+和props/emit最大的区别就是，props/emit是父子组件之间数据的传递，pinia的store可以在任意组件之间传，然后还支持数据的持久化
+为什么不全部用store，props/emit这些可能清晰地表达了数据之间的依赖关系，而store就是一堆全局数据的集合，你看不出来具体数据是被哪个组件以来，写起来就比较混乱
+和vuex的区别，pinia可以更好地支持组合式的api，然后现在vuex官方也宣布说不再更新，后续都是用pinia的，所以就转为用pinia了
+vue2和vue3的区别
+vue3支持组合式api，vue2是选项式api
+生命周期：setup，beforeCreate，created，beforeMount，mounted，beforeUpdate，updated，beforeUnmount，unmounted，艹，很难记，也不知道每个周期干什么是
+自我介绍
+你好，我是xxx，是华中科技大学计算机系的大四学生，主要学习的是前端，之前有过一段在联通前端岗位的实习经历，大概过程就是了解公司的技术栈，做过一个学习项目，一个商城后台管理系统，学习了vue还有相关的工具，像是pinia，vue-router还有element组件库，就是前端开发的基础都了解，之前也参加过一些算法竞赛，在天梯赛和蓝桥杯都分别获得国三，对基础算法的掌握应该还是比较扎实的
+项目亮点
+聊天室课设：websocket，写了服务器的逻辑，比如客户端连接的时候，发送已连接的信息给客户端，然后客户发送信息的时候，会传到服务器，服务器再将同样的信息传回，前端把这个信息添加到页面当中，当多个用户连接到同一个服务器的时候，他们发给服务器的信息都会被打印在同一个页面当中，这样就实现了聊天的功能。
+商城管理系统：就是学了vue，pinia，还有路由，用了element组件库，感觉没什么好说的
+性能优化
+分页设计，比如显示列表的时候，没必要全部显示。懒加载，就是需要这个组件的时候再加载，用computed缓存计算结果，避免重复的计算
+Promise
+有什么状态？pending，fulfilled（成功），rejected（异步操作失败）。常用的接口？then（回调），catch（捕获异常），finally（失败与否都要执行的东西）
+localStorage、sessionStorage、indexedDB的区别
+localstorage是永久保存的，sessionstorage是便签页关闭就没了，indexedDB也是永久，用来存大的复杂的数据
+https和http
+https就是http+s，s就是加密传输，登录、支付这些都一定要用https
+]]></content>
+      <tags>
+        <tag>前端</tag>
+        <tag>面试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day10</title>
+    <url>/2025/11/20/%E5%AD%A6%E4%B9%A0day10/</url>
+    <content><![CDATA[清华源下载
+pip install transformers -i https://pypi.tuna.tsinghua.edu.cn/simplepip install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
+django ORM 批量更新对象
+def run():    queryset = HotItem.objects.all()    hoitems_to_update = []    for hotitem in queryset:        result = classifier(hotitem.title)[0]        result = en2zh[result[&quot;label&quot;]]        hotitem.category = result        hoitems_to_update.append(hotitem)    HotItem.objects.bulk_update(        hoitems_to_update, [&quot;category&quot;]    )  # 第二个参数也是指定要更新的列，这样就不会更新整个对象
+逐个 save 是很耗时间的
+watch immediate 参数
+watch(  () =&gt; router.currentRoute.value.path,  (new_path) =&gt; &#123;    const matched = page2category.find((item) =&gt; item.path == new_path);    if (matched) &#123;      current_category = matched.category;    &#125;  &#125;,  &#123; immediate: true &#125;);
+watch 只在监听的变量变化的时候触发，immediate
+可以让里面的逻辑在变量初始化的时候也触发一次
+路由变换的时候强制刷新
+有时候，不同 url
+指向了同一个组件，导致切换路由的时候没有更新页面，解决方法如下
+&lt;router-view :key=&quot;$route.fullPath&quot;&gt;&lt;/router-view&gt;
+$router.fullPath 是 vue-router
+提供的属性，这段代码的含义是当路由变化的时候会强制刷新组件
+]]></content>
+      <tags>
+        <tag>文本分类</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day11</title>
+    <url>/2025/11/24/%E5%AD%A6%E4%B9%A0day11/</url>
+    <content><![CDATA[后端缓存优化
+from django.utils.decorators import method_decoratorfrom django.views.decorators.cache import cache_pageclass HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    @method_decorator(cache_page(60 * 60))  # 缓存 1 小时    def dispatch(self, *args, **kwargs):        return super().dispatch(*args, **kwargs)    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;)        category = self.request.query_params.get(&quot;category&quot;)        if source:            queryset = queryset.filter(source=source)        if category:            queryset = queryset.filter(category=category)        return queryset.order_by(&quot;rank&quot;)
+dispatch 是入口函数，通过 request.method 判断应该走 get 还是 post
+之类的方法，所以装饰器都应该装到这个函数上面，cache_page
+能根据的时间，缓存页面，当参数方法相同的时候，就会返回缓存的页面
+render 上面的 key-value 服务对应就是后端的缓存，用的就是 redis
+cache 配置
+CACHES = &#123;    &quot;default&quot;: &#123;        &quot;BACKEND&quot;: &quot;django_redis.cache.RedisCache&quot;,        &quot;LOCATION&quot;: os.getenv(&quot;REDIS_URL&quot;),        &quot;OPTIONS&quot;: &#123;            &quot;CLIENT_CLASS&quot;: &quot;django_redis.client.DefaultClient&quot;,        &#125;    &#125;&#125;
+# 开发环境缓存：本地内存    CACHES = &#123;        &quot;default&quot;: &#123;            &quot;BACKEND&quot;: &quot;django.core.cache.backends.locmem.LocMemCache&quot;,        &#125;    &#125;
+默认用的本地缓存
+post 和 put 这些方法不能用缓存
+]]></content>
+      <tags>
+        <tag>性能优化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day12</title>
+    <url>/2025/11/25/%E5%AD%A6%E4%B9%A0day12/</url>
+    <content><![CDATA[vueuse/core，一个 vue
+工具函数库
+pnpm i vueuse/core
+import &#123; useThrottleFn &#125; from &quot;@vueuse/core&quot;;const nextPageHandle = useThrottleFn(() =&gt; &#123;  if (nextPage.value == null || nextPage.value == &quot;&quot;) &#123;    return;  &#125;  currentPageNumber.value++;  request    .get(nextPage.value)    .then((res: any) =&gt; &#123;      setUpNewsList(res);    &#125;)    .catch((err: any) =&gt; console.error(err));&#125;, 100);
+节流函数示例
+深色模式
+index.html
+&lt;html lang=&quot;en&quot; data-theme=&quot;light&quot;&gt;&lt;/html&gt;
+data-theme 是 daisy-ui 的主题颜色切换机制
+bg-base 这类颜色都会根据主题切换
+const toggleTheme = (event: Event) =&gt; &#123;  const checked = (event.target as HTMLInputElement).checked;  theme.value = checked ? &quot;dark&quot; : &quot;light&quot;;  document.documentElement.setAttribute(&quot;data-theme&quot;, theme.value);  localStorage.setItem(&quot;theme&quot;, theme.value);&#125;;
+text-base-content 是根据主题自动适配颜色
+清除缓存
+# 清空缓存from django.core.cache import cachecache.clear()print(&quot;缓存已清除&quot;)
+]]></content>
+      <tags>
+        <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>字节前端二面总结</title>
     <url>/2025/11/10/%E5%AD%97%E8%8A%82%E5%89%8D%E7%AB%AF%E4%BA%8C%E9%9D%A2%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[这次的面试感觉表现的非常差，其实就是我的方向错了，我老是专注于应用这一方面，但是面试的时候主要问的是原理，其实也是非常地有道理，毕竟如果只会应用的话，和培训班就是没有区别的，但是其实科班人员写工程代码，也不会比培训班的人好到哪里去
@@ -1456,114 +1561,9 @@ top10 的数据，然后这些数据再取一次 top10
 ]]></content>
       <tags>
         <tag>前端</tag>
+        <tag>面试</tag>
         <tag>字节</tag>
-        <tag>面试</tag>
         <tag>总结</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day10</title>
-    <url>/2025/11/20/%E5%AD%A6%E4%B9%A0day10/</url>
-    <content><![CDATA[清华源下载
-pip install transformers -i https://pypi.tuna.tsinghua.edu.cn/simplepip install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
-django ORM 批量更新对象
-def run():    queryset = HotItem.objects.all()    hoitems_to_update = []    for hotitem in queryset:        result = classifier(hotitem.title)[0]        result = en2zh[result[&quot;label&quot;]]        hotitem.category = result        hoitems_to_update.append(hotitem)    HotItem.objects.bulk_update(        hoitems_to_update, [&quot;category&quot;]    )  # 第二个参数也是指定要更新的列，这样就不会更新整个对象
-逐个 save 是很耗时间的
-watch immediate 参数
-watch(  () =&gt; router.currentRoute.value.path,  (new_path) =&gt; &#123;    const matched = page2category.find((item) =&gt; item.path == new_path);    if (matched) &#123;      current_category = matched.category;    &#125;  &#125;,  &#123; immediate: true &#125;);
-watch 只在监听的变量变化的时候触发，immediate
-可以让里面的逻辑在变量初始化的时候也触发一次
-路由变换的时候强制刷新
-有时候，不同 url
-指向了同一个组件，导致切换路由的时候没有更新页面，解决方法如下
-&lt;router-view :key=&quot;$route.fullPath&quot;&gt;&lt;/router-view&gt;
-$router.fullPath 是 vue-router
-提供的属性，这段代码的含义是当路由变化的时候会强制刷新组件
-]]></content>
-      <tags>
-        <tag>文本分类</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>字节面试准备</title>
-    <url>/2025/10/29/%E5%AD%97%E8%8A%82%E9%9D%A2%E8%AF%95%E5%87%86%E5%A4%87/</url>
-    <content><![CDATA[TCP/IP
-是一个面向连接，可进行可靠传输的协议
-过程就是三次握手，握手过程就是，客户端发送请求连接，服务器收到之后返回一个ack，然后客户端再返回ack
-然后还会通过序号、重传、滑动窗口这些机制来实现可靠传输
-UDP
-不可靠传输，没有连接，直接传输，游戏这种比较关注数据传输时延的可能用UDP用的比较多
-HTTP
-HTTP1.0是短连接，每次请求都要独立建立一次TCP连接，
-HTTP1.1多了持久连接，一个TCP连接可以处理多个请求，HTTP2有多路复用，一个TCP连接也可以处理多个请求，但是1.1是串行的，这个是并行的
-websocket
-是基于TCP的一个协议，是长连接，全双工的，客户端和服务器都可以同时发送信息，就很适合实时交互的场景
-pinia
-用defineStore来定义一个store，state是定义属性的地方，getter是获取通过state计算得到的一些值，actions就是对state的属性进行一些更改
-和props/emit最大的区别就是，props/emit是父子组件之间数据的传递，pinia的store可以在任意组件之间传，然后还支持数据的持久化
-为什么不全部用store，props/emit这些可能清晰地表达了数据之间的依赖关系，而store就是一堆全局数据的集合，你看不出来具体数据是被哪个组件以来，写起来就比较混乱
-和vuex的区别，pinia可以更好地支持组合式的api，然后现在vuex官方也宣布说不再更新，后续都是用pinia的，所以就转为用pinia了
-vue2和vue3的区别
-vue3支持组合式api，vue2是选项式api
-生命周期：setup，beforeCreate，created，beforeMount，mounted，beforeUpdate，updated，beforeUnmount，unmounted，艹，很难记，也不知道每个周期干什么是
-自我介绍
-你好，我是xxx，是华中科技大学计算机系的大四学生，主要学习的是前端，之前有过一段在联通前端岗位的实习经历，大概过程就是了解公司的技术栈，做过一个学习项目，一个商城后台管理系统，学习了vue还有相关的工具，像是pinia，vue-router还有element组件库，就是前端开发的基础都了解，之前也参加过一些算法竞赛，在天梯赛和蓝桥杯都分别获得国三，对基础算法的掌握应该还是比较扎实的
-项目亮点
-聊天室课设：websocket，写了服务器的逻辑，比如客户端连接的时候，发送已连接的信息给客户端，然后客户发送信息的时候，会传到服务器，服务器再将同样的信息传回，前端把这个信息添加到页面当中，当多个用户连接到同一个服务器的时候，他们发给服务器的信息都会被打印在同一个页面当中，这样就实现了聊天的功能。
-商城管理系统：就是学了vue，pinia，还有路由，用了element组件库，感觉没什么好说的
-性能优化
-分页设计，比如显示列表的时候，没必要全部显示。懒加载，就是需要这个组件的时候再加载，用computed缓存计算结果，避免重复的计算
-Promise
-有什么状态？pending，fulfilled（成功），rejected（异步操作失败）。常用的接口？then（回调），catch（捕获异常），finally（失败与否都要执行的东西）
-localStorage、sessionStorage、indexedDB的区别
-localstorage是永久保存的，sessionstorage是便签页关闭就没了，indexedDB也是永久，用来存大的复杂的数据
-https和http
-https就是http+s，s就是加密传输，登录、支付这些都一定要用https
-]]></content>
-      <tags>
-        <tag>前端</tag>
-        <tag>面试</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day11</title>
-    <url>/2025/11/24/%E5%AD%A6%E4%B9%A0day11/</url>
-    <content><![CDATA[后端缓存优化
-from django.utils.decorators import method_decoratorfrom django.views.decorators.cache import cache_pageclass HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    @method_decorator(cache_page(60 * 60))  # 缓存 1 小时    def dispatch(self, *args, **kwargs):        return super().dispatch(*args, **kwargs)    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;)        category = self.request.query_params.get(&quot;category&quot;)        if source:            queryset = queryset.filter(source=source)        if category:            queryset = queryset.filter(category=category)        return queryset.order_by(&quot;rank&quot;)
-dispatch 是入口函数，通过 request.method 判断应该走 get 还是 post
-之类的方法，所以装饰器都应该装到这个函数上面，cache_page
-能根据的时间，缓存页面，当参数方法相同的时候，就会返回缓存的页面
-render 上面的 key-value 服务对应就是后端的缓存，用的就是 redis
-cache 配置
-CACHES = &#123;    &quot;default&quot;: &#123;        &quot;BACKEND&quot;: &quot;django_redis.cache.RedisCache&quot;,        &quot;LOCATION&quot;: os.getenv(&quot;REDIS_URL&quot;),        &quot;OPTIONS&quot;: &#123;            &quot;CLIENT_CLASS&quot;: &quot;django_redis.client.DefaultClient&quot;,        &#125;    &#125;&#125;
-# 开发环境缓存：本地内存    CACHES = &#123;        &quot;default&quot;: &#123;            &quot;BACKEND&quot;: &quot;django.core.cache.backends.locmem.LocMemCache&quot;,        &#125;    &#125;
-默认用的本地缓存
-post 和 put 这些方法不能用缓存
-]]></content>
-      <tags>
-        <tag>性能优化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day12</title>
-    <url>/2025/11/25/%E5%AD%A6%E4%B9%A0day12/</url>
-    <content><![CDATA[vueuse/core，一个 vue
-工具函数库
-pnpm i vueuse/core
-import &#123; useThrottleFn &#125; from &quot;@vueuse/core&quot;;const nextPageHandle = useThrottleFn(() =&gt; &#123;  if (nextPage.value == null || nextPage.value == &quot;&quot;) &#123;    return;  &#125;  currentPageNumber.value++;  request    .get(nextPage.value)    .then((res: any) =&gt; &#123;      setUpNewsList(res);    &#125;)    .catch((err: any) =&gt; console.error(err));&#125;, 100);
-节流函数示例
-深色模式
-index.html
-&lt;html lang=&quot;en&quot; data-theme=&quot;light&quot;&gt;&lt;/html&gt;
-data-theme 是 daisy-ui 的主题颜色切换机制
-bg-base 这类颜色都会根据主题切换
-const toggleTheme = (event: Event) =&gt; &#123;  const checked = (event.target as HTMLInputElement).checked;  theme.value = checked ? &quot;dark&quot; : &quot;light&quot;;  document.documentElement.setAttribute(&quot;data-theme&quot;, theme.value);  localStorage.setItem(&quot;theme&quot;, theme.value);&#125;;
-text-base-content 是根据主题自动适配颜色
-清除缓存
-# 清空缓存from django.core.cache import cachecache.clear()print(&quot;缓存已清除&quot;)
-]]></content>
-      <tags>
-        <tag>vue</tag>
       </tags>
   </entry>
   <entry>
@@ -1594,6 +1594,33 @@ new Array(10)  .fill(null as unknown as NewsItem)  .map(() =&gt; (&#123; ...temp
       </tags>
   </entry>
   <entry>
+    <title>学习day17</title>
+    <url>/2025/11/30/%E5%AD%A6%E4%B9%A0day17/</url>
+    <content><![CDATA[ref 数组 key 选定问题
+&lt;button  class=&quot;join-item btn bg-base-100 shadow-sm&quot;  v-for=&quot;(item, index) in page_list&quot;  :key=&quot;item + &#x27;-&#x27; + index&quot;&gt;  &#123;&#123; item &#125;&#125;&lt;/button&gt;
+有重复的元素，以及没有固定的 id，可以用元素加下标的方式渲染
+:class 的 bg 不能覆盖之前的
+bg
+&lt;button  class=&quot;join-item btn shadow-sm&quot;  v-for=&quot;item in page_list&quot;  :key=&quot;item&quot;  :class=&quot;currentPageNumber == item ? &#x27;bg-accent&#x27; : &#x27;bg-base-100&#x27;&quot;  @click=&quot;pageJumpHandle(item)&quot;&gt;  &#123;&#123; item &#125;&#125;&lt;/button&gt;
+原生事件触发函数和 vue
+的区别
+&lt;input type=&quot;text&quot; id=&quot;input_box&quot; onchange=&quot;input_change_handle()&quot; /&gt;
+没有参数也可以写括号，vue
+那边写了括号会导致函数在事件发生之间就被调用了
+event 对象
+&lt;input type=&quot;text&quot; id=&quot;input_box&quot; onchange=&quot;input_change_handle(event)&quot; /&gt;
+有参数的话，html 这边一定要这么写，但是 script
+那边可以随便写，因为这个 event 要传入的话，一定要存在，这个 event 是 dom
+提供的全局对象
+onchange 和 oninput
+onchange 是输入框失去焦点的时候触发，oninput
+是实时和输入的内容同步
+]]></content>
+      <tags>
+        <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day13</title>
     <url>/2025/11/26/%E5%AD%A6%E4%B9%A0day13/</url>
     <content><![CDATA[pinia 持久化
@@ -1604,18 +1631,6 @@ v-model 可以绑定 reactive 对象的属性，watch 属性要写 getter
 ]]></content>
       <tags>
         <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day15</title>
-    <url>/2025/11/28/%E5%AD%A6%E4%B9%A0day15/</url>
-    <content><![CDATA[framework
-BasketballGame (项目根目录)│├─ index.html // 游戏入口，包含 Canvas 和菜单├─ style.css // 全局样式（也可以用 Tailwind）├─ assets/ // 图片、音效、精灵图等资源│ ├─ sprites/│ ├─ sounds/│ └─ backgrounds/├─ js/ // JavaScript 模块│ ├─ main.js // 游戏入口，初始化 Canvas、游戏循环│ ├─ gameLoop.js // 核心循环：更新逻辑 + 渲染│ ├─ input.js // 玩家输入控制（键盘 / 触控）│ ├─ player.js // 玩家角色逻辑（移动、跳跃、投篮）│ ├─ ai.js // AI 逻辑（电脑玩家控制）│ ├─ ball.js // 球运动逻辑（抛物线、碰撞检测）│ ├─ physics.js // 碰撞检测、投篮判定、边界处理│ ├─ renderer.js // Canvas 渲染模块（场地、人物、球、UI）│ └─ ui.js // 菜单、得分板、倒计时、游戏状态管理└─ config.js // 游戏参数（帧率、速度、投篮概率、AI 难度等）
-图片取色器
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;title&gt;图片像素取色器&lt;/title&gt;    &lt;style&gt;      #canvas &#123;        border: 1px solid #ccc;        cursor: crosshair;      &#125;      #colorBox &#123;        width: 50px;        height: 50px;        display: inline-block;        vertical-align: middle;        margin-left: 10px;        border: 1px solid #000;      &#125;    &lt;/style&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;input type=&quot;file&quot; id=&quot;upload&quot; accept=&quot;image/*&quot; /&gt;    &lt;br /&gt;&lt;br /&gt;    &lt;canvas id=&quot;canvas&quot; width=&quot;500&quot; height=&quot;500&quot;&gt;&lt;/canvas&gt;    &lt;div id=&quot;colorBox&quot;&gt;&lt;/div&gt;    &lt;span id=&quot;colorText&quot;&gt;&lt;/span&gt;    &lt;script&gt;      const upload = document.getElementById(&quot;upload&quot;);      const canvas = document.getElementById(&quot;canvas&quot;);      const ctx = canvas.getContext(&quot;2d&quot;);      const colorBox = document.getElementById(&quot;colorBox&quot;);      const colorText = document.getElementById(&quot;colorText&quot;);      upload.addEventListener(&quot;change&quot;, (e) =&gt; &#123;        // 上传图片就会触发        const file = e.target.files[0];        if (!file) return;        const img = new Image();        img.onload = () =&gt; &#123;          canvas.width = img.width;          canvas.height = img.height;          ctx.drawImage(img, 0, 0);        &#125;;        img.src = URL.createObjectURL(file);      &#125;);      canvas.addEventListener(&quot;mousemove&quot;, (e) =&gt; &#123;        const rect = canvas.getBoundingClientRect(); // 获取canvas在页面当中的位置        const x = Math.floor(e.clientX - rect.left); // 计算当前鼠标位置相对于canvas的位置        const y = Math.floor(e.clientY - rect.top);        const pixel = ctx.getImageData(x, y, 1, 1).data; // (x, y)这个位置只获取1*1像素大小的区域        const [r, g, b, a] = pixel;        const rgba = `rgba($&#123;r&#125;, $&#123;g&#125;, $&#123;b&#125;, $&#123;a / 255&#125;)`; // a是透明度，这里是把它转换到0~1的区间里面        colorBox.style.backgroundColor = rgba;        colorText.textContent = rgba;      &#125;);    &lt;/script&gt;  &lt;/body&gt;&lt;/html&gt;
-]]></content>
-      <tags>
-        <tag>game</tag>
       </tags>
   </entry>
   <entry>
@@ -1644,43 +1659,6 @@ shrink-0 配合 overflow-x-auto
       </tags>
   </entry>
   <entry>
-    <title>学习day17</title>
-    <url>/2025/11/30/%E5%AD%A6%E4%B9%A0day17/</url>
-    <content><![CDATA[ref 数组 key 选定问题
-&lt;button  class=&quot;join-item btn bg-base-100 shadow-sm&quot;  v-for=&quot;(item, index) in page_list&quot;  :key=&quot;item + &#x27;-&#x27; + index&quot;&gt;  &#123;&#123; item &#125;&#125;&lt;/button&gt;
-有重复的元素，以及没有固定的 id，可以用元素加下标的方式渲染
-:class 的 bg 不能覆盖之前的
-bg
-&lt;button  class=&quot;join-item btn shadow-sm&quot;  v-for=&quot;item in page_list&quot;  :key=&quot;item&quot;  :class=&quot;currentPageNumber == item ? &#x27;bg-accent&#x27; : &#x27;bg-base-100&#x27;&quot;  @click=&quot;pageJumpHandle(item)&quot;&gt;  &#123;&#123; item &#125;&#125;&lt;/button&gt;
-原生事件触发函数和 vue
-的区别
-&lt;input type=&quot;text&quot; id=&quot;input_box&quot; onchange=&quot;input_change_handle()&quot; /&gt;
-没有参数也可以写括号，vue
-那边写了括号会导致函数在事件发生之间就被调用了
-event 对象
-&lt;input type=&quot;text&quot; id=&quot;input_box&quot; onchange=&quot;input_change_handle(event)&quot; /&gt;
-有参数的话，html 这边一定要这么写，但是 script
-那边可以随便写，因为这个 event 要传入的话，一定要存在，这个 event 是 dom
-提供的全局对象
-onchange 和 oninput
-onchange 是输入框失去焦点的时候触发，oninput
-是实时和输入的内容同步
-]]></content>
-      <tags>
-        <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day18</title>
-    <url>/2025/12/01/%E5%AD%A6%E4%B9%A0day18/</url>
-    <content><![CDATA[简单 reactive 的实现
-&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;    &lt;title&gt;Document&lt;/title&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;div&gt;      &lt;input type=&quot;text&quot; id=&quot;input_box&quot; /&gt;    &lt;/div&gt;    &lt;div&gt;      &lt;label for=&quot;input_box&quot; id=&quot;input_box_label&quot;&gt;hello&lt;/label&gt;    &lt;/div&gt;  &lt;/body&gt;  &lt;script&gt;    const input_box = document.getElementById(&quot;input_box&quot;);    const input_box_label = document.getElementById(&quot;input_box_label&quot;);    const reactive = (obj, callback) =&gt; &#123;      return new Proxy(obj, &#123;        set(target, prop, value) &#123;          target[prop] = value;          callback(prop, value);          return true;        &#125;,      &#125;);    &#125;;    const state = reactive(&#123; inputValue: &quot;&quot; &#125;, (key, value) =&gt; &#123;      if (key == &quot;inputValue&quot;) &#123;        input_box_label.textContent = value;      &#125;    &#125;);    input_box.addEventListener(&quot;input&quot;, (e) =&gt; &#123;      state.inputValue = e.target.value;    &#125;);  &lt;/script&gt;&lt;/html&gt;
-]]></content>
-      <tags>
-        <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day19</title>
     <url>/2025/12/02/%E5%AD%A6%E4%B9%A0day19/</url>
     <content><![CDATA[docker安装问题
@@ -1695,20 +1673,88 @@ docker-vscode
       </tags>
   </entry>
   <entry>
-    <title>学习day20</title>
-    <url>/2025/12/03/%E5%AD%A6%E4%B9%A0day20/</url>
-    <content><![CDATA[next/image
-说是提供懒加载, 并且保证图片在加载之前保证ui不会走形,
-在小屏幕上不太生成过大的照片, 之类的功能 import Image from &#x27;next/image&#x27;; # 文件即路由
-文件树的结构就是路由的结构, 路由的根路径在app这个文件夹,
-layout.tsx和page.tsx这两个文件会被自动识别, 渲染在对应的页面上面
-组件命名没有要求
-并没有硬性要求tsx/jsx的文件名要和export default的组件同名
-但是一般规范最好一样, 增加易读性
+    <title>学习day18</title>
+    <url>/2025/12/01/%E5%AD%A6%E4%B9%A0day18/</url>
+    <content><![CDATA[简单 reactive 的实现
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;    &lt;title&gt;Document&lt;/title&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;div&gt;      &lt;input type=&quot;text&quot; id=&quot;input_box&quot; /&gt;    &lt;/div&gt;    &lt;div&gt;      &lt;label for=&quot;input_box&quot; id=&quot;input_box_label&quot;&gt;hello&lt;/label&gt;    &lt;/div&gt;  &lt;/body&gt;  &lt;script&gt;    const input_box = document.getElementById(&quot;input_box&quot;);    const input_box_label = document.getElementById(&quot;input_box_label&quot;);    const reactive = (obj, callback) =&gt; &#123;      return new Proxy(obj, &#123;        set(target, prop, value) &#123;          target[prop] = value;          callback(prop, value);          return true;        &#125;,      &#125;);    &#125;;    const state = reactive(&#123; inputValue: &quot;&quot; &#125;, (key, value) =&gt; &#123;      if (key == &quot;inputValue&quot;) &#123;        input_box_label.textContent = value;      &#125;    &#125;);    input_box.addEventListener(&quot;input&quot;, (e) =&gt; &#123;      state.inputValue = e.target.value;    &#125;);  &lt;/script&gt;&lt;/html&gt;
+]]></content>
+      <tags>
+        <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day15</title>
+    <url>/2025/11/28/%E5%AD%A6%E4%B9%A0day15/</url>
+    <content><![CDATA[framework
+BasketballGame (项目根目录)│├─ index.html // 游戏入口，包含 Canvas 和菜单├─ style.css // 全局样式（也可以用 Tailwind）├─ assets/ // 图片、音效、精灵图等资源│ ├─ sprites/│ ├─ sounds/│ └─ backgrounds/├─ js/ // JavaScript 模块│ ├─ main.js // 游戏入口，初始化 Canvas、游戏循环│ ├─ gameLoop.js // 核心循环：更新逻辑 + 渲染│ ├─ input.js // 玩家输入控制（键盘 / 触控）│ ├─ player.js // 玩家角色逻辑（移动、跳跃、投篮）│ ├─ ai.js // AI 逻辑（电脑玩家控制）│ ├─ ball.js // 球运动逻辑（抛物线、碰撞检测）│ ├─ physics.js // 碰撞检测、投篮判定、边界处理│ ├─ renderer.js // Canvas 渲染模块（场地、人物、球、UI）│ └─ ui.js // 菜单、得分板、倒计时、游戏状态管理└─ config.js // 游戏参数（帧率、速度、投篮概率、AI 难度等）
+图片取色器
+&lt;!DOCTYPE html&gt;&lt;html lang=&quot;en&quot;&gt;  &lt;head&gt;    &lt;meta charset=&quot;UTF-8&quot; /&gt;    &lt;title&gt;图片像素取色器&lt;/title&gt;    &lt;style&gt;      #canvas &#123;        border: 1px solid #ccc;        cursor: crosshair;      &#125;      #colorBox &#123;        width: 50px;        height: 50px;        display: inline-block;        vertical-align: middle;        margin-left: 10px;        border: 1px solid #000;      &#125;    &lt;/style&gt;  &lt;/head&gt;  &lt;body&gt;    &lt;input type=&quot;file&quot; id=&quot;upload&quot; accept=&quot;image/*&quot; /&gt;    &lt;br /&gt;&lt;br /&gt;    &lt;canvas id=&quot;canvas&quot; width=&quot;500&quot; height=&quot;500&quot;&gt;&lt;/canvas&gt;    &lt;div id=&quot;colorBox&quot;&gt;&lt;/div&gt;    &lt;span id=&quot;colorText&quot;&gt;&lt;/span&gt;    &lt;script&gt;      const upload = document.getElementById(&quot;upload&quot;);      const canvas = document.getElementById(&quot;canvas&quot;);      const ctx = canvas.getContext(&quot;2d&quot;);      const colorBox = document.getElementById(&quot;colorBox&quot;);      const colorText = document.getElementById(&quot;colorText&quot;);      upload.addEventListener(&quot;change&quot;, (e) =&gt; &#123;        // 上传图片就会触发        const file = e.target.files[0];        if (!file) return;        const img = new Image();        img.onload = () =&gt; &#123;          canvas.width = img.width;          canvas.height = img.height;          ctx.drawImage(img, 0, 0);        &#125;;        img.src = URL.createObjectURL(file);      &#125;);      canvas.addEventListener(&quot;mousemove&quot;, (e) =&gt; &#123;        const rect = canvas.getBoundingClientRect(); // 获取canvas在页面当中的位置        const x = Math.floor(e.clientX - rect.left); // 计算当前鼠标位置相对于canvas的位置        const y = Math.floor(e.clientY - rect.top);        const pixel = ctx.getImageData(x, y, 1, 1).data; // (x, y)这个位置只获取1*1像素大小的区域        const [r, g, b, a] = pixel;        const rgba = `rgba($&#123;r&#125;, $&#123;g&#125;, $&#123;b&#125;, $&#123;a / 255&#125;)`; // a是透明度，这里是把它转换到0~1的区间里面        colorBox.style.backgroundColor = rgba;        colorText.textContent = rgba;      &#125;);    &lt;/script&gt;  &lt;/body&gt;&lt;/html&gt;
+]]></content>
+      <tags>
+        <tag>game</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day23</title>
+    <url>/2025/12/06/%E5%AD%A6%E4%B9%A0day23/</url>
+    <content><![CDATA[安装 shadcn/ui
+pnpm dlx shadcn@latest init
+shadcn 不是传统的组件库,安装方法有点不太一样
+不要在根目录的 layout 里面写
+hook
+layout 变成客户端的话,整个应用就会变成客户端,把需要用到 hook
+的组件单独拆分
+使用 shadcn 组件
+pnpm dlx shadcn@latest add switch
+每一次用一个新的组件,都要跑类似的命令
+useEffect
+基本上是用来替代 vue 的 watch 的功能
+react 没有单独对某个变量进行监视的函数
+获取 html 标签设置 dark mode
+useEffect(() =&gt; &#123;  const root = document.documentElement;  if (isDark) &#123;    root.classList.add(&quot;dark&quot;);    setThemeText(&quot;深色模式&quot;);  &#125; else &#123;    root.classList.remove(&quot;dark&quot;);    setThemeText(&quot;浅色模式&quot;);  &#125;&#125;, [isDark]); //当isDark发生改变的时候才会重新执行
+在 html 的标签上的 class 加上 dark 就能变成深色模式的这个逻辑是
+tailwindcss 提供的,不是 shadcn/ui
+next 的 env 文件配置
+和 vue 一样都是分为.env.development 和.env.production
+变量的前缀是 NEXT_PUBLIC
+fetch 的数据不是放在 data
+里面的
+useEffect(() =&gt; &#123;  console.log(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`);  fetch(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`)    .then((res: any) =&gt; res.json())    .then((data) =&gt; &#123;      platformList = data;      console.log(data);    &#125;)    .catch((err: any) =&gt; console.error(err));&#125;, []);
+res=&gt;res.json()是把 response.body 里面的数据拿出来进行格式化
+拿数据的流程大概是这样,记得传一个空的依赖列表,不然会无限渲染,传了的话只会在第一次渲染执行里面的逻辑
+一个服务端 fetch 的例子
+async function PlatformSelector() &#123;  const res = await fetch(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`);  const platformList: Source[] = await res.json();  return (    &lt;Select&gt;      &lt;SelectTrigger className=&quot;w-[180px]&quot;&gt;        &lt;SelectValue placeholder=&quot;选择平台&quot; /&gt;      &lt;/SelectTrigger&gt;      &lt;SelectContent&gt;        &lt;SelectGroup&gt;          &lt;SelectLabel&gt;平台&lt;/SelectLabel&gt;          &#123;platformList.map((platform) =&gt; (            &lt;SelectItem key=&#123;platform.id&#125; value=&#123;platform.value&#125;&gt;              &#123;platform.name&#125;            &lt;/SelectItem&gt;          ))&#125;        &lt;/SelectGroup&gt;      &lt;/SelectContent&gt;    &lt;/Select&gt;  );&#125;
+直接用 await 就好了,这样就不用 useEffect,也不用将 platformList 定义成
+state,直接定义成普通变量,然后 await 结果就行
+store 的类型定义,setter
+的类型也要写上
+export type PlatformStore = &#123;  currentPlatform_en: string;  currentPlatform_zh: string;  currentCategories: Category[];  setCurrentPlatform_en: (value: string) =&gt; void;  setCurrentPlatform_zh: (value: string) =&gt; void;  toggleCategory: (categoryName: string) =&gt; void;&#125;;
+加上 persist
+之后如何指定泛型
+import &#123; create &#125; from &quot;zustand&quot;;import &#123; persist &#125; from &quot;zustand/middleware&quot;;import &#123; Category, PlatformStore &#125; from &quot;../definition&quot;;export const usePlatformStore = create(  persist&lt;PlatformStore&gt;(    (set) =&gt; (&#123;      currentPlatform_en: &quot;weibo&quot;,      currentPlatform_zh: &quot;微博&quot;,      currentCategories: [        &#123; category: &quot;文化&quot;, text: &quot;文化&quot;, checked: true &#125;,        &#123; category: &quot;国际新闻&quot;, text: &quot;国际新闻&quot;, checked: true &#125;,        &#123; category: &quot;财经新闻&quot;, text: &quot;财经新闻&quot;, checked: true &#125;,        &#123; category: &quot;体育&quot;, text: &quot;体育&quot;, checked: true &#125;,        &#123; category: &quot;娱乐&quot;, text: &quot;娱乐&quot;, checked: true &#125;,        &#123; category: &quot;港澳政治&quot;, text: &quot;港澳&quot;, checked: true &#125;,        &#123; category: &quot;中国大陆政治&quot;, text: &quot;中国大陆&quot;, checked: true &#125;,      ],      setCurrentPlatform_en: (newPlatform: string) =&gt;        set(&#123; currentPlatform_en: newPlatform &#125;),      setCurrentPlatform_zh: (newPlatform: string) =&gt;        set(&#123; currentPlatform_zh: newPlatform &#125;),      toggleCategory: (categoryName: string) =&gt;        set((state: PlatformStore) =&gt; (&#123;          currentCategories: state.currentCategories.map((c: Category) =&gt;            c.text === categoryName ? &#123; ...c, checked: !c.checked &#125; : c          ),        &#125;)),    &#125;),    &#123;      name: &quot;platform-storage&quot;,    &#125;  ));
+普通变量依赖 state
+听说一个普通变量如果是通过 state 来生成的话,那么 state
+改变的时候会引起组件的重新渲染,那么这个普通变量,某种程度上也可以看作是一个
+state,当然它不是,但是效果很相似
+从 store 拿属性
+const pageNumber = usePageNumberStore((state) =&gt; state.pageNumber);
+如果直接这样的话,会变成 undefined
+const store = usePageNumberStore();const pageNumber = store.pageNumber;
+所有的 hook
+必须放在函数的最顶层
+比如 store 的属性,useState 之类的
+凡是能由
+state 推算出来的变量都不要再定义成 state
+因为 state 之间的更新是异步的,自己维护可能拿旧的值去做了计算
+一个传多个属性的 props
+的简便方法
+&lt;div className=&quot;w-[95%] mx-auto&quot;&gt;  &#123;newsList.map((news) =&gt; (    &lt;NewsItem &#123;...news&#125; /&gt;  ))&#125;&lt;/div&gt;
+这样就不用一个一个字段去写
 ]]></content>
       <tags>
         <tag>react</tag>
         <tag>next</tag>
+        <tag>shadcn/ui</tag>
       </tags>
   </entry>
   <entry>
@@ -1824,113 +1870,6 @@ import &#123; useDebouncedCallback &#125; from &#x27;use-debounce&#x27;;
       </tags>
   </entry>
   <entry>
-    <title>学习day22</title>
-    <url>/2025/12/05/%E5%AD%A6%E4%B9%A0day22/</url>
-    <content><![CDATA[form action
-&lt;form action=&quot;/api/login&quot; method=&quot;post&quot;&gt;&lt;/form&gt;
-按照普通的 html, form 的 action 属性就是在表单提交之后,
-放一个路由跳转到处理逻辑的接口地址
-// Server Componentexport default function Page() &#123;  // Action  async function create(formData: FormData) &#123;    &quot;use server&quot;;    // Logic to mutate data...  &#125;  // Invoke the action using the &quot;action&quot; attribute  return &lt;form action=&#123;create&#125;&gt;...&lt;/form&gt;;&#125;
-console.log
-在服务端和客户端的区别
-首先说一下如果一个文件顶部写了”use server”的话,
-那么里面所有的函数都默认带上了 use server
-在服务端的 log 会打印到控制台, 客户端的会打印到浏览器
-zod 数据类型校验
-import &#123; z &#125; from &quot;zod&quot;;const FormSchema = z.object(&#123;  id: z.string(),  customerId: z.string(),  amount: z.coerce.number(),  status: z.enum([&quot;pending&quot;, &quot;paid&quot;]),  date: z.string(),&#125;);const CreateInvoice = FormSchema.omit(&#123; id: true, date: true &#125;);
-z.coerce.number 这个就是将 amount 这个字段先强转为 number 类型,
-然后再判断是不是 number, 因为 input type=number 的时候, 其实实际上传给
-form 的类型还是字符串类型
-omit 是删除这两个字段的意思, true 只是删除确认, 没有特别含义
-这个 CreateInvoice 就是从 FormSchema 派生出来的新模板约束而已
-export async function createInvoice(formData: FormData) &#123;  const &#123; customerId, amount, status &#125; = CreateInvoice.parse(&#123;    customerId: formData.get(&quot;customerId&quot;),    amount: formData.get(&quot;amount&quot;),    status: formData.get(&quot;status&quot;),  &#125;);&#125;
-定义之后就像这样去解析
-revalidatePath
-import &#123; revalidatePath &#125; from &quot;next/cache&quot;;
-revalidatePath(&quot;/dashboard/invoices&quot;);
-作用就是消除对应路由页面的缓存, 不然就会一直显示旧的数据
-redirect
-import &#123; redirect &#125; from &quot;next/navigation&quot;;
-redirect(&quot;/dashboard/invoices&quot;);
-带参数的路由
-比如/user/:id 这种路由,id 这个段文件夹的名字就应该叫[id]
-创建 next 项目的命令
-pnpm dlx create-next-app@latest my-app
-app router
-就是 layout page loading 这一套东西
-react compiler
-创建项目的时候,每次都弹出来问我要不要选 react
-compiler,听说是不需要我手动去做优化,建议还是开吧
-]]></content>
-      <tags>
-        <tag>react</tag>
-        <tag>next</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day23</title>
-    <url>/2025/12/06/%E5%AD%A6%E4%B9%A0day23/</url>
-    <content><![CDATA[安装 shadcn/ui
-pnpm dlx shadcn@latest init
-shadcn 不是传统的组件库,安装方法有点不太一样
-不要在根目录的 layout 里面写
-hook
-layout 变成客户端的话,整个应用就会变成客户端,把需要用到 hook
-的组件单独拆分
-使用 shadcn 组件
-pnpm dlx shadcn@latest add switch
-每一次用一个新的组件,都要跑类似的命令
-useEffect
-基本上是用来替代 vue 的 watch 的功能
-react 没有单独对某个变量进行监视的函数
-获取 html 标签设置 dark mode
-useEffect(() =&gt; &#123;  const root = document.documentElement;  if (isDark) &#123;    root.classList.add(&quot;dark&quot;);    setThemeText(&quot;深色模式&quot;);  &#125; else &#123;    root.classList.remove(&quot;dark&quot;);    setThemeText(&quot;浅色模式&quot;);  &#125;&#125;, [isDark]); //当isDark发生改变的时候才会重新执行
-在 html 的标签上的 class 加上 dark 就能变成深色模式的这个逻辑是
-tailwindcss 提供的,不是 shadcn/ui
-next 的 env 文件配置
-和 vue 一样都是分为.env.development 和.env.production
-变量的前缀是 NEXT_PUBLIC
-fetch 的数据不是放在 data
-里面的
-useEffect(() =&gt; &#123;  console.log(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`);  fetch(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`)    .then((res: any) =&gt; res.json())    .then((data) =&gt; &#123;      platformList = data;      console.log(data);    &#125;)    .catch((err: any) =&gt; console.error(err));&#125;, []);
-res=&gt;res.json()是把 response.body 里面的数据拿出来进行格式化
-拿数据的流程大概是这样,记得传一个空的依赖列表,不然会无限渲染,传了的话只会在第一次渲染执行里面的逻辑
-一个服务端 fetch 的例子
-async function PlatformSelector() &#123;  const res = await fetch(`$&#123;process.env.NEXT_PUBLIC_API_BASE&#125;/source/`);  const platformList: Source[] = await res.json();  return (    &lt;Select&gt;      &lt;SelectTrigger className=&quot;w-[180px]&quot;&gt;        &lt;SelectValue placeholder=&quot;选择平台&quot; /&gt;      &lt;/SelectTrigger&gt;      &lt;SelectContent&gt;        &lt;SelectGroup&gt;          &lt;SelectLabel&gt;平台&lt;/SelectLabel&gt;          &#123;platformList.map((platform) =&gt; (            &lt;SelectItem key=&#123;platform.id&#125; value=&#123;platform.value&#125;&gt;              &#123;platform.name&#125;            &lt;/SelectItem&gt;          ))&#125;        &lt;/SelectGroup&gt;      &lt;/SelectContent&gt;    &lt;/Select&gt;  );&#125;
-直接用 await 就好了,这样就不用 useEffect,也不用将 platformList 定义成
-state,直接定义成普通变量,然后 await 结果就行
-store 的类型定义,setter
-的类型也要写上
-export type PlatformStore = &#123;  currentPlatform_en: string;  currentPlatform_zh: string;  currentCategories: Category[];  setCurrentPlatform_en: (value: string) =&gt; void;  setCurrentPlatform_zh: (value: string) =&gt; void;  toggleCategory: (categoryName: string) =&gt; void;&#125;;
-加上 persist
-之后如何指定泛型
-import &#123; create &#125; from &quot;zustand&quot;;import &#123; persist &#125; from &quot;zustand/middleware&quot;;import &#123; Category, PlatformStore &#125; from &quot;../definition&quot;;export const usePlatformStore = create(  persist&lt;PlatformStore&gt;(    (set) =&gt; (&#123;      currentPlatform_en: &quot;weibo&quot;,      currentPlatform_zh: &quot;微博&quot;,      currentCategories: [        &#123; category: &quot;文化&quot;, text: &quot;文化&quot;, checked: true &#125;,        &#123; category: &quot;国际新闻&quot;, text: &quot;国际新闻&quot;, checked: true &#125;,        &#123; category: &quot;财经新闻&quot;, text: &quot;财经新闻&quot;, checked: true &#125;,        &#123; category: &quot;体育&quot;, text: &quot;体育&quot;, checked: true &#125;,        &#123; category: &quot;娱乐&quot;, text: &quot;娱乐&quot;, checked: true &#125;,        &#123; category: &quot;港澳政治&quot;, text: &quot;港澳&quot;, checked: true &#125;,        &#123; category: &quot;中国大陆政治&quot;, text: &quot;中国大陆&quot;, checked: true &#125;,      ],      setCurrentPlatform_en: (newPlatform: string) =&gt;        set(&#123; currentPlatform_en: newPlatform &#125;),      setCurrentPlatform_zh: (newPlatform: string) =&gt;        set(&#123; currentPlatform_zh: newPlatform &#125;),      toggleCategory: (categoryName: string) =&gt;        set((state: PlatformStore) =&gt; (&#123;          currentCategories: state.currentCategories.map((c: Category) =&gt;            c.text === categoryName ? &#123; ...c, checked: !c.checked &#125; : c          ),        &#125;)),    &#125;),    &#123;      name: &quot;platform-storage&quot;,    &#125;  ));
-普通变量依赖 state
-听说一个普通变量如果是通过 state 来生成的话,那么 state
-改变的时候会引起组件的重新渲染,那么这个普通变量,某种程度上也可以看作是一个
-state,当然它不是,但是效果很相似
-从 store 拿属性
-const pageNumber = usePageNumberStore((state) =&gt; state.pageNumber);
-如果直接这样的话,会变成 undefined
-const store = usePageNumberStore();const pageNumber = store.pageNumber;
-所有的 hook
-必须放在函数的最顶层
-比如 store 的属性,useState 之类的
-凡是能由
-state 推算出来的变量都不要再定义成 state
-因为 state 之间的更新是异步的,自己维护可能拿旧的值去做了计算
-一个传多个属性的 props
-的简便方法
-&lt;div className=&quot;w-[95%] mx-auto&quot;&gt;  &#123;newsList.map((news) =&gt; (    &lt;NewsItem &#123;...news&#125; /&gt;  ))&#125;&lt;/div&gt;
-这样就不用一个一个字段去写
-]]></content>
-      <tags>
-        <tag>react</tag>
-        <tag>next</tag>
-        <tag>shadcn/ui</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day24</title>
     <url>/2025/12/08/%E5%AD%A6%E4%B9%A0day24/</url>
     <content><![CDATA[安装
@@ -1995,58 +1934,47 @@ class DepartmentOut(Schema):    id: int    title: str    class Config:        or
       </tags>
   </entry>
   <entry>
-    <title>学习day26</title>
-    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
-    <content><![CDATA[在 next 项目中使用 sqlite
-安装依赖
-pnpm install better-sqlite3
-密码加密库
-npm install bcryptjs
+    <title>学习day22</title>
+    <url>/2025/12/05/%E5%AD%A6%E4%B9%A0day22/</url>
+    <content><![CDATA[form action
+&lt;form action=&quot;/api/login&quot; method=&quot;post&quot;&gt;&lt;/form&gt;
+按照普通的 html, form 的 action 属性就是在表单提交之后,
+放一个路由跳转到处理逻辑的接口地址
+// Server Componentexport default function Page() &#123;  // Action  async function create(formData: FormData) &#123;    &quot;use server&quot;;    // Logic to mutate data...  &#125;  // Invoke the action using the &quot;action&quot; attribute  return &lt;form action=&#123;create&#125;&gt;...&lt;/form&gt;;&#125;
+console.log
+在服务端和客户端的区别
+首先说一下如果一个文件顶部写了”use server”的话,
+那么里面所有的函数都默认带上了 use server
+在服务端的 log 会打印到控制台, 客户端的会打印到浏览器
+zod 数据类型校验
+import &#123; z &#125; from &quot;zod&quot;;const FormSchema = z.object(&#123;  id: z.string(),  customerId: z.string(),  amount: z.coerce.number(),  status: z.enum([&quot;pending&quot;, &quot;paid&quot;]),  date: z.string(),&#125;);const CreateInvoice = FormSchema.omit(&#123; id: true, date: true &#125;);
+z.coerce.number 这个就是将 amount 这个字段先强转为 number 类型,
+然后再判断是不是 number, 因为 input type=number 的时候, 其实实际上传给
+form 的类型还是字符串类型
+omit 是删除这两个字段的意思, true 只是删除确认, 没有特别含义
+这个 CreateInvoice 就是从 FormSchema 派生出来的新模板约束而已
+export async function createInvoice(formData: FormData) &#123;  const &#123; customerId, amount, status &#125; = CreateInvoice.parse(&#123;    customerId: formData.get(&quot;customerId&quot;),    amount: formData.get(&quot;amount&quot;),    status: formData.get(&quot;status&quot;),  &#125;);&#125;
+定义之后就像这样去解析
+revalidatePath
+import &#123; revalidatePath &#125; from &quot;next/cache&quot;;
+revalidatePath(&quot;/dashboard/invoices&quot;);
+作用就是消除对应路由页面的缓存, 不然就会一直显示旧的数据
+redirect
+import &#123; redirect &#125; from &quot;next/navigation&quot;;
+redirect(&quot;/dashboard/invoices&quot;);
+带参数的路由
+比如/user/:id 这种路由,id 这个段文件夹的名字就应该叫[id]
+创建 next 项目的命令
+pnpm dlx create-next-app@latest my-app
+app router
+就是 layout page loading 这一套东西
+react compiler
+创建项目的时候,每次都弹出来问我要不要选 react
+compiler,听说是不需要我手动去做优化,建议还是开吧
 ]]></content>
       <tags>
+        <tag>react</tag>
         <tag>next</tag>
-        <tag>sqlite</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day25</title>
-    <url>/2025/12/10/%E5%AD%A6%E4%B9%A0day25/</url>
-    <content><![CDATA[text 对齐要点
-text-center,text-right 这些 tw class 只在 block 的元素下生效
-prisma
-安装
-pnpm install prisma @types/node @types/better-sqlite3 --save-devpnpm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
-安装完之后会在项目生成一个 prisma 文件夹,里面有一个
-schema.prisma,里面可以定义模型,要安装 Prisma 插件才能高亮代码
-定义模型
-model User &#123;  id Int @id @default(autoincrement())  username String @unique  password String&#125;
-@id 是主键
-同步数据库
-pnpm dlx prisma migrate dev --name init
-生成 Prisma Client 和建表
-这个命令会读 DATABASE_URL,但是只从.env 读
-DATABASE_URL=&quot;file:./prisma/dev.dev.db&quot; pnpm dlx prisma migrate dev --name init
-也可以手动指定环境变量
-更改为 sqlite
-postgresq 好像要本地启动服务,开发环境还是只用 sqlite 就好了
-.env
-DATABASE_URL=&quot;file:./prisma/dev.db&quot;
-这个 dev.db 文件不需要自己创建,跑完命令之后会自动创建
-npx prisma migrate dev
-后台管理
-pnpm dlx prisma studio
-会显示数据库的后台系统,可以做 CRUD
-官方文档
-https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite
-这是 prsima 关于 sqlite 的安装教程
-next api
-路径
-和文件系统路由是一样的,一般我们在 app 底下会创建一个 api
-文件夹,不是必要,但是为了避免和页面冲突,我们选择这样创建
-]]></content>
-      <tags>
-        <tag>next</tag>
-        <tag>prisma</tag>
       </tags>
   </entry>
   <entry>
@@ -2110,63 +2038,58 @@ onSubmit, onClick 这些都只能在客户端组件使用
       </tags>
   </entry>
   <entry>
-    <title>学习day28</title>
-    <url>/2025/12/14/%E5%AD%A6%E4%B9%A0day28/</url>
-    <content><![CDATA[axios 基本配置
-import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: process.env.NEXT_PUBLIC_API_URL, // 后端API的基础URL  timeout: 5000, // 请求超时时间  headers: &#123;    &quot;Content-Type&quot;: &quot;application/json&quot;, // 默认请求 JSON  &#125;,&#125;);request.interceptors.request.use(  (config) =&gt; &#123;    const publicPaths = [&quot;/token/&quot;, &quot;/register/&quot;];    if (!publicPaths.includes(config.url || &quot;&quot;)) &#123;      const token = localStorage.getItem(&quot;access_token&quot;);      if (token) &#123;        config.headers = &#123;          ...config.headers,          Authorization: `Bearer $&#123;token&#125;`,        &#125;;      &#125;    &#125;    return config;  &#125;,  (error) =&gt; &#123;    return Promise.reject(error);  &#125;);export default request;
-默认传输的数据格式都是 json, 然后请求拦截器, 直接抄吧
-button 要显式地加上 type
-不然会触发 submit
-就写 type=“button”
-url 前缀
-urlpatterns = [    path(&quot;admin/&quot;, admin.site.urls),    path(&quot;api/token/&quot;, TokenObtainPairView.as_view(), name=&quot;token_obtain_pair&quot;),    path(&quot;api/token/refresh/&quot;, TokenRefreshView.as_view(), name=&quot;token_refresh&quot;),    path(&quot;api/user/&quot;, include(&quot;user.urls&quot;)),    path(&quot;api/problem/&quot;, include(&quot;problem.urls&quot;)),]
-不能写根路径
-from django.urls import pathfrom .views import RegisterViewurlpatterns = [    path(&quot;&quot;, RegisterView.as_view(), name=&quot;register&quot;),]
-要写成空的字符串, "/"是错误的
-使用 setstate
-函数的时候, 要放在 useEffect 里面
-useEffect(() =&gt; &#123;  request    .get(`/subjects/?author__name=$&#123;current_username&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, []);
-不然会死循环, setState 函数, 改变了 state 的值, 导致组件的重新渲染,
-然后导致重新请求
-一个放在 useEffect
-里面的 setState 的例子
-const handleSubmit = (e) =&gt; &#123;  e.preventDefault();  console.log(&quot;username:&quot;, username, &quot;password:&quot;, password);  request    .post(&quot;/token/&quot;, &#123;      username: username,      password: password,    &#125;)    .then((response) =&gt; &#123;      // 处理成功响应，例如存储令牌并重定向到主页      localStorage.setItem(&quot;access_token&quot;, response.data.access);      localStorage.setItem(&quot;refresh_token&quot;, response.data.refresh);      setCurrentUsername(username);      router.push(&quot;/home&quot;);    &#125;)    .catch((error) =&gt; &#123;      // 处理错误响应，例如显示错误消息      console.error(&quot;登录失败:&quot;, error);      alert(&quot;登录失败，请检查您的用户名和密码。&quot;);    &#125;);&#125;;
-这段代码肯定是不能放在 useEffect 里面的,
-不然这个请求就只能发生一次了, 而这里的 setCurrentUsername
-确实导致了组件的重新渲染, 只不过是我没有发现而已, 首先是它跳转了,
-其次是它就算没有跳转, 也不会陷入死循环, 要我手动触发 button 的 submit
-事件才会触发
-zustand
-的属性需要时间来初始化
-useEffect(() =&gt; &#123;  if (!currentUsername) return;  console.log(&quot;当前用户名:&quot;, currentUsername);  request    .get(`/subjects/?author__username=$&#123;currentUsername&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, [currentUsername]);
-我必须要让它不停地重复执行, 直到 currentUsername 加载了出来,
-这个点太坑了
-其实正确做法应该是后端根据 token 存用户信息, 然后前端在加载的时候通过
-token 请求 username, 不应该存在 zustand 的, 但是这里先这么干
+    <title>学习day26</title>
+    <url>/2025/12/11/%E5%AD%A6%E4%B9%A0day26/</url>
+    <content><![CDATA[在 next 项目中使用 sqlite
+安装依赖
+pnpm install better-sqlite3
+密码加密库
+npm install bcryptjs
 ]]></content>
       <tags>
-        <tag>axios</tag>
+        <tag>next</tag>
+        <tag>sqlite</tag>
       </tags>
   </entry>
   <entry>
-    <title>学习day30</title>
-    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
-    <content><![CDATA[树节点
-select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
-2016 年的投资
-# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
-count 是行数, sum 是总和
-游戏玩法分析 IV
-select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
-这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
-我也不太懂, 但是这能过
-select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
-这个可能是比较好懂的, 但是性能差了一点, 注意 join
-之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
-包起来
+    <title>学习day25</title>
+    <url>/2025/12/10/%E5%AD%A6%E4%B9%A0day25/</url>
+    <content><![CDATA[text 对齐要点
+text-center,text-right 这些 tw class 只在 block 的元素下生效
+prisma
+安装
+pnpm install prisma @types/node @types/better-sqlite3 --save-devpnpm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
+安装完之后会在项目生成一个 prisma 文件夹,里面有一个
+schema.prisma,里面可以定义模型,要安装 Prisma 插件才能高亮代码
+定义模型
+model User &#123;  id Int @id @default(autoincrement())  username String @unique  password String&#125;
+@id 是主键
+同步数据库
+pnpm dlx prisma migrate dev --name init
+生成 Prisma Client 和建表
+这个命令会读 DATABASE_URL,但是只从.env 读
+DATABASE_URL=&quot;file:./prisma/dev.dev.db&quot; pnpm dlx prisma migrate dev --name init
+也可以手动指定环境变量
+更改为 sqlite
+postgresq 好像要本地启动服务,开发环境还是只用 sqlite 就好了
+.env
+DATABASE_URL=&quot;file:./prisma/dev.db&quot;
+这个 dev.db 文件不需要自己创建,跑完命令之后会自动创建
+npx prisma migrate dev
+后台管理
+pnpm dlx prisma studio
+会显示数据库的后台系统,可以做 CRUD
+官方文档
+https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite
+这是 prsima 关于 sqlite 的安装教程
+next api
+路径
+和文件系统路由是一样的,一般我们在 app 底下会创建一个 api
+文件夹,不是必要,但是为了避免和页面冲突,我们选择这样创建
 ]]></content>
       <tags>
-        <tag>sql</tag>
+        <tag>next</tag>
+        <tag>prisma</tag>
       </tags>
   </entry>
   <entry>
@@ -2197,6 +2120,27 @@ def get_token():    url = &quot;http://127.0.0.1:8000/api/token/&quot;    data =
 ]]></content>
       <tags>
         <tag>状态码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day30</title>
+    <url>/2025/12/18/%E5%AD%A6%E4%B9%A0day30/</url>
+    <content><![CDATA[树节点
+select T1.id,    case        when T1.p_id is null then &quot;Root&quot;        when not exists            (                select *                from Tree T2                where T1.id = T2.p_id            )        then &quot;Leaf&quot;        else &quot;Inner&quot;    end as typefrom Tree T1;
+2016 年的投资
+# Write your MySQL query statement belowselect round(sum(I1.tiv_2016), 2) as tiv_2016from Insurance I1where    exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.tiv_2015 = I2.tiv_2015    )    and    not exists    (        select *        from Insurance I2        where I1.pid != I2.pid and I1.lat = I2.lat and I1.lon = I2.lon    );
+count 是行数, sum 是总和
+游戏玩法分析 IV
+select    round(        count(distinct T.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select Activity.player_id, min(event_date) as first_day    from Activity    group by player_id) T join Activity A on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1;
+这个 T 可能也可以指代 join 之后的表, 就是不是从全表搜索的, 有点乱,
+我也不太懂, 但是这能过
+select    round(        count(distinct T2.player_id) / (select count(distinct Activity.player_id) from Activity), 2    ) as fractionfrom (    select T.player_id    from (        select Activity.player_id, min(event_date) as first_day        from Activity        group by player_id    ) T    join    Activity A    on T.player_id = A.player_id and datediff(A.event_date, T.first_day) = 1) T2;
+这个可能是比较好懂的, 但是性能差了一点, 注意 join
+之后的表不能直接起别名, 所以这里加了一个 select 语句把这个 join
+包起来
+]]></content>
+      <tags>
+        <tag>sql</tag>
       </tags>
   </entry>
   <entry>
@@ -2246,6 +2190,45 @@ Math.row(a, b)和 a ** b 都是能够计算次方的
 ]]></content>
       <tags>
         <tag>javaScript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day28</title>
+    <url>/2025/12/14/%E5%AD%A6%E4%B9%A0day28/</url>
+    <content><![CDATA[axios 基本配置
+import axios from &quot;axios&quot;;const request = axios.create(&#123;  baseURL: process.env.NEXT_PUBLIC_API_URL, // 后端API的基础URL  timeout: 5000, // 请求超时时间  headers: &#123;    &quot;Content-Type&quot;: &quot;application/json&quot;, // 默认请求 JSON  &#125;,&#125;);request.interceptors.request.use(  (config) =&gt; &#123;    const publicPaths = [&quot;/token/&quot;, &quot;/register/&quot;];    if (!publicPaths.includes(config.url || &quot;&quot;)) &#123;      const token = localStorage.getItem(&quot;access_token&quot;);      if (token) &#123;        config.headers = &#123;          ...config.headers,          Authorization: `Bearer $&#123;token&#125;`,        &#125;;      &#125;    &#125;    return config;  &#125;,  (error) =&gt; &#123;    return Promise.reject(error);  &#125;);export default request;
+默认传输的数据格式都是 json, 然后请求拦截器, 直接抄吧
+button 要显式地加上 type
+不然会触发 submit
+就写 type=“button”
+url 前缀
+urlpatterns = [    path(&quot;admin/&quot;, admin.site.urls),    path(&quot;api/token/&quot;, TokenObtainPairView.as_view(), name=&quot;token_obtain_pair&quot;),    path(&quot;api/token/refresh/&quot;, TokenRefreshView.as_view(), name=&quot;token_refresh&quot;),    path(&quot;api/user/&quot;, include(&quot;user.urls&quot;)),    path(&quot;api/problem/&quot;, include(&quot;problem.urls&quot;)),]
+不能写根路径
+from django.urls import pathfrom .views import RegisterViewurlpatterns = [    path(&quot;&quot;, RegisterView.as_view(), name=&quot;register&quot;),]
+要写成空的字符串, "/"是错误的
+使用 setstate
+函数的时候, 要放在 useEffect 里面
+useEffect(() =&gt; &#123;  request    .get(`/subjects/?author__name=$&#123;current_username&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, []);
+不然会死循环, setState 函数, 改变了 state 的值, 导致组件的重新渲染,
+然后导致重新请求
+一个放在 useEffect
+里面的 setState 的例子
+const handleSubmit = (e) =&gt; &#123;  e.preventDefault();  console.log(&quot;username:&quot;, username, &quot;password:&quot;, password);  request    .post(&quot;/token/&quot;, &#123;      username: username,      password: password,    &#125;)    .then((response) =&gt; &#123;      // 处理成功响应，例如存储令牌并重定向到主页      localStorage.setItem(&quot;access_token&quot;, response.data.access);      localStorage.setItem(&quot;refresh_token&quot;, response.data.refresh);      setCurrentUsername(username);      router.push(&quot;/home&quot;);    &#125;)    .catch((error) =&gt; &#123;      // 处理错误响应，例如显示错误消息      console.error(&quot;登录失败:&quot;, error);      alert(&quot;登录失败，请检查您的用户名和密码。&quot;);    &#125;);&#125;;
+这段代码肯定是不能放在 useEffect 里面的,
+不然这个请求就只能发生一次了, 而这里的 setCurrentUsername
+确实导致了组件的重新渲染, 只不过是我没有发现而已, 首先是它跳转了,
+其次是它就算没有跳转, 也不会陷入死循环, 要我手动触发 button 的 submit
+事件才会触发
+zustand
+的属性需要时间来初始化
+useEffect(() =&gt; &#123;  if (!currentUsername) return;  console.log(&quot;当前用户名:&quot;, currentUsername);  request    .get(`/subjects/?author__username=$&#123;currentUsername&#125;`)    .then((response) =&gt; &#123;      console.log(&quot;获取学科列表成功:&quot;, response.data);      setSubjectList(response.data);    &#125;)    .catch((error) =&gt; &#123;      console.error(&quot;获取学科列表失败:&quot;, error);    &#125;);&#125;, [currentUsername]);
+我必须要让它不停地重复执行, 直到 currentUsername 加载了出来,
+这个点太坑了
+其实正确做法应该是后端根据 token 存用户信息, 然后前端在加载的时候通过
+token 请求 username, 不应该存在 zustand 的, 但是这里先这么干
+]]></content>
+      <tags>
+        <tag>axios</tag>
       </tags>
   </entry>
   <entry>
@@ -2300,6 +2283,28 @@ https://nuxt.zhcndoc.com/
       </tags>
   </entry>
   <entry>
+    <title>学习day34</title>
+    <url>/2026/01/30/%E5%AD%A6%E4%B9%A0day34/</url>
+    <content><![CDATA[Codeforces Round 1077 (Div.
+2)
+A
+题目大意: 构造一个排列, 使得相邻两项的差都能被i整除
+说实话, 一开始, 我还真想不到, 我在想p[1]是不用管的,
+所以我先从p[2]开始, 然后p[i] = p[i - 1] + (i - 1) 或者 |p[i - 1] - (i -
+1)|, 但是这样是不行的, 有些p[i]可能会有两个选择,
+但是同时也会影响后面的选择, 导致找不到正确答案,
+正确的思路应该是从条件最苛刻的地方开始想, 也就是最后两项,
+因为最后两项的差最大, p[n] = 1 &amp;&amp; p[n - 1] = n 或者 p[n] = n
+&amp;&amp; p[n - 1] = 1, 然后同样的思路, 反向遍历去生成每一个p[i],
+据说每个p[i]都只有唯一的选择, 但是我没有证明
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N = 105;int p[N];bool vis[N];void solve() &#123;    int n;    cin &gt;&gt; n;    for (int i = 1; i &lt;= n; i++) &#123;        vis[i] = false;    &#125;    // p[n] - p[n - 1] % (n - 1) == 0    // p[n] = 1, p[n - 1] = n    // p[n] = n, p[n - 1] = 1    // |p[n - 2] - p[n - 1]| % (n - 2) == 0    &#123;        p[n] = 1;        p[n - 1] = n;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        bool flag = true;        for (int i = 1; i &lt;= n; i++) &#123;            if (!vis[i]) &#123;                flag = false;                break;            &#125;        &#125;        if (flag) &#123;            for (int i = 1; i &lt;= n; i++) &#123;                cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];            &#125;            return;        &#125;    &#125;    &#123;        p[n] = n;        p[n - 1] = 1;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        for (int i = 1; i &lt;= n; i++) &#123;            cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day33</title>
     <url>/2026/01/28/%E5%AD%A6%E4%B9%A0day33/</url>
     <content><![CDATA[Codeforces Round 1076 (Div.
@@ -2329,22 +2334,31 @@ G
       </tags>
   </entry>
   <entry>
-    <title>学习day34</title>
-    <url>/2026/01/30/%E5%AD%A6%E4%B9%A0day34/</url>
-    <content><![CDATA[Codeforces Round 1077 (Div.
+    <title>学习day36</title>
+    <url>/2026/02/06/%E5%AD%A6%E4%B9%A0day36/</url>
+    <content><![CDATA[Codeforces Round 1061 (Div.
 2)
-A
-题目大意: 构造一个排列, 使得相邻两项的差都能被i整除
-说实话, 一开始, 我还真想不到, 我在想p[1]是不用管的,
-所以我先从p[2]开始, 然后p[i] = p[i - 1] + (i - 1) 或者 |p[i - 1] - (i -
-1)|, 但是这样是不行的, 有些p[i]可能会有两个选择,
-但是同时也会影响后面的选择, 导致找不到正确答案,
-正确的思路应该是从条件最苛刻的地方开始想, 也就是最后两项,
-因为最后两项的差最大, p[n] = 1 &amp;&amp; p[n - 1] = n 或者 p[n] = n
-&amp;&amp; p[n - 1] = 1, 然后同样的思路, 反向遍历去生成每一个p[i],
-据说每个p[i]都只有唯一的选择, 但是我没有证明
+C
+题意: 有一个数组a, 你可以进行两个操作, 第一个是选择一个元素然后删掉,
+第一个操作最多进行k次, 第二个操作是选择一个数x, 然后把它分解为x1, x2,
+x3, 其中x1 + x2 + x3 = x, x1 &lt;= x2 &lt;= x3, x1, x3保留, x2删掉,
+问数组最大的gcd可以是多少
+解法: 枚举gcd, 记为g, 然后对于ai % g != 0的元素, 考虑怎么分解,
+其中一定要有两个是g的倍数, 一个尽量小, 一个尽量大, 最小的g的倍数就是g,
+另外一个大的就是x - g - x % g(把余数抹掉就是g的倍数了),
+那剩下的中间的数就是x % g, 但是x % g &lt; g, 所以考虑大的数再小一点, x -
+2g - x % g, 那么中间的数就是g + x % g, 它肯定大于g, 接下来我们要计算x -
+2g - x % g &gt;= g + x % g的条件, x &gt;= 3g + 2 * (x % g), 注意到, x
+&gt;= 5g的时候, 该不等式显然成立, 再仔细考虑5g &gt; x &gt; 4g的情况, x -
+x % g = 4g, 所以x - 2g - x % g = 2g, g, g + x % g, 2g, 成立, 同理, 4g
+&gt; x &gt; 3g的时候就不成立了, 所以x &gt;= 4g的时候,
+都可以分解出两个g的倍数, 所以#{x &gt;= 4g} + #{x = g || x = 2g || x =
+3g} &gt;= n - k的时候有解
 代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst int N = 105;int p[N];bool vis[N];void solve() &#123;    int n;    cin &gt;&gt; n;    for (int i = 1; i &lt;= n; i++) &#123;        vis[i] = false;    &#125;    // p[n] - p[n - 1] % (n - 1) == 0    // p[n] = 1, p[n - 1] = n    // p[n] = n, p[n - 1] = 1    // |p[n - 2] - p[n - 1]| % (n - 2) == 0    &#123;        p[n] = 1;        p[n - 1] = n;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        bool flag = true;        for (int i = 1; i &lt;= n; i++) &#123;            if (!vis[i]) &#123;                flag = false;                break;            &#125;        &#125;        if (flag) &#123;            for (int i = 1; i &lt;= n; i++) &#123;                cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];            &#125;            return;        &#125;    &#125;    &#123;        p[n] = n;        p[n - 1] = 1;        vis[1] = vis[n] = true;        for (int i = n - 2; i &gt;= 1; i--) &#123;            int x = p[i + 1] + i;            int y = abs(p[i + 1] - i);            if (x &gt;= 1 &amp;&amp; x &lt;= n &amp;&amp; !vis[x]) &#123;                p[i] = x;            &#125; else if (y &gt;= 1 &amp;&amp; y &lt;= n &amp;&amp; !vis[y]) &#123;                p[i] = y;            &#125;            vis[p[i]] = true;        &#125;        for (int i = 1; i &lt;= n; i++) &#123;            cout &lt;&lt; p[i] &lt;&lt; &quot; \n&quot;[i == n];        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queue// if x is not a multiple of g// g, g + x mod g, x - g - g - x mod g// g + x mod g &lt;= x - 2g - x mod g// 3g + 2 * (x mod g) &lt;= x// x mod g &lt; g// 2(x mod g) &lt; 2g// x &gt;= 5g = 2g + 3g &gt; 3g + 2 * (x mod g)// if 4g &lt; x &lt; 5g, x - x mod g = 4g, x - 2g - x mod g = 2g, g + x mod g &lt; 2g, g &lt;= x mod g &lt;= x - 2g - x mod g// if x &lt; 4g, x - x mod g &lt;= 3g, x - x mod g - 2g &lt;= g, g + x mod g &gt;= g, so there is no split can produce two multiple of g// so #&#123;x = g&#125; + #&#123;x = 2g&#125; + #&#123;x = 3g&#125; + #&#123;x &gt;= 4g&#125; &gt;= n - kconst int N = 2e5 + 5;int cnt[N], suff[N];void solve() &#123;    int n, k;    cin &gt;&gt; n &gt;&gt; k;    for (int i = 1; i &lt;= n; i++) &#123;        suff[i] = 0;        cnt[i] = 0;    &#125;    for (int i = 1; i &lt;= n; i++) &#123;        int a;        cin &gt;&gt; a;        cnt[a]++;    &#125;    suff[n] = cnt[n];    for (int i = n - 1; i &gt;= 1; i--) &#123;        suff[i] = suff[i + 1] + cnt[i];    &#125;    for (int g = n; g &gt;= 1; g--) &#123;        int tot = cnt[g];        if (2 * g &lt;= n) tot += cnt[2 * g];        if (3 * g &lt;= n) tot += cnt[3 * g];        if (4 * g &lt;= n) tot += suff[4 * g];        if (tot &gt;= n - k) &#123;            cout &lt;&lt; g &lt;&lt; &quot;\n&quot;;            return;        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+感想: 话说这道题为什么有一万多人过了, 真的假的, 我感觉挺难的,
+而且评分还只有1400, 虽然说思路看懂了之后好像是挺自然的,
+但是还是挺难想的
 ]]></content>
       <tags>
         <tag>codeforces</tag>
@@ -2395,34 +2409,20 @@ k = mina[i]! = b[i]max(a[i] − mn, mx − a[i])
       </tags>
   </entry>
   <entry>
-    <title>学习day36</title>
-    <url>/2026/02/06/%E5%AD%A6%E4%B9%A0day36/</url>
-    <content><![CDATA[Codeforces Round 1061 (Div.
-2)
-C
-题意: 有一个数组a, 你可以进行两个操作, 第一个是选择一个元素然后删掉,
-第一个操作最多进行k次, 第二个操作是选择一个数x, 然后把它分解为x1, x2,
-x3, 其中x1 + x2 + x3 = x, x1 &lt;= x2 &lt;= x3, x1, x3保留, x2删掉,
-问数组最大的gcd可以是多少
-解法: 枚举gcd, 记为g, 然后对于ai % g != 0的元素, 考虑怎么分解,
-其中一定要有两个是g的倍数, 一个尽量小, 一个尽量大, 最小的g的倍数就是g,
-另外一个大的就是x - g - x % g(把余数抹掉就是g的倍数了),
-那剩下的中间的数就是x % g, 但是x % g &lt; g, 所以考虑大的数再小一点, x -
-2g - x % g, 那么中间的数就是g + x % g, 它肯定大于g, 接下来我们要计算x -
-2g - x % g &gt;= g + x % g的条件, x &gt;= 3g + 2 * (x % g), 注意到, x
-&gt;= 5g的时候, 该不等式显然成立, 再仔细考虑5g &gt; x &gt; 4g的情况, x -
-x % g = 4g, 所以x - 2g - x % g = 2g, g, g + x % g, 2g, 成立, 同理, 4g
-&gt; x &gt; 3g的时候就不成立了, 所以x &gt;= 4g的时候,
-都可以分解出两个g的倍数, 所以#{x &gt;= 4g} + #{x = g || x = 2g || x =
-3g} &gt;= n - k的时候有解
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queue// if x is not a multiple of g// g, g + x mod g, x - g - g - x mod g// g + x mod g &lt;= x - 2g - x mod g// 3g + 2 * (x mod g) &lt;= x// x mod g &lt; g// 2(x mod g) &lt; 2g// x &gt;= 5g = 2g + 3g &gt; 3g + 2 * (x mod g)// if 4g &lt; x &lt; 5g, x - x mod g = 4g, x - 2g - x mod g = 2g, g + x mod g &lt; 2g, g &lt;= x mod g &lt;= x - 2g - x mod g// if x &lt; 4g, x - x mod g &lt;= 3g, x - x mod g - 2g &lt;= g, g + x mod g &gt;= g, so there is no split can produce two multiple of g// so #&#123;x = g&#125; + #&#123;x = 2g&#125; + #&#123;x = 3g&#125; + #&#123;x &gt;= 4g&#125; &gt;= n - kconst int N = 2e5 + 5;int cnt[N], suff[N];void solve() &#123;    int n, k;    cin &gt;&gt; n &gt;&gt; k;    for (int i = 1; i &lt;= n; i++) &#123;        suff[i] = 0;        cnt[i] = 0;    &#125;    for (int i = 1; i &lt;= n; i++) &#123;        int a;        cin &gt;&gt; a;        cnt[a]++;    &#125;    suff[n] = cnt[n];    for (int i = n - 1; i &gt;= 1; i--) &#123;        suff[i] = suff[i + 1] + cnt[i];    &#125;    for (int g = n; g &gt;= 1; g--) &#123;        int tot = cnt[g];        if (2 * g &lt;= n) tot += cnt[2 * g];        if (3 * g &lt;= n) tot += cnt[3 * g];        if (4 * g &lt;= n) tot += suff[4 * g];        if (tot &gt;= n - k) &#123;            cout &lt;&lt; g &lt;&lt; &quot;\n&quot;;            return;        &#125;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-感想: 话说这道题为什么有一万多人过了, 真的假的, 我感觉挺难的,
-而且评分还只有1400, 虽然说思路看懂了之后好像是挺自然的,
-但是还是挺难想的
+    <title>学习day20</title>
+    <url>/2025/12/03/%E5%AD%A6%E4%B9%A0day20/</url>
+    <content><![CDATA[next/image
+说是提供懒加载, 并且保证图片在加载之前保证ui不会走形,
+在小屏幕上不太生成过大的照片, 之类的功能 import Image from &#x27;next/image&#x27;; # 文件即路由
+文件树的结构就是路由的结构, 路由的根路径在app这个文件夹,
+layout.tsx和page.tsx这两个文件会被自动识别, 渲染在对应的页面上面
+组件命名没有要求
+并没有硬性要求tsx/jsx的文件名要和export default的组件同名
+但是一般规范最好一样, 增加易读性
 ]]></content>
       <tags>
-        <tag>codeforces</tag>
+        <tag>react</tag>
+        <tag>next</tag>
       </tags>
   </entry>
   <entry>
@@ -2633,66 +2633,6 @@ aj交换到a{i+1}的交换次数是j-i-1, 少了一个a_i,
       </tags>
   </entry>
   <entry>
-    <title>学习day4</title>
-    <url>/2025/11/14/%E5%AD%A6%E4%B9%A0day4/</url>
-    <content><![CDATA[很久之前就学过爬虫了，但是只会用，不知道原理是什么，现在来简单地学习一下吧。
-User-Agent
-是爬虫的时候必须提供的请求头里面的一个字段，告诉服务器我的设备或浏览器类型，不提供这个的话，服务器一看就知道我不是人类，就会拒绝响应
-www.zhihu.com/billboard，这个是知乎的热点头条API，要爬虫的话，从这里爬会比较轻松一点
-soup = BeautifulSoup(html, &quot;lxml&quot;)
-这个 lxml 是目前最快的 html
-解析库，听说是爬虫最常用的一个库，也可以用默认的 html.parser，是 python
-自带的
-我在爬知乎的热度榜的时候发生了失败的情况，居然还要加上
-Cookie，知乎也是做了一点初级的防爬机制的
-还有编码的时候要把 encoding 改成 utf-8，不然会乱码
-soup = BeautifulSoup(res.text, &quot;lxml&quot;)print(soup)with open(&quot;test.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:    f.write(soup.prettify())
-这个 prettify 方法就是解析之后的 html
-树进行一个美观化的操作，不会改变实际的内容，就是加点缩进，原本是没有缩进的，全部靠左对齐的
-a_tags = soup.select(&quot;td.td-02 a&quot;)
-这个 select
-方法挺好用的，空格表示后代，逗号表示并列的关系，类名记得加上.号，比 find
-或者 find_all 要好用
-这次要做的这个各大平台热榜数据可视化的系统，为什么要把爬虫得到的数据放在数据库里面的，原因是如果我直接从前端去访问
-api
-大概率是会被跨域拦截的，同时前端是没有办法去调用爬虫程序的，但是后端可以，这也就是后端的作用
-还有一个问题就是，我后端可以调用爬虫程序，那我干脆爬完之后不存到数据库里面，我直接就是返回给前端行不行，理论上可行，但是实际上，每次前端调用数据的时候，后端都要爬一次，过度频繁地爬虫可能会导致我被网站封
-IP，这样太危险了，所以比较合理的方式是我在后端每天爬一次，然后存在数据库里面，等前端要用这些数据的时候我再从数据库里面拿出来，还有一个原因就是爬虫的速度太慢了，从数据库拿会比较快
-python manage.py xxx.py 用这个命令去跑一个脚本程序和直接用 python
-跑脚本程序的区别就是第一个命令会提供 django 配置好的环境，比如 orm 和
-settings 里面的东西，其实最重要的就是
-ORM，我可以在脚本里面操纵数据库
-在 python
-的函数里面修改一个变量的时候，它默认都是局部变量，如果使用的是全局变量，需要加上
-global 关键字，没有加的话，能访问，但是不能修改
-import requests as rqimport jsonfrom bs4 import BeautifulSoupheaders = &#123;    &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36&quot;,    &quot;Cookie&quot;: &quot;SUB=_2AkMeSm12f8NxqwFRmv0WzGPmb49-zgjEieKoFpytJRMxHRl-yT9yqlUjtRB6NcpDmXB8v7jCDdUOANFsLEoZJwuDT4Wu; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9W5Ip-3.Qjwa_aD0wH30D.qZ; _s_tentry=passport.weibo.com; Apache=8441114877984.956.1763107391573; SINAGLOBAL=8441114877984.956.1763107391573; ULV=1763107391574:1:1:1:8441114877984.956.1763107391573:&quot;,&#125;def fetch_weibo_hot():    url = &quot;https://s.weibo.com/top/summary?cate=realtimehot&quot;    res = rq.get(url, headers=headers)    res.encoding = &quot;utf-8&quot;    soup = BeautifulSoup(res.text, &quot;lxml&quot;)    a_tags = soup.select(&quot;td.td-02 a&quot;)    cnt = 0    res = []    for a_tag in a_tags:        new_obj = &#123;&quot;title&quot;: a_tag.string, &quot;rank&quot;: cnt, &quot;source&quot;: &quot;weibo&quot;&#125;        res.append(new_obj)        cnt += 1        if cnt == 10:            break    return resif __name__ == &quot;__main__&quot;:    res = fetch_weibo_hot()    print(res)
-现在终于知道 if 条件那段代码的作用是什么了，当上面这个 py
-文件作为模块被其他文件引用的话，无论是否用到，模块最顶层的代码都会被执行一遍，如果加上
-if 条件的话，就不会被执行
-ok，新发现，python
-文件引用的时候，会从两个方面去找，第一个是基于当前文件的路径位置，第二个就是
-sys.path，所以如果自己在 sys.path 加上了新东西，就可以根据 sys.path
-里面的路径来引入文件，python 都能识别的，顺便说一下 sys.path
-这个不叫环境变量，这个叫做模块的搜索路径范围（大概是）
-sys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
-这里我想干的事情是在外部文件（项目外面的文件）里面使用后端项目里面定义的模型，所以需要进行一些配置，才能使用，第一行代码就是添加这个模组的搜索范围，然后第二行才是这个这个环境变量，记得这个
-key 一定要叫 DJANGO_SETTINGS_MODULE，这是规定的，搞完之后就可以 setup
-了，然后就可以在这个脚本文件里面使用 ORM 了
-from weibo_spider import fetch_weibo_hotfrom zhihu_spider import fetch_zhihu_hotfrom bilibili_spider import fetch_bilibili_hotimport osimport djangoimport syssys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()from hotItem.models import HotItemif __name__ == &quot;__main__&quot;:    res_weibo = fetch_weibo_hot()    res_zhihu = fetch_zhihu_hot()    res_bilibili = fetch_bilibili_hot()
-一个仔细想想也能想到的问题，要加载完之后才能引入模型，不然就找不到了，但是
-vscode 没有报错，所以我以为是可以的
-current_file_path = os.path.abspath(__file__)BASE_URL = os.path.dirname(os.path.dirname(current_file_path))sys.path.append(BASE_URL)# assert Falseos.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
-这样写才是对的，上面给的关于 django
-配置环境变量的代码，路径那部分是基于工作目录的，那是不对的，这里看代码应该挺好懂的，os.path.dirname
-是文件夹或者文件所在的目录名，sys.path.append
-要穿的参数就是一个绝对路径，current_file_path 这个不用解释了
-]]></content>
-      <tags>
-        <tag>python</tag>
-        <tag>爬虫</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day41</title>
     <url>/2026/02/12/%E5%AD%A6%E4%B9%A0day41/</url>
     <content><![CDATA[Codeforces Round 1079 (Div.
@@ -2762,6 +2702,66 @@ i])只会触发一次, 这样的话, 时间复杂度不会是O(n^2),
 ]]></content>
       <tags>
         <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day4</title>
+    <url>/2025/11/14/%E5%AD%A6%E4%B9%A0day4/</url>
+    <content><![CDATA[很久之前就学过爬虫了，但是只会用，不知道原理是什么，现在来简单地学习一下吧。
+User-Agent
+是爬虫的时候必须提供的请求头里面的一个字段，告诉服务器我的设备或浏览器类型，不提供这个的话，服务器一看就知道我不是人类，就会拒绝响应
+www.zhihu.com/billboard，这个是知乎的热点头条API，要爬虫的话，从这里爬会比较轻松一点
+soup = BeautifulSoup(html, &quot;lxml&quot;)
+这个 lxml 是目前最快的 html
+解析库，听说是爬虫最常用的一个库，也可以用默认的 html.parser，是 python
+自带的
+我在爬知乎的热度榜的时候发生了失败的情况，居然还要加上
+Cookie，知乎也是做了一点初级的防爬机制的
+还有编码的时候要把 encoding 改成 utf-8，不然会乱码
+soup = BeautifulSoup(res.text, &quot;lxml&quot;)print(soup)with open(&quot;test.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:    f.write(soup.prettify())
+这个 prettify 方法就是解析之后的 html
+树进行一个美观化的操作，不会改变实际的内容，就是加点缩进，原本是没有缩进的，全部靠左对齐的
+a_tags = soup.select(&quot;td.td-02 a&quot;)
+这个 select
+方法挺好用的，空格表示后代，逗号表示并列的关系，类名记得加上.号，比 find
+或者 find_all 要好用
+这次要做的这个各大平台热榜数据可视化的系统，为什么要把爬虫得到的数据放在数据库里面的，原因是如果我直接从前端去访问
+api
+大概率是会被跨域拦截的，同时前端是没有办法去调用爬虫程序的，但是后端可以，这也就是后端的作用
+还有一个问题就是，我后端可以调用爬虫程序，那我干脆爬完之后不存到数据库里面，我直接就是返回给前端行不行，理论上可行，但是实际上，每次前端调用数据的时候，后端都要爬一次，过度频繁地爬虫可能会导致我被网站封
+IP，这样太危险了，所以比较合理的方式是我在后端每天爬一次，然后存在数据库里面，等前端要用这些数据的时候我再从数据库里面拿出来，还有一个原因就是爬虫的速度太慢了，从数据库拿会比较快
+python manage.py xxx.py 用这个命令去跑一个脚本程序和直接用 python
+跑脚本程序的区别就是第一个命令会提供 django 配置好的环境，比如 orm 和
+settings 里面的东西，其实最重要的就是
+ORM，我可以在脚本里面操纵数据库
+在 python
+的函数里面修改一个变量的时候，它默认都是局部变量，如果使用的是全局变量，需要加上
+global 关键字，没有加的话，能访问，但是不能修改
+import requests as rqimport jsonfrom bs4 import BeautifulSoupheaders = &#123;    &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36&quot;,    &quot;Cookie&quot;: &quot;SUB=_2AkMeSm12f8NxqwFRmv0WzGPmb49-zgjEieKoFpytJRMxHRl-yT9yqlUjtRB6NcpDmXB8v7jCDdUOANFsLEoZJwuDT4Wu; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9W5Ip-3.Qjwa_aD0wH30D.qZ; _s_tentry=passport.weibo.com; Apache=8441114877984.956.1763107391573; SINAGLOBAL=8441114877984.956.1763107391573; ULV=1763107391574:1:1:1:8441114877984.956.1763107391573:&quot;,&#125;def fetch_weibo_hot():    url = &quot;https://s.weibo.com/top/summary?cate=realtimehot&quot;    res = rq.get(url, headers=headers)    res.encoding = &quot;utf-8&quot;    soup = BeautifulSoup(res.text, &quot;lxml&quot;)    a_tags = soup.select(&quot;td.td-02 a&quot;)    cnt = 0    res = []    for a_tag in a_tags:        new_obj = &#123;&quot;title&quot;: a_tag.string, &quot;rank&quot;: cnt, &quot;source&quot;: &quot;weibo&quot;&#125;        res.append(new_obj)        cnt += 1        if cnt == 10:            break    return resif __name__ == &quot;__main__&quot;:    res = fetch_weibo_hot()    print(res)
+现在终于知道 if 条件那段代码的作用是什么了，当上面这个 py
+文件作为模块被其他文件引用的话，无论是否用到，模块最顶层的代码都会被执行一遍，如果加上
+if 条件的话，就不会被执行
+ok，新发现，python
+文件引用的时候，会从两个方面去找，第一个是基于当前文件的路径位置，第二个就是
+sys.path，所以如果自己在 sys.path 加上了新东西，就可以根据 sys.path
+里面的路径来引入文件，python 都能识别的，顺便说一下 sys.path
+这个不叫环境变量，这个叫做模块的搜索路径范围（大概是）
+sys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
+这里我想干的事情是在外部文件（项目外面的文件）里面使用后端项目里面定义的模型，所以需要进行一些配置，才能使用，第一行代码就是添加这个模组的搜索范围，然后第二行才是这个这个环境变量，记得这个
+key 一定要叫 DJANGO_SETTINGS_MODULE，这是规定的，搞完之后就可以 setup
+了，然后就可以在这个脚本文件里面使用 ORM 了
+from weibo_spider import fetch_weibo_hotfrom zhihu_spider import fetch_zhihu_hotfrom bilibili_spider import fetch_bilibili_hotimport osimport djangoimport syssys.path.append(os.path.abspath(&quot;../backend&quot;))os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()from hotItem.models import HotItemif __name__ == &quot;__main__&quot;:    res_weibo = fetch_weibo_hot()    res_zhihu = fetch_zhihu_hot()    res_bilibili = fetch_bilibili_hot()
+一个仔细想想也能想到的问题，要加载完之后才能引入模型，不然就找不到了，但是
+vscode 没有报错，所以我以为是可以的
+current_file_path = os.path.abspath(__file__)BASE_URL = os.path.dirname(os.path.dirname(current_file_path))sys.path.append(BASE_URL)# assert Falseos.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;backend.settings&quot;)django.setup()
+这样写才是对的，上面给的关于 django
+配置环境变量的代码，路径那部分是基于工作目录的，那是不对的，这里看代码应该挺好懂的，os.path.dirname
+是文件夹或者文件所在的目录名，sys.path.append
+要穿的参数就是一个绝对路径，current_file_path 这个不用解释了
+]]></content>
+      <tags>
+        <tag>python</tag>
+        <tag>爬虫</tag>
       </tags>
   </entry>
   <entry>
@@ -2861,6 +2861,31 @@ F
       </tags>
   </entry>
   <entry>
+    <title>学习day46</title>
+    <url>/2026/02/23/%E5%AD%A6%E4%B9%A0day46/</url>
+    <content><![CDATA[比赛链接: https://ac.nowcoder.com/acm/contest/128672
+C
+思路: 我想了一会, 想到一个思路就是记录连续gcd为1的块,
+然后修改次数就是块长/2, 修改数字的话就修改成所有质因数相乘就行,
+这样就能保证修改其中一个, 与其相邻的就不用改, 但是这个思路有问题,
+就是1是必须要改的, 你修改与1相邻的数, 最后gcd还是1, 所以1是必须改的
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    int cur = 1;    ll ans = a[1] == 1;    // 1是一个反例,修改了它旁边的数gcd还是1    for (int i = 2; i &lt;= n; i++) &#123;        if (a[i] == 1) &#123;            cur = 1;            ans++;            continue;        &#125;        if (__gcd(a[i], a[i - 1]) == 1) &#123;            if (a[i - 1] == 1) &#123;                continue;            &#125;            cur++;        &#125; else &#123;            ans += cur / 2;            cur = 1;        &#125;    &#125;    // db(cur), el;    ans += cur / 2;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+E
+思路: 我本来是想dp的, 虽然我知道题目有可能是a&gt;b,
+但是其实a&lt;b的情况, dp也不一定对, 我dp的思路是这样的, 从小到大遍历,
+然后翻转和+k的操作都从比i小的转移,
+但是有一种情况就是a翻转成一个比a小的数, 然后再进行加的操作,
+所以可以考虑bfs, 只需要考虑10b以内的范围,
+因为大于等于10b的再翻转也不会比b小, 是没有意义的
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int a, b, k;    cin &gt;&gt; a &gt;&gt; b &gt;&gt; k;    vt&lt;int&gt; ans(10 * b + 5, 1e9);    queue&lt;int&gt; q;    q.push(a);    ans[a] = 0;    while (!q.empty()) &#123;        int u = q.front();        q.pop();        int nx1 = u + k;        if (nx1 &lt;= 10 * b) &#123;            if (ans[nx1] == (int)1e9) &#123;                q.push(nx1);                ans[nx1] = ans[u] + 1;            &#125;        &#125;        if (u % 10) &#123;            string rsu = to_string(u);            reverse(all(rsu));            int ru = stoi(rsu);            if (ru &lt;= 10 * b) &#123;                if (ans[ru] == (int)1e9) &#123;                    q.push(ru);                    ans[ru] = ans[u] + 1;                &#125;            &#125;        &#125;    &#125;    if (ans[b] &gt;= (int)1e9) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans[b] &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>nowcoder</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day45</title>
     <url>/2026/02/22/%E5%AD%A6%E4%B9%A0day45/</url>
     <content><![CDATA[牛客2026年除夕娱乐赛
@@ -2909,28 +2934,62 @@ q=n-p+2
       </tags>
   </entry>
   <entry>
-    <title>学习day46</title>
-    <url>/2026/02/23/%E5%AD%A6%E4%B9%A0day46/</url>
-    <content><![CDATA[比赛链接: https://ac.nowcoder.com/acm/contest/128672
-C
-思路: 我想了一会, 想到一个思路就是记录连续gcd为1的块,
-然后修改次数就是块长/2, 修改数字的话就修改成所有质因数相乘就行,
-这样就能保证修改其中一个, 与其相邻的就不用改, 但是这个思路有问题,
-就是1是必须要改的, 你修改与1相邻的数, 最后gcd还是1, 所以1是必须改的
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n;    cin &gt;&gt; n;    vt&lt;int&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    int cur = 1;    ll ans = a[1] == 1;    // 1是一个反例,修改了它旁边的数gcd还是1    for (int i = 2; i &lt;= n; i++) &#123;        if (a[i] == 1) &#123;            cur = 1;            ans++;            continue;        &#125;        if (__gcd(a[i], a[i - 1]) == 1) &#123;            if (a[i - 1] == 1) &#123;                continue;            &#125;            cur++;        &#125; else &#123;            ans += cur / 2;            cur = 1;        &#125;    &#125;    // db(cur), el;    ans += cur / 2;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-E
-思路: 我本来是想dp的, 虽然我知道题目有可能是a&gt;b,
-但是其实a&lt;b的情况, dp也不一定对, 我dp的思路是这样的, 从小到大遍历,
-然后翻转和+k的操作都从比i小的转移,
-但是有一种情况就是a翻转成一个比a小的数, 然后再进行加的操作,
-所以可以考虑bfs, 只需要考虑10b以内的范围,
-因为大于等于10b的再翻转也不会比b小, 是没有意义的
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int a, b, k;    cin &gt;&gt; a &gt;&gt; b &gt;&gt; k;    vt&lt;int&gt; ans(10 * b + 5, 1e9);    queue&lt;int&gt; q;    q.push(a);    ans[a] = 0;    while (!q.empty()) &#123;        int u = q.front();        q.pop();        int nx1 = u + k;        if (nx1 &lt;= 10 * b) &#123;            if (ans[nx1] == (int)1e9) &#123;                q.push(nx1);                ans[nx1] = ans[u] + 1;            &#125;        &#125;        if (u % 10) &#123;            string rsu = to_string(u);            reverse(all(rsu));            int ru = stoi(rsu);            if (ru &lt;= 10 * b) &#123;                if (ans[ru] == (int)1e9) &#123;                    q.push(ru);                    ans[ru] = ans[u] + 1;                &#125;            &#125;        &#125;    &#125;    if (ans[b] &gt;= (int)1e9) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans[b] &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+    <title>学习day50</title>
+    <url>/2026/03/11/%E5%AD%A6%E4%B9%A0day50/</url>
+    <content><![CDATA[牛客周赛 Round 134
+F
+题目链接: https://ac.nowcoder.com/acm/contest/129231/F
+思路: 其实这道题我自己想出来了, 但是感觉这个思路有点牛逼,
+但是又感觉其实大家都是这个思路, 并没有什么牛逼的地方, 但是就记录一下吧,
+就是dp前缀[1…i]有多少种划分方案, 同理dp后缀,
+然后枚举满足s[i…j]是回文串的(i, j),
+贡献就是(j-i+1)^2*dp前缀[i-1]*dp后缀[j+1],
+怎么dp和怎么预处理s[i…j]是否是回文串, 这个就看基本功了
+代码
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD=998244353;ll power(ll u,ll v)&#123;    ll res=1;    while(v)&#123;        if(v%2) res=res*u%MOD;        u=u*u%MOD;        v/=2;    &#125;    return res;&#125;void add(ll &amp;u,ll v)&#123;    u+=v;    if(u&gt;=MOD) u-=MOD;    if(u&lt;0) u+=MOD;&#125;ll prod(ll u,ll v)&#123;    return u*v%MOD;&#125;void solve()&#123;    int n;    cin&gt;&gt;n;    string s;    cin&gt;&gt;s;    s=&#x27; &#x27;+s;    auto is_p=[&amp;](string str)-&gt;bool&#123;        for(int i=0,j=sz(str)-1;i&lt;j;i++,j--)&#123;            if(str[i]!=str[j]) return false;        &#125;        return true;    &#125;;    vt&lt;vt&lt;bool&gt;&gt; isp(n+5,vt&lt;bool&gt;(n+5));    for(int i=1;i&lt;=n;i++)&#123;        string t;        for(int j=i;j&lt;=n;j++)&#123;            t+=s[j];            if(is_p(t))&#123;                isp[i][j]=true;            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp1(n+5);    dp1[0]=1;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=i;j++)&#123;            if(isp[j][i])&#123;                add(dp1[i],dp1[j-1]);            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp2(n+5);    dp2[n+1]=1;    for(int i=n;i&gt;=1;i--)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                add(dp2[i],dp2[j+1]);            &#125;        &#125;    &#125;    ll ans=0;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                ll len_2=1LL*(j-i+1)*(j-i+1)%MOD;                add(ans,(len_2*dp1[i-1]%MOD)*dp2[j+1]%MOD);            &#125;        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
         <tag>nowcoder</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day49</title>
+    <url>/2026/03/10/%E5%AD%A6%E4%B9%A0day49/</url>
+    <content><![CDATA[Codeforces Round 1085 (Div.
+1 + Div. 2)
+C
+题意: 海里有一个地形, 表示为一个数组a, a[i]表示高度,
+然后水位在h这个高度, 可以设置排水沟, 每个单位的水可以向左右下三个方向走,
+问在最多设置两个排水沟的情况下, 最多可以排走多少单位的水
+思路: 需要注意到, 假设我在列j设置了一个排水沟, 对于第i列, 它的贡献是h
+- max_a[min(i, j)][max(i, j)], 也就是取决于它们之间的最高地形,
+两个排水沟通过容斥原理解决
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    ll n, h;    cin &gt;&gt; n &gt;&gt; h;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    vt&lt;vt&lt;ll&gt;&gt; max_a(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = i; j &lt;= n; j++) &#123;            if (i == j) &#123;                max_a[i][j] = a[i];            &#125; else &#123;                max_a[i][j] = max(max_a[i][j - 1], a[j]);            &#125;        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= n; j++) &#123;            pref[i][j] = pref[i][j - 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; suff(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = n; j &gt;= 1; j--) &#123;            suff[i][j] = suff[i][j + 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ll cnt = 0;        for (int j = 1; j &lt;= n; j++) &#123;            cnt += h - max_a[min(i, j)][max(i, j)];        &#125;        ans = max(ans, cnt);    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        for (int j = i + 1; j &lt;= n; j++) &#123;            ll overlap = pref[j][i] + (j - i - 1) * (h - max_a[i][j]) + suff[i][j];            ll cnt = pref[i][n] + pref[j][n] - overlap;            ans = max(ans, cnt);        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day48</title>
+    <url>/2026/02/28/%E5%AD%A6%E4%B9%A0day48/</url>
+    <content><![CDATA[Codeforces Round 1084 (Div.
+3)
+F
+题意: 有n个粒子, 每个粒子有两个属性x, y, x是能量值,
+y是能与之共存的粒子数, 另外商店里面还有m个粒子,
+问在买入商店的第i个粒子之后, 最大的能量总值是多少
+思路: 假设我们要k个粒子的话, 那么这k个粒子的y都不小于k-1,
+我们反向枚举k, 因为k值越小, 候选的粒子数越多, 然后选择x最大的k个粒子,
+这样我们就能求出不考虑从商店买粒子的情况下的最大值. 考虑商店,
+我们维护一个集合, f[k]表示k个粒子的情况排除掉最小的一个,
+给商店的例子腾出一个位置, 商店粒子的可以放在f[1]到f[y+1]的集合里面,
+我们要从中选一个最大的, 那么维护一个前缀最大值即可
+代码:
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; adj(n + 5);    priority_queue&lt;ll, vt&lt;ll&gt;, greater&lt;&gt;&gt; q;    for (int i = 1; i &lt;= n; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        adj[y].push_back(x);    &#125;    ll cur = 0;    for (auto t : adj[n]) &#123;        q.push(t);        cur += t;    &#125;    while (sz(q) &gt; n + 1) &#123;        cur -= q.top();        q.pop();    &#125;    vt&lt;ll&gt; pref(n + 5);    if (sz(q) == n + 1) &#123;        pref[n + 1] = cur - q.top();    &#125; else &#123;        pref[n + 1] = cur;    &#125;    vt&lt;ll&gt; cnt(n + 5);    cnt[n + 1] = cur;    ll oans = cur;    for (int k = n; k &gt;= 1; k--) &#123;        for (auto t : adj[k - 1]) &#123;            if (sz(q) == k) &#123;                if (q.top() &lt; t) &#123;                    cur -= q.top();                    cur += t;                    q.pop();                    q.push(t);                &#125;            &#125; else &#123;                q.push(t);                cur += t;            &#125;        &#125;        while (sz(q) &gt; k) &#123;            cur -= q.top();            q.pop();        &#125;        ll t;        if (sz(q) == k) &#123;            t = cur - q.top();        &#125; else &#123;            t = cur;        &#125;        pref[k] = t;        cnt[k] = cur;        oans = max(oans, cnt[k]);    &#125;    // cout &lt;&lt; oans &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n + 1; i++) &#123;    //     cout &lt;&lt; pref[i] &lt;&lt; &quot; \n&quot;[i == n + 1];    // &#125;    for (int i = 2; i &lt;= n + 1; i++) &#123;        pref[i] = max(pref[i], pref[i - 1]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        // db(x), db(pref[y + 1]), el;        cout &lt;&lt; max(oans, x + pref[y + 1]) &lt;&lt; &quot; &quot;;    &#125;    cout &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+]]></content>
+      <tags>
+        <tag>codeforces</tag>
       </tags>
   </entry>
   <entry>
@@ -2960,43 +3019,19 @@ a_i要尽可能的大, 我们就希望高位的1出现的越多次越好
       </tags>
   </entry>
   <entry>
-    <title>学习day48</title>
-    <url>/2026/02/28/%E5%AD%A6%E4%B9%A0day48/</url>
-    <content><![CDATA[Codeforces Round 1084 (Div.
-3)
-F
-题意: 有n个粒子, 每个粒子有两个属性x, y, x是能量值,
-y是能与之共存的粒子数, 另外商店里面还有m个粒子,
-问在买入商店的第i个粒子之后, 最大的能量总值是多少
-思路: 假设我们要k个粒子的话, 那么这k个粒子的y都不小于k-1,
-我们反向枚举k, 因为k值越小, 候选的粒子数越多, 然后选择x最大的k个粒子,
-这样我们就能求出不考虑从商店买粒子的情况下的最大值. 考虑商店,
-我们维护一个集合, f[k]表示k个粒子的情况排除掉最小的一个,
-给商店的例子腾出一个位置, 商店粒子的可以放在f[1]到f[y+1]的集合里面,
-我们要从中选一个最大的, 那么维护一个前缀最大值即可
-代码:
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;vt&lt;ll&gt;&gt; adj(n + 5);    priority_queue&lt;ll, vt&lt;ll&gt;, greater&lt;&gt;&gt; q;    for (int i = 1; i &lt;= n; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        adj[y].push_back(x);    &#125;    ll cur = 0;    for (auto t : adj[n]) &#123;        q.push(t);        cur += t;    &#125;    while (sz(q) &gt; n + 1) &#123;        cur -= q.top();        q.pop();    &#125;    vt&lt;ll&gt; pref(n + 5);    if (sz(q) == n + 1) &#123;        pref[n + 1] = cur - q.top();    &#125; else &#123;        pref[n + 1] = cur;    &#125;    vt&lt;ll&gt; cnt(n + 5);    cnt[n + 1] = cur;    ll oans = cur;    for (int k = n; k &gt;= 1; k--) &#123;        for (auto t : adj[k - 1]) &#123;            if (sz(q) == k) &#123;                if (q.top() &lt; t) &#123;                    cur -= q.top();                    cur += t;                    q.pop();                    q.push(t);                &#125;            &#125; else &#123;                q.push(t);                cur += t;            &#125;        &#125;        while (sz(q) &gt; k) &#123;            cur -= q.top();            q.pop();        &#125;        ll t;        if (sz(q) == k) &#123;            t = cur - q.top();        &#125; else &#123;            t = cur;        &#125;        pref[k] = t;        cnt[k] = cur;        oans = max(oans, cnt[k]);    &#125;    // cout &lt;&lt; oans &lt;&lt; &quot;\n&quot;;    // for (int i = 1; i &lt;= n + 1; i++) &#123;    //     cout &lt;&lt; pref[i] &lt;&lt; &quot; \n&quot;[i == n + 1];    // &#125;    for (int i = 2; i &lt;= n + 1; i++) &#123;        pref[i] = max(pref[i], pref[i - 1]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        ll x, y;        cin &gt;&gt; x &gt;&gt; y;        // db(x), db(pref[y + 1]), el;        cout &lt;&lt; max(oans, x + pref[y + 1]) &lt;&lt; &quot; &quot;;    &#125;    cout &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>codeforces</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day49</title>
-    <url>/2026/03/10/%E5%AD%A6%E4%B9%A0day49/</url>
-    <content><![CDATA[Codeforces Round 1085 (Div.
-1 + Div. 2)
+    <title>学习day51</title>
+    <url>/2026/03/13/%E5%AD%A6%E4%B9%A0day51/</url>
+    <content><![CDATA[牛客练习赛149
 C
-题意: 海里有一个地形, 表示为一个数组a, a[i]表示高度,
-然后水位在h这个高度, 可以设置排水沟, 每个单位的水可以向左右下三个方向走,
-问在最多设置两个排水沟的情况下, 最多可以排走多少单位的水
-思路: 需要注意到, 假设我在列j设置了一个排水沟, 对于第i列, 它的贡献是h
-- max_a[min(i, j)][max(i, j)], 也就是取决于它们之间的最高地形,
-两个排水沟通过容斥原理解决
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    ll n, h;    cin &gt;&gt; n &gt;&gt; h;    vt&lt;ll&gt; a(n + 5);    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];    &#125;    vt&lt;vt&lt;ll&gt;&gt; max_a(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = i; j &lt;= n; j++) &#123;            if (i == j) &#123;                max_a[i][j] = a[i];            &#125; else &#123;                max_a[i][j] = max(max_a[i][j - 1], a[j]);            &#125;        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; pref(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = 1; j &lt;= n; j++) &#123;            pref[i][j] = pref[i][j - 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    vt&lt;vt&lt;ll&gt;&gt; suff(n + 5, vt&lt;ll&gt;(n + 5));    for (int i = 1; i &lt;= n; i++) &#123;        for (int j = n; j &gt;= 1; j--) &#123;            suff[i][j] = suff[i][j + 1] + h - max_a[min(i, j)][max(i, j)];        &#125;    &#125;    ll ans = 0;    for (int i = 1; i &lt;= n; i++) &#123;        ll cnt = 0;        for (int j = 1; j &lt;= n; j++) &#123;            cnt += h - max_a[min(i, j)][max(i, j)];        &#125;        ans = max(ans, cnt);    &#125;    for (int i = 1; i + 1 &lt;= n; i++) &#123;        for (int j = i + 1; j &lt;= n; j++) &#123;            ll overlap = pref[j][i] + (j - i - 1) * (h - max_a[i][j]) + suff[i][j];            ll cnt = pref[i][n] + pref[j][n] - overlap;            ans = max(ans, cnt);        &#125;    &#125;    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+题目链接：https://ac.nowcoder.com/acm/contest/129232/C
+思路：我一开始用dp，就是计算到达每个gcd的最小价值，然后枚举gcd，选择价值总和最小的，但是超时了，可能是map的时间复杂度和常数太大了，不然我没看出来和标解的时间复杂度差多少，正确的做法应该是bfs
+代码（超时）：
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5), b(m + 5);    int mx = 0;    // cerr &lt;&lt; &quot;hi\n&quot;;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    // cerr &lt;&lt; &quot;hi\n&quot;;    vt&lt;int&gt; cnt(mx + 5);    vt&lt;ll&gt; cnt2(mx + 5);    set&lt;int&gt; g_factors;    for (int i = 1; i &lt;= n; i++) &#123;        map&lt;int, int&gt; dp;        dp[a[i]] = 0;        // cerr &lt;&lt; &quot;hi&quot; &lt;&lt; endl;        set&lt;int&gt; cur_factors = &#123;a[i]&#125;;        for (int j = 1; j &lt;= m; j++) &#123;            for (auto factor : cur_factors) &#123;                if (dp.count(__gcd(b[j], factor)) == 0) &#123;                    dp[__gcd(b[j], factor)] = dp[factor] + 1;                &#125; else &#123;                    dp[__gcd(b[j], factor)] = min(dp[__gcd(b[j], factor)], dp[factor] + 1);                &#125;                cur_factors.insert(__gcd(b[j], factor));            &#125;        &#125;        for (auto factor : cur_factors) &#123;            cnt[factor]++;            cnt2[factor] += dp[factor];            g_factors.insert(factor);        &#125;    &#125;    ll ans = 1e18;    for (auto i : g_factors) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, cnt2[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
+代码（正解）：
+#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; b(m + 5);    int mx = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    vt&lt;int&gt; dis(mx + 5, 1e9), cnt(mx + 5);    vt&lt;ll&gt; sum(mx + 5);    for (int i = 1; i &lt;= n; i++) &#123;        queue&lt;int&gt; q;        q.push(a[i]);        dis[a[i]] = 0;        cnt[a[i]]++;        vt&lt;int&gt; tmp;        while (!q.empty()) &#123;            int u = q.front();            q.pop();            tmp.pb(u);            for (int j = 1; j &lt;= m; j++) &#123;                int v = __gcd(b[j], u);                if (dis[v] == int(1e9)) &#123;                    dis[v] = dis[u] + 1;                    sum[v] += dis[v];                    cnt[v]++;                    q.push(v);                &#125;            &#125;        &#125;        for (auto x : tmp) &#123;            dis[x] = 1e9;        &#125;    &#125;    ll ans = 1e18;    for (int i = 1; i &lt;= mx; i++) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, sum[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 ]]></content>
       <tags>
-        <tag>codeforces</tag>
+        <tag>nowcoder</tag>
       </tags>
   </entry>
   <entry>
@@ -3167,41 +3202,6 @@ vue-router 了，我明天应该主要先研究怎么部署前后端
       </tags>
   </entry>
   <entry>
-    <title>学习day50</title>
-    <url>/2026/03/11/%E5%AD%A6%E4%B9%A0day50/</url>
-    <content><![CDATA[牛客周赛 Round 134
-F
-题目链接: https://ac.nowcoder.com/acm/contest/129231/F
-思路: 其实这道题我自己想出来了, 但是感觉这个思路有点牛逼,
-但是又感觉其实大家都是这个思路, 并没有什么牛逼的地方, 但是就记录一下吧,
-就是dp前缀[1…i]有多少种划分方案, 同理dp后缀,
-然后枚举满足s[i…j]是回文串的(i, j),
-贡献就是(j-i+1)^2*dp前缀[i-1]*dp后缀[j+1],
-怎么dp和怎么预处理s[i…j]是否是回文串, 这个就看基本功了
-代码
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queueconst ll MOD=998244353;ll power(ll u,ll v)&#123;    ll res=1;    while(v)&#123;        if(v%2) res=res*u%MOD;        u=u*u%MOD;        v/=2;    &#125;    return res;&#125;void add(ll &amp;u,ll v)&#123;    u+=v;    if(u&gt;=MOD) u-=MOD;    if(u&lt;0) u+=MOD;&#125;ll prod(ll u,ll v)&#123;    return u*v%MOD;&#125;void solve()&#123;    int n;    cin&gt;&gt;n;    string s;    cin&gt;&gt;s;    s=&#x27; &#x27;+s;    auto is_p=[&amp;](string str)-&gt;bool&#123;        for(int i=0,j=sz(str)-1;i&lt;j;i++,j--)&#123;            if(str[i]!=str[j]) return false;        &#125;        return true;    &#125;;    vt&lt;vt&lt;bool&gt;&gt; isp(n+5,vt&lt;bool&gt;(n+5));    for(int i=1;i&lt;=n;i++)&#123;        string t;        for(int j=i;j&lt;=n;j++)&#123;            t+=s[j];            if(is_p(t))&#123;                isp[i][j]=true;            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp1(n+5);    dp1[0]=1;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=1;j&lt;=i;j++)&#123;            if(isp[j][i])&#123;                add(dp1[i],dp1[j-1]);            &#125;        &#125;    &#125;    vt&lt;ll&gt; dp2(n+5);    dp2[n+1]=1;    for(int i=n;i&gt;=1;i--)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                add(dp2[i],dp2[j+1]);            &#125;        &#125;    &#125;    ll ans=0;    for(int i=1;i&lt;=n;i++)&#123;        for(int j=i;j&lt;=n;j++)&#123;            if(isp[i][j])&#123;                ll len_2=1LL*(j-i+1)*(j-i+1)%MOD;                add(ans,(len_2*dp1[i-1]%MOD)*dp2[j+1]%MOD);            &#125;        &#125;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin&gt;&gt;tt;    while(tt--)&#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>nowcoder</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day51</title>
-    <url>/2026/03/13/%E5%AD%A6%E4%B9%A0day51/</url>
-    <content><![CDATA[牛客练习赛149
-C
-题目链接：https://ac.nowcoder.com/acm/contest/129232/C
-思路：我一开始用dp，就是计算到达每个gcd的最小价值，然后枚举gcd，选择价值总和最小的，但是超时了，可能是map的时间复杂度和常数太大了，不然我没看出来和标解的时间复杂度差多少，正确的做法应该是bfs
-代码（超时）：
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5), b(m + 5);    int mx = 0;    // cerr &lt;&lt; &quot;hi\n&quot;;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    // cerr &lt;&lt; &quot;hi\n&quot;;    vt&lt;int&gt; cnt(mx + 5);    vt&lt;ll&gt; cnt2(mx + 5);    set&lt;int&gt; g_factors;    for (int i = 1; i &lt;= n; i++) &#123;        map&lt;int, int&gt; dp;        dp[a[i]] = 0;        // cerr &lt;&lt; &quot;hi&quot; &lt;&lt; endl;        set&lt;int&gt; cur_factors = &#123;a[i]&#125;;        for (int j = 1; j &lt;= m; j++) &#123;            for (auto factor : cur_factors) &#123;                if (dp.count(__gcd(b[j], factor)) == 0) &#123;                    dp[__gcd(b[j], factor)] = dp[factor] + 1;                &#125; else &#123;                    dp[__gcd(b[j], factor)] = min(dp[__gcd(b[j], factor)], dp[factor] + 1);                &#125;                cur_factors.insert(__gcd(b[j], factor));            &#125;        &#125;        for (auto factor : cur_factors) &#123;            cnt[factor]++;            cnt2[factor] += dp[factor];            g_factors.insert(factor);        &#125;    &#125;    ll ans = 1e18;    for (auto i : g_factors) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, cnt2[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-代码（正解）：
-#include &lt;bits/stdc++.h&gt;using namespace std;#define ll long long#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define vt vector#define rg(x, a, b) (x).begin() + a, (x).begin() + b + 1#define sz(x) int((x).size())#define pii pair&lt;int, int&gt;#define pll pair&lt;ll, ll&gt;#define pb push_back#define all(x) (x).begin(), (x).end()#define fi first#define se second#define p_queue priority_queuevoid solve() &#123;    int n, m;    cin &gt;&gt; n &gt;&gt; m;    vt&lt;int&gt; a(n + 5);    vt&lt;int&gt; b(m + 5);    int mx = 0;    for (int i = 1; i &lt;= n; i++) &#123;        cin &gt;&gt; a[i];        mx = max(mx, a[i]);    &#125;    for (int i = 1; i &lt;= m; i++) &#123;        cin &gt;&gt; b[i];    &#125;    vt&lt;int&gt; dis(mx + 5, 1e9), cnt(mx + 5);    vt&lt;ll&gt; sum(mx + 5);    for (int i = 1; i &lt;= n; i++) &#123;        queue&lt;int&gt; q;        q.push(a[i]);        dis[a[i]] = 0;        cnt[a[i]]++;        vt&lt;int&gt; tmp;        while (!q.empty()) &#123;            int u = q.front();            q.pop();            tmp.pb(u);            for (int j = 1; j &lt;= m; j++) &#123;                int v = __gcd(b[j], u);                if (dis[v] == int(1e9)) &#123;                    dis[v] = dis[u] + 1;                    sum[v] += dis[v];                    cnt[v]++;                    q.push(v);                &#125;            &#125;        &#125;        for (auto x : tmp) &#123;            dis[x] = 1e9;        &#125;    &#125;    ll ans = 1e18;    for (int i = 1; i &lt;= mx; i++) &#123;        if (cnt[i] == n) &#123;            ans = min(ans, sum[i]);        &#125;    &#125;    if (ans == (ll)1e18) &#123;        cout &lt;&lt; &quot;-1\n&quot;;    &#125; else &#123;        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;    &#125;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(0);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
-]]></content>
-      <tags>
-        <tag>nowcoder</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习day52</title>
     <url>/2026/03/15/%E5%AD%A6%E4%B9%A0day52/</url>
     <content><![CDATA[Codeforces Round 1086 (Div.
@@ -3278,6 +3278,158 @@ A能干掉(x+1)/2个，B救x/2个
       </tags>
   </entry>
   <entry>
+    <title>学习day7</title>
+    <url>/2025/11/17/%E5%AD%A6%E4%B9%A0day7/</url>
+    <content><![CDATA[github actions 是否成功运行
+今天早上醒来在床上打开了我的网页，看了一下 api
+接口，发现数据的日期还是昨天的，我以为是 github actions
+没有跑起来，但是现在打开 github
+一看，发现是有跑的记录的，所以是我的程序有问题
+纠正一下，数据的加入时间就是今天早上的，只因为数据显示的时区不一样，所以才会显示昨天的日期
+我问了一下 ai
+能不能在模型那里改存储的时间时区，它说建议不要改，展示的时候再改，好吧，那我就不改了，我在
+serializer 那里改
+from rest_framework import serializersfrom .models import HotItemfrom django.utils.timezone import localtimeclass HotItemSerializer(serializers.ModelSerializer):    class Meta:        model = HotItem        fields = &quot;__all__&quot;    def to_representation(self, instance):        data = super().to_representation(instance)        if instance.crawl_time:            data[&quot;crawl_time&quot;] = localtime(instance.crawl_time).strftime(                &quot;%Y-%m-%d %H:%M:%S&quot;            )        return data
+覆写 to_representation 就可以了
+记得要在 settings 里面修改一个配置
+TIME_ZONE = &quot;Asia/Shanghai&quot;
+一开始我直接加上 TIME_ZONE
+发现不行，为什么，因为我没有发现原来默认已经把 TIME_ZONE
+写出来了，我以为要自己加上，结果被覆盖成 UTC
+了，下次添加配置的时候一定要注意配置是不是已经写出来了
+另外介绍一个好用的工具
+python manage.py shell
+这个可以在当前后端环境当中运行 python 脚本，可以用来 debug
+和做一些测试
+render 的 free tier 限制
+我在文档里面找到说一个月最多只有 750
+小时的免费额度使用，我当时心算了一下以为是每天只能用 2.5
+小时这样，结果一按计算机是每天 25
+小时左右，我寻思不对啊，那其实一直运行着不也可以吗，后来问了一下，发现是一个账号的所有项目的总额是
+750
+小时，那如果我只有一个项目的话，就可以一直跑了，后来我要搞其他项目的话，其实直接开一个新的账号也行吧，笑嘻了，然后因为
+render 服务是十五分钟就会休眠，所以我 github actions
+每隔十分钟爬一次就能一直保证后端活着吧，好像不太多，我的 workflow
+只执行了爬虫，好像并没有对后端发送请求
+github actions
+也是有免费额度的
+好像是每个月 2000
+分钟，后面搜了一下是私人仓库才有这个限制，公开仓库是没有任何限制的，可以尽情折腾，而且就算有限制，2000
+分钟我也是完全用不完，我大概十分钟跑一次 workflow，一个月都只能用掉 100
+分钟左右
+github workflow 语法解释
+我就解释一下之前 ai 帮我写的 workflow 程序
+name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;0 22 * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.11&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1
+schdule 是定时执行的意思，上面那个 cron 的时间格式分别是分 时 日 月
+星期，星号就是所有的意思，这很显然，所以”0 22 * * *” 就是每天 UTC 时间
+22 点，也就是北京时间 6 点，因为北京时间是 UTC+8，减去 8
+小时就是标准时间
+检出代码的意思就是从仓库里面把代码拉到虚拟机里面，然后 python setup
+的部分应该也是 github 那边提前写好的一些脚本，我打算把 python 版本改成
+3.14，没事找事，因为我发现我本地的版本是 3.14，顺便说一下检查 python
+版本的命令是 python -V
+上面的 yml
+代码会发现有些字段前面带一个-号，这代表它是列表里面的元素，比如说 steps
+吧，它就是一个列表，后面就有很多个列表元素，每个-号都代表这是一个新元素，光是理解这个程序应该就够我用了，接下来该了解一下一些
+github 的相关插件了，不然每次都要上去 github 那边执行操作还是挺烦的
+schedule:  # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC  - cron: &quot;0 * * * *&quot;  - cron: &quot;10 * * * *&quot;  - cron: &quot;20 * * * *&quot;  - cron: &quot;30 * * * *&quot;  - cron: &quot;40 * * * *&quot;  - cron: &quot;50 * * * *&quot;
+每隔十分钟是可以这样写，但是有点笨了
+schedule:  - cron: &quot;*/10 * * * *&quot;
+这样写是更加聪明的，它的功能和上面的一样，只是我看不太懂这个语法，不过这样写就对了
+github 相关插件
+vscode 的 git 相关操作太简单了，应该不用特意说
+原来 github actions 插件一直在左边，悬停一下就能看到显示 github
+actions 了，然后 git 的插件是一个长得像 Y 型的树
+有一个 gitignore 插件，右键文件就可以添加文件到.gitignore
+里面了，很方便
+分支流程
+main 分支是实际发布的分支，然后应该再创建一个 develop
+分支，开发完成之后再 merge 到 main 分支上面，然后 develop
+分支也不用删，相当于是一个版本比较新的 main 分支
+唤醒后端
+name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;*/10 * * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.14&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1      # 6 对后端发送请求，唤醒后端      - name: Wake up backend        run: |          curl -X GET https://your-backend-url.onrender.com/healthcheck || true
+首先 run: |这里解释一下，这个|是多行字符串的意思，在 run
+下面带缩进的行都是属于 run 这个字段的，然后 curl
+是系统自带的一个命令，|| true 这里是防止请求失败然后返回错误结果导致
+workflow failed 了
+一个 vue
+事件触发很操蛋的地方
+比如说我写了一个函数
+handleClick，没有参数，那我写@click=“handleClick()”就是错的，@click=“handleClick”或者@click=“() =&gt;
+handleClick()”才是对的，但是如果我这个函数是有参数的，@click=“handleClick(e)”这样就是没问题的，虽然按道理来说应该要写成@click=“()
+=&gt; handleClick(e)”的，但是这里 vue
+提供的一个语法糖，怪不得之前我一直没搞懂
+在 vscode
+上面 merge develop 分支到 main 分支上面
+首先切换到 main 分支，然后在 git 插件那里，找 Source
+Control，在下面的 change 那里找…，然后找到 branch，点击 merge，找到
+develop 分支，最后就行了，藏得有点深，我还特意找了个教程
+github 删除文件
+可以直接在仓库里面点进文件然后 delete this file
+develop 分支的必要性
+说实话个人项目直接在 main
+分支上开发就行了，这样效率高多了，前面我开一个 develop
+分支只是玩玩而已
+github actions 定时触发频率
+我上次设置成十分钟触发一次，结果发现触发频率超低，我干脆改成每分钟触发，结果发现时间间隔在
+5 到 20 分钟不等，非常不稳定，哎，免费的东西能用就不错了
+唤醒后端动作没有用
+# 6 对后端发送请求，唤醒后端- name: Ping backend  run: |    curl -I https://hottagplatform.onrender.com/api/hot/ \      -H &quot;User-Agent: Mozilla/5.0&quot; \      --max-time 30 \      || echo &quot;Ping failed&quot;
+好像说是一开始单纯的 get
+太短太简单了，直接被后端忽略了，所以没有唤醒后端，现在改成这样，加上一个
+header，这样后端就不会忽略这个请求了
+]]></content>
+      <tags>
+        <tag>github actions</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day9</title>
+    <url>/2025/11/19/%E5%AD%A6%E4%B9%A0day9/</url>
+    <content><![CDATA[vue-router 注意事项
+children 写的是相对路径，redirect 最好写绝对路径
+props 的问题
+interface Props &#123;  selectedValue: string;&#125;const props = defineProps&lt;Props&gt;();
+规定 props 的类型限制的 ts 写法，另外这里这个 selectedValue
+我父组件那边传的是响应式变量，但是传过来的时候，会自动解包把里面的值拿出来，所以这里写
+string，是限制 ref 里面的值的类型
+watch(  () =&gt; props.selectedValue,  (newVal: string) =&gt; &#123;    ...  &#125;)
+这里因为 props.selectedValue 是一个普通值了，所以写一个 getter
+子路由传值
+&lt;router-view v-slot=&quot;&#123; Component &#125;&quot;&gt;  &lt;component :is=&quot;Component&quot; :selectedValue=&quot;selectedValue&quot;&gt;&lt;/component&gt;&lt;/router-view&gt;
+component 是 vue 内置的动态组件标签，:is
+用来绑定一个组件对象,{Component}是解构的组件对象
+vue keyup 事件触发
+&lt;input  type=&quot;text&quot;  v-model=&quot;searchText&quot;  placeholder=&quot;请输入搜索内容&quot;  class=&quot;input input-bordered join-item grow&quot;  @keyup.enter=&quot;searchHandle&quot;/&gt;
+动态附加 class
+&lt;span  v-for=&quot;item in pages&quot;  :key=&quot;item.name&quot;  class=&quot;hover:text-black hover:font-bold hover:cursor-pointer&quot;  :class=&quot;    selectedPage == item.value        ? &#x27;border-b-5 border-blue-500 text-black font-bold&#x27;        : &#x27;&#x27;    &quot;  @click=&quot;selectPageHandle(item.value)&quot;&gt;&lt;/span&gt;
+:class 这里的样式都是在原 class 的基础上继续附加的
+访问 github 仓库文件
+要访问 raw 的 url，普通 url 返回的是普通的 html 文件
+interface 套 props
+的简约写法
+const props = defineProps&lt;&#123;  selectedValue: string;&#125;&gt;();
+和上面的写法是等价的
+导航栏和 url 对不上
+不要自己维护选中了什么路径，用 router.currentRoute.value.path
+来查询
+src 直接绑定 base64
+字符串可以直接显示图片
+这个 base64 字符串建议用 text 来存，太长了
+外键获取属性
+from rest_framework.views import APIViewfrom .models import WordCloudfrom rest_framework.response import Responsefrom rest_framework import statusclass WordCloudAPIView(APIView):    def get(self, request):        source = request.query_params.get(&quot;source&quot;)        url = WordCloud.objects.get(            source__value=source        ).url  # 实际上source关联的还是对象，要这样获取列名        return Response(&#123;&quot;url&quot;: url&#125;, status=status.HTTP_200_OK)
+这里 source 是个外键，虽然定义时写了
+to_field=“value”，但是其实还是指向一个对象，不是字符串，所以要用
+source__value 去找外键的属性值
+生产环境刷新页面 404
+改成 createHashHistory 就可以，原理好像是#后面的 url
+不会被请求，只会请求域名，另一个解决方法是配置 nginx
+]]></content>
+      <tags>
+        <tag>vue</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>学习day56</title>
     <url>/2026/03/23/%E5%AD%A6%E4%B9%A0day56/</url>
     <content><![CDATA[https://codeforces.com/contest/2209/problem/C
@@ -3290,6 +3442,119 @@ https://ac.nowcoder.com/acm/contest/130107/E
 ]]></content>
       <tags>
         <tag>codeforces</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习day8</title>
+    <url>/2025/11/18/%E5%AD%A6%E4%B9%A0day8/</url>
+    <content><![CDATA[建立软链接清理 C 盘
+在开始今天的学习之前，我注意到了我电脑的 C
+盘不知道为什么突然又快爆了，之前清理过好几次，都是一些 node
+以及浏览器的缓存，不是一些很重要的东西，但是要这样频繁地去清理很麻烦，之前听说过软链接这个东西，我想用这玩意给我的
+C 盘腾一点空间，毕竟我的 D 盘占用率还是比较低的
+C:这个目录占了有 30GB+，但是我就想转一个 10GB 左右，底下有 Temp
+目录，更新频率蛮高的，但是它的大小不大，我找了一下这里面的 Android
+目录有
+10GB+，就决定转移它了，尽管它上次更新已经快两年前，其他目录的文件不敢乱删
+mklink /j C:\Users\Njaso\AppData\Local\Android D:\Android
+/j
+就是建立目录链接，第一个参数是目标地址，这个目标地址一定是要不存在的，第二个参数源地址
+添加 drf 分页器
+局部分页
+from .models import HotItemfrom .serializers import HotItemSerializerfrom rest_framework.generics import ListAPIViewfrom rest_framework.pagination import PageNumberPaginationclass HotItemPagination(PageNumberPagination):    page_size = 10  # 默认每页10条记录    page_size_query_param = &quot;page_size&quot;  # 前端参数命名, .e.g ?page_size=114    max_page_size = 100class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
+一定要用 ListAPIVIew，或者 modelViewSet，不然不会生效，max_page_size
+就是允许用户重定义 page_size 的上限，超过了 max_page_size
+不会发生什么，只会改回上限的值
+全局分页
+settings.py
+REST_FRAMEWORK = &#123;    &quot;DEFAULT_PAGINATION_CLASS&quot;: &quot;rest_framework.pagination.PageNumberPagination&quot;,    &quot;PAGE_SIZE&quot;: 10,&#125;
+全局设置无法让用户传入 page_size 参数
+class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
+用了全局分页器，View 这边也不用写 pagination_class
+npm 添加自定义命令
+package.json
+&quot;scripts&quot;: &#123;    &quot;build&quot;: &quot;hexo generate&quot;,    &quot;clean&quot;: &quot;hexo clean&quot;,    &quot;deploy&quot;: &quot;hexo deploy&quot;,    &quot;server&quot;: &quot;hexo server&quot;,    &quot;cgd&quot;: &quot;hexo clean &amp; hexo g &amp; hexo d&quot;  &#125;,
+执行命令的方法就是 npm run cgd
+设置路径别名
+vite.config.ts
+import &#123; defineConfig &#125; from &quot;vite&quot;;import vue from &quot;@vitejs/plugin-vue&quot;;import tailwindcss from &quot;@tailwindcss/vite&quot;;import path from &quot;path&quot;;// https://vite.dev/config/export default defineConfig(&#123;  plugins: [vue(), tailwindcss()],  resolve: &#123;    alias: &#123;      &quot;@&quot;: path.resolve(__dirname, &quot;./src&quot;),    &#125;,  &#125;,&#125;);
+前端调用@的时候可能会报错，不要管
+tsconfig.app.json
+&quot;baseUrl&quot;: &quot;.&quot;,&quot;paths&quot;: &#123;    &quot;@/*&quot;: [&quot;src/*&quot;]&#125;
+在这个文件的 compilerOptions 里面也添加上这两项
+节流函数
+手写版本
+// 快速点击下一页的时候，会导致页码和实际内容不同步，这时候需要利用节流来限制短时间内频繁操作的行为export const useThrottle = (fn: Function, delay: number = 300) =&gt; &#123;  let last = 0;  return (...args: any[]) =&gt; &#123;    const now = Date.now();    if (now - last &gt;= delay) &#123;      last = now;      return fn(...args);    &#125;  &#125;;&#125;;
+节流就是为了防止短时间内多次进行同一操作，设置了每次操作的时间间隔
+composable
+composable
+指一些可以复用的逻辑，比如防抖节流这些（不过通常不会手写），存在/src/composables
+里面
+记录一个 bug
+在组件渲染出来之前，你去找这个 HTML 元素，它可能是 null，我通过
+setTimeout 延时了 500ms，发现同样的逻辑能找到这个 button
+]]></content>
+      <tags>
+        <tag>系统存储</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕设day2</title>
+    <url>/2026/03/08/%E6%AF%95%E8%AE%BEday2/</url>
+    <content><![CDATA[添加diary的CRUD
+我发现ai给我的程序大部分功能都侧重在ai和画像可视化这些部分,
+但是最基本的日记编写却是十分简陋,
+最开始连查看自己写过的日记的功能都没有,
+现在还没有实现删除自己写过的日记的功能
+要添加CRUD的功能, 日记这边删除了, 不是就这样完事了, 对应的,
+向量数据库那边也要删除相关的记录, 不然画像和日记这两边就会不同步
+我还是修改一下prompt吧, 感觉让ai用颜文字来回答问题还是太癫了,
+到时候也不利于展示
+添加登录系统
+现在这个日记系统的功能基本上都完成了, 针对单个用户来说,
+但是我认为一个web系统应该支持不同的用户登录,
+不然就没有什么太大的实用价值, 接下来就是要修改一下数据库, 添加几个表,
+然后又添加几个接口, 然后再修改一下前端逻辑
+首先这里的认证系统, 依旧是选择简单好用的simple-jwt
+pip install djangorestframework-simplejwt
+清空旧数据：在后端执行 python manage.py flush，因为旧日记没有关联 user_id，会导致列表显示报错。
+居然还有这种操作
+]]></content>
+      <tags>
+        <tag>vue</tag>
+        <tag>毕业设计</tag>
+        <tag>chromadb</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hexo部署博客注意事项</title>
+    <url>/2025/10/20/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
+    <content><![CDATA[部署命令
+清理之前生成的缓存文件和静态文件
+$ hexo clean
+静态文件包括以下两个文件：
+
+./public/
+./.deploy_git/
+
+缓存文件则是：
+
+./cache/
+
+本地生成静态文件
+$ hexo g
+本地预览页面
+$ hexo s
+部署页面到github pages服务
+$ hexo d
+主题更换
+主题在**_config.yml**里面更改theme属性
+如果在更改主题之后，发现页面部署失败的话，可能是因为有部分主题使用了Pug模板引擎，而本地项目还没有安装相关插件
+可以通过以下命令安装：
+$ npm install hexo-renderer-pug hexo-renderer-stylus --save
+]]></content>
+      <tags>
+        <tag>hexo</tag>
       </tags>
   </entry>
   <entry>
@@ -3511,268 +3776,31 @@ superuser 这样才能访问后台
       </tags>
   </entry>
   <entry>
-    <title>学习day7</title>
-    <url>/2025/11/17/%E5%AD%A6%E4%B9%A0day7/</url>
-    <content><![CDATA[github actions 是否成功运行
-今天早上醒来在床上打开了我的网页，看了一下 api
-接口，发现数据的日期还是昨天的，我以为是 github actions
-没有跑起来，但是现在打开 github
-一看，发现是有跑的记录的，所以是我的程序有问题
-纠正一下，数据的加入时间就是今天早上的，只因为数据显示的时区不一样，所以才会显示昨天的日期
-我问了一下 ai
-能不能在模型那里改存储的时间时区，它说建议不要改，展示的时候再改，好吧，那我就不改了，我在
-serializer 那里改
-from rest_framework import serializersfrom .models import HotItemfrom django.utils.timezone import localtimeclass HotItemSerializer(serializers.ModelSerializer):    class Meta:        model = HotItem        fields = &quot;__all__&quot;    def to_representation(self, instance):        data = super().to_representation(instance)        if instance.crawl_time:            data[&quot;crawl_time&quot;] = localtime(instance.crawl_time).strftime(                &quot;%Y-%m-%d %H:%M:%S&quot;            )        return data
-覆写 to_representation 就可以了
-记得要在 settings 里面修改一个配置
-TIME_ZONE = &quot;Asia/Shanghai&quot;
-一开始我直接加上 TIME_ZONE
-发现不行，为什么，因为我没有发现原来默认已经把 TIME_ZONE
-写出来了，我以为要自己加上，结果被覆盖成 UTC
-了，下次添加配置的时候一定要注意配置是不是已经写出来了
-另外介绍一个好用的工具
-python manage.py shell
-这个可以在当前后端环境当中运行 python 脚本，可以用来 debug
-和做一些测试
-render 的 free tier 限制
-我在文档里面找到说一个月最多只有 750
-小时的免费额度使用，我当时心算了一下以为是每天只能用 2.5
-小时这样，结果一按计算机是每天 25
-小时左右，我寻思不对啊，那其实一直运行着不也可以吗，后来问了一下，发现是一个账号的所有项目的总额是
-750
-小时，那如果我只有一个项目的话，就可以一直跑了，后来我要搞其他项目的话，其实直接开一个新的账号也行吧，笑嘻了，然后因为
-render 服务是十五分钟就会休眠，所以我 github actions
-每隔十分钟爬一次就能一直保证后端活着吧，好像不太多，我的 workflow
-只执行了爬虫，好像并没有对后端发送请求
-github actions
-也是有免费额度的
-好像是每个月 2000
-分钟，后面搜了一下是私人仓库才有这个限制，公开仓库是没有任何限制的，可以尽情折腾，而且就算有限制，2000
-分钟我也是完全用不完，我大概十分钟跑一次 workflow，一个月都只能用掉 100
-分钟左右
-github workflow 语法解释
-我就解释一下之前 ai 帮我写的 workflow 程序
-name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;0 22 * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.11&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1
-schdule 是定时执行的意思，上面那个 cron 的时间格式分别是分 时 日 月
-星期，星号就是所有的意思，这很显然，所以”0 22 * * *” 就是每天 UTC 时间
-22 点，也就是北京时间 6 点，因为北京时间是 UTC+8，减去 8
-小时就是标准时间
-检出代码的意思就是从仓库里面把代码拉到虚拟机里面，然后 python setup
-的部分应该也是 github 那边提前写好的一些脚本，我打算把 python 版本改成
-3.14，没事找事，因为我发现我本地的版本是 3.14，顺便说一下检查 python
-版本的命令是 python -V
-上面的 yml
-代码会发现有些字段前面带一个-号，这代表它是列表里面的元素，比如说 steps
-吧，它就是一个列表，后面就有很多个列表元素，每个-号都代表这是一个新元素，光是理解这个程序应该就够我用了，接下来该了解一下一些
-github 的相关插件了，不然每次都要上去 github 那边执行操作还是挺烦的
-schedule:  # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC  - cron: &quot;0 * * * *&quot;  - cron: &quot;10 * * * *&quot;  - cron: &quot;20 * * * *&quot;  - cron: &quot;30 * * * *&quot;  - cron: &quot;40 * * * *&quot;  - cron: &quot;50 * * * *&quot;
-每隔十分钟是可以这样写，但是有点笨了
-schedule:  - cron: &quot;*/10 * * * *&quot;
-这样写是更加聪明的，它的功能和上面的一样，只是我看不太懂这个语法，不过这样写就对了
-github 相关插件
-vscode 的 git 相关操作太简单了，应该不用特意说
-原来 github actions 插件一直在左边，悬停一下就能看到显示 github
-actions 了，然后 git 的插件是一个长得像 Y 型的树
-有一个 gitignore 插件，右键文件就可以添加文件到.gitignore
-里面了，很方便
-分支流程
-main 分支是实际发布的分支，然后应该再创建一个 develop
-分支，开发完成之后再 merge 到 main 分支上面，然后 develop
-分支也不用删，相当于是一个版本比较新的 main 分支
-唤醒后端
-name: Run Spider# 触发条件：每天早上6点 + 手动触发on:  schedule:    # 每天北京时间 06:00，注意 GitHub Actions 使用 UTC    - cron: &quot;*/10 * * * *&quot;  workflow_dispatch: # 允许手动触发jobs:  run-spider:    runs-on: ubuntu-latest    env:      ENV: prod      DJANGO_SETTINGS_MODULE: backend.settings      SECRET_KEY: $&#123;&#123; secrets.DJANGO_SECRET_KEY &#125;&#125;      DATABASE_URL: $&#123;&#123; secrets.DATABASE_URL &#125;&#125;    steps:      # 1️⃣ 检出代码      - name: Checkout code        uses: actions/checkout@v3      # 2️⃣ 设置 Python      - name: Set up Python        uses: actions/setup-python@v4        with:          python-version: &quot;3.14&quot;      # 3️⃣ 安装依赖      - name: Install dependencies        run: |          pip install -r requirements.txt      # 4️⃣ 执行数据库迁移      - name: Apply Django migrations        run: |          python manage.py migrate      # 5️⃣ 运行爬虫脚本并写日志      - name: Run spider script        run: |          echo &quot;Spider run at $(date)&quot; &gt;&gt; spider.log          python spiders/run_all.py &gt;&gt; spider.log 2&gt;&amp;1      # 6 对后端发送请求，唤醒后端      - name: Wake up backend        run: |          curl -X GET https://your-backend-url.onrender.com/healthcheck || true
-首先 run: |这里解释一下，这个|是多行字符串的意思，在 run
-下面带缩进的行都是属于 run 这个字段的，然后 curl
-是系统自带的一个命令，|| true 这里是防止请求失败然后返回错误结果导致
-workflow failed 了
-一个 vue
-事件触发很操蛋的地方
-比如说我写了一个函数
-handleClick，没有参数，那我写@click=“handleClick()”就是错的，@click=“handleClick”或者@click=“() =&gt;
-handleClick()”才是对的，但是如果我这个函数是有参数的，@click=“handleClick(e)”这样就是没问题的，虽然按道理来说应该要写成@click=“()
-=&gt; handleClick(e)”的，但是这里 vue
-提供的一个语法糖，怪不得之前我一直没搞懂
-在 vscode
-上面 merge develop 分支到 main 分支上面
-首先切换到 main 分支，然后在 git 插件那里，找 Source
-Control，在下面的 change 那里找…，然后找到 branch，点击 merge，找到
-develop 分支，最后就行了，藏得有点深，我还特意找了个教程
-github 删除文件
-可以直接在仓库里面点进文件然后 delete this file
-develop 分支的必要性
-说实话个人项目直接在 main
-分支上开发就行了，这样效率高多了，前面我开一个 develop
-分支只是玩玩而已
-github actions 定时触发频率
-我上次设置成十分钟触发一次，结果发现触发频率超低，我干脆改成每分钟触发，结果发现时间间隔在
-5 到 20 分钟不等，非常不稳定，哎，免费的东西能用就不错了
-唤醒后端动作没有用
-# 6 对后端发送请求，唤醒后端- name: Ping backend  run: |    curl -I https://hottagplatform.onrender.com/api/hot/ \      -H &quot;User-Agent: Mozilla/5.0&quot; \      --max-time 30 \      || echo &quot;Ping failed&quot;
-好像说是一开始单纯的 get
-太短太简单了，直接被后端忽略了，所以没有唤醒后端，现在改成这样，加上一个
-header，这样后端就不会忽略这个请求了
-]]></content>
-      <tags>
-        <tag>github actions</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day9</title>
-    <url>/2025/11/19/%E5%AD%A6%E4%B9%A0day9/</url>
-    <content><![CDATA[vue-router 注意事项
-children 写的是相对路径，redirect 最好写绝对路径
-props 的问题
-interface Props &#123;  selectedValue: string;&#125;const props = defineProps&lt;Props&gt;();
-规定 props 的类型限制的 ts 写法，另外这里这个 selectedValue
-我父组件那边传的是响应式变量，但是传过来的时候，会自动解包把里面的值拿出来，所以这里写
-string，是限制 ref 里面的值的类型
-watch(  () =&gt; props.selectedValue,  (newVal: string) =&gt; &#123;    ...  &#125;)
-这里因为 props.selectedValue 是一个普通值了，所以写一个 getter
-子路由传值
-&lt;router-view v-slot=&quot;&#123; Component &#125;&quot;&gt;  &lt;component :is=&quot;Component&quot; :selectedValue=&quot;selectedValue&quot;&gt;&lt;/component&gt;&lt;/router-view&gt;
-component 是 vue 内置的动态组件标签，:is
-用来绑定一个组件对象,{Component}是解构的组件对象
-vue keyup 事件触发
-&lt;input  type=&quot;text&quot;  v-model=&quot;searchText&quot;  placeholder=&quot;请输入搜索内容&quot;  class=&quot;input input-bordered join-item grow&quot;  @keyup.enter=&quot;searchHandle&quot;/&gt;
-动态附加 class
-&lt;span  v-for=&quot;item in pages&quot;  :key=&quot;item.name&quot;  class=&quot;hover:text-black hover:font-bold hover:cursor-pointer&quot;  :class=&quot;    selectedPage == item.value        ? &#x27;border-b-5 border-blue-500 text-black font-bold&#x27;        : &#x27;&#x27;    &quot;  @click=&quot;selectPageHandle(item.value)&quot;&gt;&lt;/span&gt;
-:class 这里的样式都是在原 class 的基础上继续附加的
-访问 github 仓库文件
-要访问 raw 的 url，普通 url 返回的是普通的 html 文件
-interface 套 props
-的简约写法
-const props = defineProps&lt;&#123;  selectedValue: string;&#125;&gt;();
-和上面的写法是等价的
-导航栏和 url 对不上
-不要自己维护选中了什么路径，用 router.currentRoute.value.path
-来查询
-src 直接绑定 base64
-字符串可以直接显示图片
-这个 base64 字符串建议用 text 来存，太长了
-外键获取属性
-from rest_framework.views import APIViewfrom .models import WordCloudfrom rest_framework.response import Responsefrom rest_framework import statusclass WordCloudAPIView(APIView):    def get(self, request):        source = request.query_params.get(&quot;source&quot;)        url = WordCloud.objects.get(            source__value=source        ).url  # 实际上source关联的还是对象，要这样获取列名        return Response(&#123;&quot;url&quot;: url&#125;, status=status.HTTP_200_OK)
-这里 source 是个外键，虽然定义时写了
-to_field=“value”，但是其实还是指向一个对象，不是字符串，所以要用
-source__value 去找外键的属性值
-生产环境刷新页面 404
-改成 createHashHistory 就可以，原理好像是#后面的 url
-不会被请求，只会请求域名，另一个解决方法是配置 nginx
-]]></content>
-      <tags>
-        <tag>vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习day8</title>
-    <url>/2025/11/18/%E5%AD%A6%E4%B9%A0day8/</url>
-    <content><![CDATA[建立软链接清理 C 盘
-在开始今天的学习之前，我注意到了我电脑的 C
-盘不知道为什么突然又快爆了，之前清理过好几次，都是一些 node
-以及浏览器的缓存，不是一些很重要的东西，但是要这样频繁地去清理很麻烦，之前听说过软链接这个东西，我想用这玩意给我的
-C 盘腾一点空间，毕竟我的 D 盘占用率还是比较低的
-C:这个目录占了有 30GB+，但是我就想转一个 10GB 左右，底下有 Temp
-目录，更新频率蛮高的，但是它的大小不大，我找了一下这里面的 Android
-目录有
-10GB+，就决定转移它了，尽管它上次更新已经快两年前，其他目录的文件不敢乱删
-mklink /j C:\Users\Njaso\AppData\Local\Android D:\Android
-/j
-就是建立目录链接，第一个参数是目标地址，这个目标地址一定是要不存在的，第二个参数源地址
-添加 drf 分页器
-局部分页
-from .models import HotItemfrom .serializers import HotItemSerializerfrom rest_framework.generics import ListAPIViewfrom rest_framework.pagination import PageNumberPaginationclass HotItemPagination(PageNumberPagination):    page_size = 10  # 默认每页10条记录    page_size_query_param = &quot;page_size&quot;  # 前端参数命名, .e.g ?page_size=114    max_page_size = 100class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    pagination_class = HotItemPagination    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
-一定要用 ListAPIVIew，或者 modelViewSet，不然不会生效，max_page_size
-就是允许用户重定义 page_size 的上限，超过了 max_page_size
-不会发生什么，只会改回上限的值
-全局分页
-settings.py
-REST_FRAMEWORK = &#123;    &quot;DEFAULT_PAGINATION_CLASS&quot;: &quot;rest_framework.pagination.PageNumberPagination&quot;,    &quot;PAGE_SIZE&quot;: 10,&#125;
-全局设置无法让用户传入 page_size 参数
-class HotItemView(ListAPIView):    serializer_class = HotItemSerializer    def get_queryset(self):        queryset = HotItem.objects.all()        source = self.request.GET.get(&quot;source&quot;, None)        if source:            queryset = queryset.filter(source=source).order_by(                &quot;rank&quot;            )  # 不赋值是不会修改queryset的        return queryset
-用了全局分页器，View 这边也不用写 pagination_class
-npm 添加自定义命令
-package.json
-&quot;scripts&quot;: &#123;    &quot;build&quot;: &quot;hexo generate&quot;,    &quot;clean&quot;: &quot;hexo clean&quot;,    &quot;deploy&quot;: &quot;hexo deploy&quot;,    &quot;server&quot;: &quot;hexo server&quot;,    &quot;cgd&quot;: &quot;hexo clean &amp; hexo g &amp; hexo d&quot;  &#125;,
-执行命令的方法就是 npm run cgd
-设置路径别名
-vite.config.ts
-import &#123; defineConfig &#125; from &quot;vite&quot;;import vue from &quot;@vitejs/plugin-vue&quot;;import tailwindcss from &quot;@tailwindcss/vite&quot;;import path from &quot;path&quot;;// https://vite.dev/config/export default defineConfig(&#123;  plugins: [vue(), tailwindcss()],  resolve: &#123;    alias: &#123;      &quot;@&quot;: path.resolve(__dirname, &quot;./src&quot;),    &#125;,  &#125;,&#125;);
-前端调用@的时候可能会报错，不要管
-tsconfig.app.json
-&quot;baseUrl&quot;: &quot;.&quot;,&quot;paths&quot;: &#123;    &quot;@/*&quot;: [&quot;src/*&quot;]&#125;
-在这个文件的 compilerOptions 里面也添加上这两项
-节流函数
-手写版本
-// 快速点击下一页的时候，会导致页码和实际内容不同步，这时候需要利用节流来限制短时间内频繁操作的行为export const useThrottle = (fn: Function, delay: number = 300) =&gt; &#123;  let last = 0;  return (...args: any[]) =&gt; &#123;    const now = Date.now();    if (now - last &gt;= delay) &#123;      last = now;      return fn(...args);    &#125;  &#125;;&#125;;
-节流就是为了防止短时间内多次进行同一操作，设置了每次操作的时间间隔
-composable
-composable
-指一些可以复用的逻辑，比如防抖节流这些（不过通常不会手写），存在/src/composables
-里面
-记录一个 bug
-在组件渲染出来之前，你去找这个 HTML 元素，它可能是 null，我通过
-setTimeout 延时了 500ms，发现同样的逻辑能找到这个 button
-]]></content>
-      <tags>
-        <tag>系统存储</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>hexo部署博客注意事项</title>
-    <url>/2025/10/20/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
-    <content><![CDATA[部署命令
-清理之前生成的缓存文件和静态文件
-$ hexo clean
-静态文件包括以下两个文件：
-
-./public/
-./.deploy_git/
-
-缓存文件则是：
-
-./cache/
-
-本地生成静态文件
-$ hexo g
-本地预览页面
-$ hexo s
-部署页面到github pages服务
-$ hexo d
-主题更换
-主题在**_config.yml**里面更改theme属性
-如果在更改主题之后，发现页面部署失败的话，可能是因为有部分主题使用了Pug模板引擎，而本地项目还没有安装相关插件
-可以通过以下命令安装：
-$ npm install hexo-renderer-pug hexo-renderer-stylus --save
-]]></content>
-      <tags>
-        <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>毕设day2</title>
-    <url>/2026/03/08/%E6%AF%95%E8%AE%BEday2/</url>
-    <content><![CDATA[添加diary的CRUD
-我发现ai给我的程序大部分功能都侧重在ai和画像可视化这些部分,
-但是最基本的日记编写却是十分简陋,
-最开始连查看自己写过的日记的功能都没有,
-现在还没有实现删除自己写过的日记的功能
-要添加CRUD的功能, 日记这边删除了, 不是就这样完事了, 对应的,
-向量数据库那边也要删除相关的记录, 不然画像和日记这两边就会不同步
-我还是修改一下prompt吧, 感觉让ai用颜文字来回答问题还是太癫了,
-到时候也不利于展示
-添加登录系统
-现在这个日记系统的功能基本上都完成了, 针对单个用户来说,
-但是我认为一个web系统应该支持不同的用户登录,
-不然就没有什么太大的实用价值, 接下来就是要修改一下数据库, 添加几个表,
-然后又添加几个接口, 然后再修改一下前端逻辑
-首先这里的认证系统, 依旧是选择简单好用的simple-jwt
-pip install djangorestframework-simplejwt
-清空旧数据：在后端执行 python manage.py flush，因为旧日记没有关联 user_id，会导致列表显示报错。
-居然还有这种操作
+    <title>毕设day3</title>
+    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
+    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
+建议直接设置成一分钟
+感觉加载真的太慢了, 到时候毕业设计怎么搞了,
+是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
+但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
+反而我需要的是即时生成可见的明显效果
+用户的token有效时间太短了, 我给调成一个礼拜了
+艹, 刚才观察了一下趋势分析图的逻辑,
+没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
+那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
+可能要通过一些数学手段来拟合出一条直线,
+然后判断斜率是否在正常范围以内
+这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
+那么这样也能叫做情绪平稳吗
+现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
+一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
+也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
+其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
+在性能好的服务器上面跑又要花大钱
 ]]></content>
       <tags>
         <tag>vue</tag>
         <tag>毕业设计</tag>
-        <tag>chromadb</tag>
       </tags>
   </entry>
   <entry>
@@ -3992,36 +4020,19 @@ system_prompt = f&quot;&quot;&quot;        你是一个拥有超强洞察力的�
 而且在ai studio这里还是免费的
 ]]></content>
       <tags>
-        <tag>django</tag>
         <tag>毕业设计</tag>
+        <tag>django</tag>
         <tag>langchain</tag>
       </tags>
   </entry>
   <entry>
-    <title>毕设day3</title>
-    <url>/2026/03/09/%E6%AF%95%E8%AE%BEday3/</url>
-    <content><![CDATA[ai分析有点太慢了, axios那些超时时间设置成10s, 还是完全不够用,
-建议直接设置成一分钟
-感觉加载真的太慢了, 到时候毕业设计怎么搞了,
-是不是可以加入缓存机制来解决呢, 我感觉确实是可以的,
-但是这只是在生产环境当中是有用的, 如果是为了毕业设计展示的话,
-反而我需要的是即时生成可见的明显效果
-用户的token有效时间太短了, 我给调成一个礼拜了
-艹, 刚才观察了一下趋势分析图的逻辑,
-没想到它的趋势分析居然是通过是否严格单调递增或者下降来判断的,
-那这样几乎在所有的情况下都会显示平稳的, 这显然是不合理的,
-可能要通过一些数学手段来拟合出一条直线,
-然后判断斜率是否在正常范围以内
-这样我就又有一个问题了, 如果持续都是低分的状态, 这样也是一条直线,
-那么这样也能叫做情绪平稳吗
-现在好像是没有什么问题了, 现在要考虑的问题可能是这个项目要不要上线吧,
-一个项目不上线的话, 就没有什么实际应用价值, 但是就是一个毕设而已,
-也没有什么上线的必要, 看到时候报告怎么要求的吧, 如果有要求上线就上,
-其实我是不想上的, 本地跑都这么慢了, 在服务器上面跑不就更慢了,
-在性能好的服务器上面跑又要花大钱
+    <title>毕设day5</title>
+    <url>/2026/03/13/%E6%AF%95%E8%AE%BEday5/</url>
+    <content><![CDATA[chat_with_memory的逻辑就是寻找和问题dist最短的10篇资料，然后再重新针对这个10篇文档计算文档的分数，然后取最高的5篇
+情绪分数的趋势图，好像是取最近的14篇日记，然后趋势的斜率是那最近的3篇，然后(recent[2]
+- recent[0]) / 2就是斜率，听说这个就是最小二乘法计算得到的结果
 ]]></content>
       <tags>
-        <tag>vue</tag>
         <tag>毕业设计</tag>
       </tags>
   </entry>
@@ -4052,35 +4063,6 @@ dist = results[&quot;distances&quot;][0][i] if &quot;distances&quot; in results 
 sim_score = 1.0 / (1.0 + dist)
 这个就是一个向量相似度的一个分数, 首先是距离越小说明越相关,
 所以说明相关程度和dist成反比关系, 分母+1, 是为了防止分母为零
-]]></content>
-      <tags>
-        <tag>毕业设计</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>毕设day5</title>
-    <url>/2026/03/13/%E6%AF%95%E8%AE%BEday5/</url>
-    <content><![CDATA[chat_with_memory的逻辑就是寻找和问题dist最短的10篇资料，然后再重新针对这个10篇文档计算文档的分数，然后取最高的5篇
-情绪分数的趋势图，好像是取最近的14篇日记，然后趋势的斜率是那最近的3篇，然后(recent[2]
-- recent[0]) / 2就是斜率，听说这个就是最小二乘法计算得到的结果
-]]></content>
-      <tags>
-        <tag>毕业设计</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>毕设day6</title>
-    <url>/2026/03/14/%E6%AF%95%E8%AE%BEday6/</url>
-    <content><![CDATA[今天的主要任务就是完成爬取名人日记验证算法可行性
-这里爬的是鲁迅的笔记，刚好有一本书就叫做《鲁迅笔记》，一行一天的格式，内容比较短，但是样本足够多，非常适合拿来做测试样本
-created_at = models.DateTimeField(auto_now_add=True)
-这段代码是创建的时候强制赋值
-import django.utils.timezonecreated_at = models.DateTimeField(default=django.utils.timezone.now, verbose_name=&quot;创建时间&quot;)
-这段代码是在这个字段没有提供值的时候才提供一个默认值
-画像这里，我之前开题报告应该是说到有四个维度，但是我尝试过很多个账号，输入不同的日记，看到的通常只有两个维度，这里我修改一下services.py的ProfileService
-之前老师一直跟我强调用户输入这个问题，看来这个爬取微博博文这个功能是不做不行了，所以现在呢，我打算搞一个微博登录的功能，然后登录之后能够根据微博对应账号的博文，加载到这个日记系统里面
-为了模拟这个从微博爬取数据的功能的，如果要通过微博授权登录的话，这个是不现实的，因为这个要在微博开发平台那边注册，另外一个思路就是从公开的网站去直接拿公开资料，比如名人的微博主页是公开的，我可以拿到名人的UID，但是呢，如果这个功能做成一个接口的话，就是要自动化去访问对应UID的主页，但是没想到连看个主页都要先登录，所以被拦截的，要跳过拦截的话，复制我自己的cookie是个方法，但是后续如果要上线的话，不能让大家都用我的cookie吧，其实我还是倾向于不要上线的，所以也许应该跟导师沟通一下
-现在微博能根据UID爬取了，日记也能标记来源了，但是时间没能和微博那边同步，有点难搞，不强求了，反正我的趋势图是根据最近的时间排序，也就是相对顺序，又不是绝对的，就算时间准确了也没有用，只要顺序对了就行
 ]]></content>
       <tags>
         <tag>毕业设计</tag>
@@ -4405,6 +4387,35 @@ ctrl+A，然后f9，可以更新目录和引用
       </tags>
   </entry>
   <entry>
+    <title>毕设day6</title>
+    <url>/2026/03/14/%E6%AF%95%E8%AE%BEday6/</url>
+    <content><![CDATA[今天的主要任务就是完成爬取名人日记验证算法可行性
+这里爬的是鲁迅的笔记，刚好有一本书就叫做《鲁迅笔记》，一行一天的格式，内容比较短，但是样本足够多，非常适合拿来做测试样本
+created_at = models.DateTimeField(auto_now_add=True)
+这段代码是创建的时候强制赋值
+import django.utils.timezonecreated_at = models.DateTimeField(default=django.utils.timezone.now, verbose_name=&quot;创建时间&quot;)
+这段代码是在这个字段没有提供值的时候才提供一个默认值
+画像这里，我之前开题报告应该是说到有四个维度，但是我尝试过很多个账号，输入不同的日记，看到的通常只有两个维度，这里我修改一下services.py的ProfileService
+之前老师一直跟我强调用户输入这个问题，看来这个爬取微博博文这个功能是不做不行了，所以现在呢，我打算搞一个微博登录的功能，然后登录之后能够根据微博对应账号的博文，加载到这个日记系统里面
+为了模拟这个从微博爬取数据的功能的，如果要通过微博授权登录的话，这个是不现实的，因为这个要在微博开发平台那边注册，另外一个思路就是从公开的网站去直接拿公开资料，比如名人的微博主页是公开的，我可以拿到名人的UID，但是呢，如果这个功能做成一个接口的话，就是要自动化去访问对应UID的主页，但是没想到连看个主页都要先登录，所以被拦截的，要跳过拦截的话，复制我自己的cookie是个方法，但是后续如果要上线的话，不能让大家都用我的cookie吧，其实我还是倾向于不要上线的，所以也许应该跟导师沟通一下
+现在微博能根据UID爬取了，日记也能标记来源了，但是时间没能和微博那边同步，有点难搞，不强求了，反正我的趋势图是根据最近的时间排序，也就是相对顺序，又不是绝对的，就算时间准确了也没有用，只要顺序对了就行
+]]></content>
+      <tags>
+        <tag>毕业设计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>电脑端微信图片加载慢的解决方法</title>
+    <url>/2026/03/21/%E7%94%B5%E8%84%91%E7%AB%AF%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[WIN11系统：在系统的“设置”-“网络和Internet”-“高级网络设置”里选择网卡的“更多适配器选项”，将“Internet协议版本6(TCP/IPv6)”复选框取消勾选并点击确定。
+选择连接的wifi的那个“更多适配器选项”就行
+]]></content>
+      <tags>
+        <tag>电脑问题</tag>
+        <tag>网络配置</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>毕设课题备选</title>
     <url>/2025/11/05/%E6%AF%95%E8%AE%BE%E8%AF%BE%E9%A2%98%E5%A4%87%E9%80%89/</url>
     <content><![CDATA[简单
@@ -4446,17 +4457,6 @@ UI 和交互。
 ]]></content>
       <tags>
         <tag>毕设</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>电脑端微信图片加载慢的解决方法</title>
-    <url>/2026/03/21/%E7%94%B5%E8%84%91%E7%AB%AF%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[WIN11系统：在系统的“设置”-“网络和Internet”-“高级网络设置”里选择网卡的“更多适配器选项”，将“Internet协议版本6(TCP/IPv6)”复选框取消勾选并点击确定。
-选择连接的wifi的那个“更多适配器选项”就行
-]]></content>
-      <tags>
-        <tag>电脑问题</tag>
-        <tag>网络配置</tag>
       </tags>
   </entry>
   <entry>
@@ -4541,7 +4541,10 @@ npm install pinia-plugin-persistedstate
   <entry>
     <title>错题集</title>
     <url>/2026/03/25/%E9%94%99%E9%A2%98%E9%9B%86/</url>
-    <content><![CDATA[https://ac.nowcoder.com/acm/contest/133523/C
+    <content><![CDATA[https://codeforces.com/contest/2226/problem/C
+从大到小去处理就可以，但是完全不会证明
+#include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define vt vector#define sz(x) int(x.size())#define rg(x, l, r) x.begin() + l, x.begin() + r + 1#define all(x) x.begin(), x.end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define ts cerr &lt;&lt; &quot;line: &quot; &lt;&lt; __LINE__ &lt;&lt; endl#else#define db(x) 114514#define el 1919810#define ts 42#endifvoid solve()&#123;    int n;    cin&gt;&gt;n;    vt&lt;int&gt; a(n+5);    for(int i=1;i&lt;=n;i++)    &#123;        cin&gt;&gt;a[i];    &#125;    int lo=0,hi=n;    auto check=[&amp;](int mid)-&gt;bool    &#123;        multiset&lt;int&gt; ms;        for(int i=1;i&lt;=n;i++)        &#123;            ms.insert(a[i]);        &#125;        int mex=mid-1;        while(mex&gt;=0)        &#123;            if(ms.count(mex))            &#123;                auto it=ms.find(mex);                ms.erase(it);                mex--;                continue;            &#125;            auto it=ms.upper_bound(2*mex);            if(it!=ms.end())            &#123;                ms.erase(it);                mex--;                continue;            &#125;            return false;        &#125;        return true;    &#125;;    int ans=0;    while(lo&lt;=hi)    &#123;        int mid=(lo+hi)/2;        if(check(mid))        &#123;            lo=mid+1;            ans=mid;        &#125;        else hi=mid-1;    &#125;    cout&lt;&lt;ans&lt;&lt;&quot;\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin&gt;&gt;tt;    while(tt--) solve();    return 0;&#125;
+https://ac.nowcoder.com/acm/contest/133523/C
 贪心去匹配就好，证明不好证，但是去想的话，发现确实只能这么干了
 #include &lt;bits/stdc++.h&gt;using namespace std;using ll = long long;#define sz(x) int((x).size())#define vt vector#define rg(x, l, r) (x).begin() + 1, (x).begin() + r + 1#define all(x) (x).begin(), (x).end()#ifdef LOCAL#define db(x) cerr &lt;&lt; #x &lt;&lt; &quot; = &quot; &lt;&lt; (x) &lt;&lt; &quot; &quot;#define el cerr &lt;&lt; endl#define ts cerr &lt;&lt; &quot;line: &quot; &lt;&lt; __LINE__ &lt;&lt; endl#else#define db(x) 114514#define el 1919810#define ts 42#endifvoid solve() &#123;    string s;    cin &gt;&gt; s;    int l = 0, r = sz(s) - 1;    while (l &lt; r) &#123;        if (s[l] == s[r]) &#123;            l++, r--;            continue;        &#125;        if (s[l] == &#x27;n&#x27; &amp;&amp; s[r] == &#x27;m&#x27;) &#123;            if (l + 1 &lt; r &amp;&amp; s[l + 1] == &#x27;n&#x27;) &#123;                l += 2;                r--;                continue;            &#125; else &#123;                cout &lt;&lt; &quot;NO\n&quot;;                return;            &#125;        &#125;        if (s[r] == &#x27;n&#x27; &amp;&amp; s[l] == &#x27;m&#x27;) &#123;            if (r - 1 &gt; l &amp;&amp; s[r - 1] == &#x27;n&#x27;) &#123;                l++;                r -= 2;                continue;            &#125; else &#123;                cout &lt;&lt; &quot;NO\n&quot;;                return;            &#125;        &#125;    &#125;    cout &lt;&lt; &quot;YES\n&quot;;&#125;int main() &#123;    ios::sync_with_stdio(false);    cin.tie(nullptr);    int tt;    cin &gt;&gt; tt;    while (tt--) &#123;        solve();    &#125;    return 0;&#125;
 https://codeforces.com/contest/2222/problem/C
